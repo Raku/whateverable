@@ -19,13 +19,15 @@ else
     exit 0
 fi
 
-git_orig=('git' '--git-dir' "$RAKUDO_LOCATION/.git" '--work-tree' "$RAKUDO_LOCATION")
-
 if [[ -d $RAKUDO_LOCATION ]]; then
-    "${git_orig[@]}" pull
+    pushd -- "$RAKUDO_LOCATION" || exit 1
+    git pull
+    popd
 else
     git clone -- "$RAKUDO_ORIGIN" "$RAKUDO_LOCATION"
 fi
+
+git_orig=('git' '--git-dir' "$RAKUDO_LOCATION/.git" '--work-tree' "$RAKUDO_LOCATION")
 
 # you can change v6.c...HEAD to something else
 "${git_orig[@]}" log -z --pretty='%H' v6.c...HEAD \
