@@ -71,6 +71,9 @@ sub said {
 
     return "$message->{who}: $result";
   }
+  if ($message->{body} eq 'source') {
+    return 'https://github.com/perl6/bisectbot';
+  }
 }
 
 sub help {
