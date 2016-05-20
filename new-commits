@@ -1,0 +1,24 @@
+#!/bin/bash
+export WORKING_DIRECTORY='.' # TODO not supported yet
+export RAKUDO_LOCATION="$WORKING_DIRECTORY/rakudo"
+RAKUDO_ORIGIN='https://github.com/rakudo/rakudo.git'
+TEST_LOCK="$WORKING_DIRECTORY/lock"
+PARALLEL_COUNT=7
+
+clean() {
+    while popd &> /dev/null; do :; done # change directory back
+    rmdir -- "$TEST_LOCK"
+}
+
+if mkdir -p -- "$TEST_LOCK"; then # only one instance running
+    trap clean EXIT
+else
+    exit 0
+fi
+
+[[ -d $RAKUDO_LOCATION ]] || git clone -- "$RAKUDO_ORIGIN" "$RAKUDO_LOCATION"
+
+git_orig=('git' '--git-dir' "$RAKUDO_LOCATION/.git" '--work-tree' "$RAKUDO_LOCATION")
+
+"${git_orig[@]}" log -z --pretty='%H' v6.c...HEAD \
+    | xargs -0 -n 1 -P "$PARALLEL_COUNT" ./process-sha

@@ -1,0 +1,24 @@
+#!/bin/bash
+LOGS_LOCATION="$WORKING_DIRECTORY/logs"
+BUILDS_LOCATION="$WORKING_DIRECTORY/builds"
+
+sha=$1
+[[ -d "$BUILDS_LOCATION/$sha" ]] && exit 0 # already exists
+temp_folder=$(mktemp -d)
+build_path=$(realpath -m "$BUILDS_LOCATION/$sha")
+log_path=$(realpath -m "$LOGS_LOCATION/$sha")
+git_temp=('git' '--git-dir' "$temp_folder/.git" '--work-tree' "$temp_folder")
+git clone -q -- "$RAKUDO_LOCATION" "$temp_folder"
+"${git_temp[@]}" reset -q --hard "$sha"
+mkdir -p "$build_path"
+mkdir -p "$log_path"
+pushd -- "$temp_folder" || exit 1
+echo "$sha: configure"
+perl -- Configure.pl --gen-moar --gen-nqp --backends=moar \
+     --prefix="$build_path" &> "$log_path/configure.log"
+popd
+echo "$sha: make"
+make -C "$temp_folder"         &> "$log_path/make.log"
+echo "$sha: make install"
+make -C "$temp_folder" install &> "$log_path/install.log"
+rm -rf -- "$temp_folder"

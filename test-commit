@@ -1,0 +1,10 @@
+#!/bin/bash
+builds=$1
+code_file=$2
+current_commit=$(git rev-parse HEAD)
+perl6="$builds/$current_commit/bin/perl6"
+
+[[ -e $perl6 ]] || exit 125 # skip failed builds
+
+"$perl6" --setting=RESTRICTED -- "$code_file"
+exit $?
