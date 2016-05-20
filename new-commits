@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# This script will build rakudo for all commits that it can find
+
 export WORKING_DIRECTORY='.' # TODO not supported yet
 export RAKUDO_LOCATION="$WORKING_DIRECTORY/rakudo"
 RAKUDO_ORIGIN='https://github.com/rakudo/rakudo.git'

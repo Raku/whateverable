@@ -1,8 +1,11 @@
 #!/bin/bash
+
+# This script creates a build for one specific commit
+sha=$1
+
 LOGS_LOCATION="$WORKING_DIRECTORY/logs"
 BUILDS_LOCATION="$WORKING_DIRECTORY/builds"
 
-sha=$1
 [[ -d "$BUILDS_LOCATION/$sha" ]] && exit 0 # already exists
 temp_folder=$(mktemp -d)
 build_path=$(realpath -m "$BUILDS_LOCATION/$sha")
