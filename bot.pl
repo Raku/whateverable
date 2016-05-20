@@ -34,7 +34,7 @@ my $commit_tester = abs_path './test-commit';
 
 sub said {
   my ($self, $message) = @_;
-  if ($message->{body} =~ /bisect:
+  if ($message->{body} =~ /^bisect:
                            (?:
                              (?: \s+ good (?: \s+ | \s*=\s*) ([\w\d.-]+) )
                              (?: \s+ bad  (?: \s+ | \s*=\s*) ([\w\d.-]+) )?
