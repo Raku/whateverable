@@ -13,7 +13,7 @@ Currently ``AlexDaniel`` is maintaining it.
 
 ```
 <moritz> bisect: try { NaN.Rat == NaN; exit 0 }; exit 1
-<bisectable> moritz: (2016-05-02) https://github.com/rakudo/rakudo/commit/949a7c7
+<bisectable> moritz: (2016-05-02) https://github.com/rakudo/rakudo/commit/e2f1fa7
 ```
 
 ```

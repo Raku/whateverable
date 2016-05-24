@@ -66,7 +66,7 @@ sub said {
     system('git', 'bisect', 'good', $good);
     system('git', 'bisect', 'bad',  $bad);
     system('git', 'bisect', 'run',  $commit_tester, $builds, $filename);
-    my $result = `git log -n 1 --date=short --pretty='(%cd) $link/%h'`;
+    my $result = `git show --quiet --date=short --pretty='(%cd) $link/%h' bisect/bad`;
     chdir($oldDir);
 
     return "$message->{who}: $result";
