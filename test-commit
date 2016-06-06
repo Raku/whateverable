@@ -6,5 +6,28 @@ perl6="$builds/$current_commit/bin/perl6"
 
 [[ -e $perl6 ]] || exit 125 # skip failed builds
 
-"$perl6" --setting=RESTRICTED -- "$code_file"
-exit $?
+# plain bisect
+if (( $# < 3 )); then
+    "$perl6" --setting=RESTRICTED -- "$code_file"
+    exit $?
+fi
+
+# inverted exit code
+if [[ $3 =~ ^[0-9]+$ ]]; then # invert exit code
+    "$perl6" --setting=RESTRICTED -- "$code_file"
+    exit_code=$?
+    if (( $exit_code == $3 )); then
+        exit 0
+    else
+        exit $(( $exit_code == 0 ? 1 : $exit_code ))
+    fi
+fi
+
+# compare the output
+output=$("$perl6" --setting=RESTRICTED -- "$code_file" 2>&1)
+output_good=$(<"$3")
+if [[ $output == "$output_good" ]]; then
+    exit 0
+else
+    exit 1
+fi
