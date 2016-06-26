@@ -72,6 +72,7 @@ sub said {
     my $good = $1 // $4 // '2015.12';
     my $bad  = $2 // $3 // 'HEAD';
     my $code = $5;
+    $code =~ s/␤/\n/g;
 
     my ($fh, $filename) = tempfile(UNLINK => 1);
     binmode $fh, ':encoding(UTF-8)';
