@@ -61,7 +61,6 @@ sub said {
   }
 
   my $start = defined $message->{address} ? '' : 'bisect:';
-  say $start;
   if ($message->{body} =~ /^ $start \s*
                            (?:
                              (?: good (?: \s*=\s* | \s+) ([^\s]+) \s+ )
