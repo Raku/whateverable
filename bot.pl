@@ -55,20 +55,29 @@ sub to_commit {
 
 sub said {
   my ($self, $message) = @_;
-  if ($message->{body} =~ /^bisect:
+
+  if ($message->{body} eq 'source') {
+    return 'https://github.com/perl6/bisectbot';
+  }
+
+  my $start = defined $message->{address} ? '' : 'bisect:';
+  say $start;
+  if ($message->{body} =~ /^ $start \s*
                            (?:
-                             (?: \s+ good (?: \s*=\s* | \s+) ([^\s]+) )
-                             (?: \s+ bad  (?: \s*=\s* | \s+) ([^\s]+) )?
+                             (?: good (?: \s*=\s* | \s+) ([^\s]+) \s+ )
+                             (?: bad  (?: \s*=\s* | \s+) ([^\s]+) \s+ )?
                            |
-                             (?: \s+ bad  (?: \s*=\s* | \s+) ([^\s]+) )?
-                             (?: \s+ good (?: \s*=\s* | \s+) ([^\s]+) )?
+                             (?: bad  (?: \s*=\s* | \s+) ([^\s]+) \s+ )?
+                             (?: good (?: \s*=\s* | \s+) ([^\s]+) \s+ )?
                            )
                            (*PRUNE)
-                           \s+ (.+)
+                           (.+)
                           /xu) {
-    if (defined $message->{address}) {
+    if ($message->{address} eq 'msg') {
       return 'Sorry, it is too private here';
     }
+    my $answer_start = $message->{address} ? '' : "$message->{who}: ";
+
     my $good = $1 // $4 // '2015.12';
     my $bad  = $2 // $3 // 'HEAD';
     my $code = $5;
@@ -86,28 +95,28 @@ sub said {
     chdir($rakudo);
     $good = to_commit($good);
     chdir($oldDir);
-    return "$message->{who}: cannot find such “good” revision" unless defined $good;
-    return "$message->{who}: no build for such “good” revision" if ! -e "$builds/$good/bin/perl6";
+    return "${answer_start}cannot find such “good” revision" unless defined $good;
+    return "${answer_start}no build for such “good” revision" if ! -e "$builds/$good/bin/perl6";
     chdir($rakudo);
     $bad = to_commit($bad);
     chdir($oldDir);
-    return "$message->{who}: cannot find such “bad” revision"  unless defined $bad;
+    return "${answer_start}cannot find such “bad” revision" unless defined $bad;
     if (! -e "$builds/$bad/bin/perl6" and -e $build_lock) {
       # TODO fix the problem when it is building new commits
-      return "$message->{who}: no build for such “bad” revision. Right now the build process is in action, please try again later or specify some older “bad” commit (e.g. bad=HEAD~40)";
+      return "${answer_start}no build for such “bad” revision. Right now the build process is in action, please try again later or specify some older “bad” commit (e.g. bad=HEAD~40)";
     }
-    return "$message->{who}: no build for such “bad” revision" if ! -e "$builds/$bad/bin/perl6";
+    return "${answer_start}no build for such “bad” revision" if ! -e "$builds/$bad/bin/perl6";
 
     my ($out_good, $exit_good) = get_output("$builds/$good/bin/perl6", $filename);
     my ($out_bad,  $exit_bad)  = get_output("$builds/$bad/bin/perl6",  $filename);
     if ($exit_good == $exit_bad and $out_good eq $out_bad) {
-      return "$message->{who}: on both starting points the exit code is $exit_bad and the output is identical as well";
+      return "${answer_start}on both starting points the exit code is $exit_bad and the output is identical as well";
     }
     my $output_file = '';
     if ($exit_good == $exit_bad) {
       $self->say(
         channel => $message->{channel},
-        body => "$message->{who}: exit code is $exit_bad on both starting points, bisecting by using the output",
+        body => "${answer_start}exit code is $exit_bad on both starting points, bisecting by using the output",
           );
       (my $fh, $output_file) = tempfile(UNLINK => 1);
       print $fh $out_good;
@@ -116,7 +125,7 @@ sub said {
     if ($exit_good != $exit_bad and $exit_good != 0) {
       $self->say(
         channel => $message->{channel},
-        body => "$message->{who}: exit code on a “good” revision is $exit_good (which is bad), bisecting with inverted logic",
+        body => "${answer_start}exit code on a “good” revision is $exit_good (which is bad), bisecting with inverted logic",
           );
     }
 
@@ -139,14 +148,11 @@ sub said {
     }
     if ($bisect_status != 0) {
       chdir($oldDir);
-      return "$message->{who}: “bisect run” failure";
+      return "${answer_start}“bisect run” failure";
     }
     my ($result) = get_output('git', 'show', '--quiet', '--date=short', "--pretty=(%cd) $link/%h", 'bisect/bad');
     chdir($oldDir);
-    return "$message->{who}: $result";
-  }
-  if ($message->{body} eq 'source') {
-    return 'https://github.com/perl6/bisectbot';
+    return "${answer_start}$result";
   }
 }
 
