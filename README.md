@@ -65,7 +65,7 @@ More examples:
 ```
 
 ```
-<AlexDaniel> bisectabletest: http://github.org/sntoheausnteoahuseoau
+<AlexDaniel> bisectable: http://github.org/sntoheausnteoahuseoau
 <bisectable> AlexDaniel: it looks like an URL but for some reason I cannot download it (HTTP status-code is 404)
 ```
 
