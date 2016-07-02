@@ -72,7 +72,7 @@ sub said {
                            (*PRUNE)
                            (.+)
                           /xu) {
-    if ($message->{address} eq 'msg') {
+    if (defined $message->{address} and $message->{address} eq 'msg') {
       return 'Sorry, it is too private here';
     }
     my $answer_start = $message->{address} ? '' : "$message->{who}: ";
