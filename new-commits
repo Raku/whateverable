@@ -13,7 +13,7 @@ clean() {
     rmdir -- "$BUILD_LOCK"
 }
 
-if mkdir -p -- "$BUILD_LOCK"; then # only one instance running
+if mkdir -- "$BUILD_LOCK" &> /dev/null; then # only one instance running
     trap clean EXIT
 else
     exit 0
