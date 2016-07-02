@@ -27,6 +27,8 @@ use File::Temp qw( tempfile tempdir );
 use Cwd qw(cwd abs_path);
 use IO::Handle;
 use IPC::Open3;
+use HTTP::Tiny;
+use Encode qw/decode_utf8/;
 
 my $link          = 'https://github.com/rakudo/rakudo/commit';
 my $rakudo        = './rakudo';
@@ -80,7 +82,24 @@ sub said {
     my $good = $1 // $4 // '2015.12';
     my $bad  = $2 // $3 // 'HEAD';
     my $code = $5;
-    $code =~ s/␤/\n/g;
+    if ($code =~ m{ ^https?:// }x ) {
+      my $response = HTTP::Tiny->new->get($code); # $code is actually an url
+      if (not $response->{success}) {
+        return "${answer_start}it looks like an URL but for some reason I cannot download it"
+            . " (HTTP status-code is $response->{status})";
+      }
+      if ($response->{headers}->{'content-type'} ne 'text/plain; charset=utf-8') {
+        return "${answer_start}it looks like an URL, but mime type is “$response->{headers}->{'content-type'}”"
+            . ' while I was expecting “text/plain; charset=utf-8”. I can only understand raw links, sorry.';
+      }
+      $code = decode_utf8 $response->{content};
+      $self->say(
+        channel => $message->{channel},
+        body => "${answer_start}successfully fetched the code from the provided URL",
+          );
+    } else {
+      $code =~ s/␤/\n/g;
+    }
 
     my ($fh, $filename) = tempfile(UNLINK => 1);
     binmode $fh, ':encoding(UTF-8)';
