@@ -30,5 +30,5 @@ fi
 git_orig=('git' '--git-dir' "$RAKUDO_LOCATION/.git" '--work-tree' "$RAKUDO_LOCATION")
 
 # you can change 2015.12^..HEAD to something else
-"${git_orig[@]}" log -z --pretty='%H' 2015.12^..HEAD \
+"${git_orig[@]}" log -z --pretty='%H' 2015.10^..HEAD \
     | xargs -0 -n 1 -P "$PARALLEL_COUNT" ./process-sha
