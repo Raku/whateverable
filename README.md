@@ -77,6 +77,18 @@ More examples:
 
 Defaults to ``good=2015.12`` and ``bad=HEAD``.
 
+# commitbot
+IRC bot to run code at a given commit of Rakudo
+
+This bot runs as ``committable`` on ``#perl6-dev``.
+Currently ``AlexDaniel`` and ``MasterDuke`` are maintaining it.
+
+## Usage examples
+```
+<MasterDuke> committable: f583f22 say $*PERL.compiler.version
+<committable> MasterDuke: v2016.06.183.gf.583.f.22
+```
+
 ## Installation
 Run ``new-commits`` script periodically to process new commits.
 Basically, that's it.
