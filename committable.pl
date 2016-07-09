@@ -111,6 +111,7 @@ sub said {
     chdir($rakudo);
 
     my ($out,  $exit)  = get_output("$builds/$full_commit/bin/perl6",  $filename);
+    $out =~ s/\n/␤/g;
     my $reply = $exit == 0 ? $out : "exit code = $exit: $out";
     $self->say(
       channel => $message->{channel},
