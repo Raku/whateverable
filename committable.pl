@@ -111,15 +111,11 @@ sub said {
     chdir($rakudo);
 
     my ($out,  $exit)  = get_output("$builds/$full_commit/bin/perl6",  $filename);
-    if ($exit == 0) {
-      $self->say(
-        channel => $message->{channel},
-        body => "${answer_start}$out",
-          );
-    } else {
-      chdir($oldDir);
-      return "${answer_start}failure";
-    }
+    my $reply = $exit == 0 ? $out : "exit code = $exit: $out";
+    $self->say(
+      channel => $message->{channel},
+      body => "${answer_start}$reply",
+        );
   }
 }
 
