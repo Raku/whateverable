@@ -65,7 +65,7 @@ sub said {
 
   my $start = defined $message->{address} ? '' : 'committable:';
   if ($message->{body} =~ /^ $start \s*
-                           ([a-f0-9]{7,40})
+                           ([^\s]+)
                            \s+
                            (.+)
                           /xu) {
