@@ -113,7 +113,7 @@ sub said {
       push @full_commits, $full_commit if defined $full_commit;
     }
 
-	my %times;
+    my %times;
     for my $full_commit (@full_commits) {
       for (1..5) {
         my ($out,  $exit)  = get_output("TIMEFORMAT=%R && time $builds/$full_commit/bin/perl6 $filename");
@@ -124,7 +124,7 @@ sub said {
 
     $self->say(
       channel => $message->{channel},
-      body => ${answer_start} . join(' ', map { substr($_, 0, 7) . "=$times{$_}" } sort { $times{$a} <=> $times{$b} } keys %times),
+      body => $answer_start . join(' ', map { substr($_, 0, 7) . "=$times{$_}" } sort { $times{$a} <=> $times{$b} } keys %times),
         );
   }
 }
