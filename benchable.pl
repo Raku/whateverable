@@ -21,12 +21,13 @@ use strict;
 use warnings;
 use utf8;
 
-package Committable;
+package Benchable;
 use parent 'Perl6IRCBotable';
 
 use Cwd qw(cwd abs_path);
+use List::Util qw(min);
 
-my $name = 'committable';
+my $name = 'benchable';
 
 sub process_message {
   my ($self, $message, $body) = @_;
@@ -39,6 +40,7 @@ sub process_message {
 
     my $filename = $self->write_code($code);
 
+    my %times;
     for my $commit (@commits) {
       # convert to real ids so we can look up the builds
       my $full_commit = $self->to_full_commit($commit);
@@ -49,32 +51,36 @@ sub process_message {
 
       my $old_dir = cwd();
       chdir $self->RAKUDO;
-      my ($out, $exit, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
-      chdir $old_dir;
-      $out =~ s/\n/␤/g if (defined $out);
 
-      $response .= "$commit: " . ($out // '') . " ";
-      $response .= " exit code = $exit" if ($exit != 0);
+      for (1..5) {
+        my ($out, $exit, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+        push @{$times{$commit}}, $time if ($exit == 0);
+      }
+      $times{$commit} = min(@{$times{$commit}});
+
+      chdir $old_dir;
     }
+
+    $response .= join(' ', map { "$_=$times{$_}" } @commits);
   } else {
-    $response = help();
+    return help();
   }
 
   return $response;
 }
 
 sub help {
-  "Like this: $name: f583f22,HEAD say 'hello'; say 'world'";
+  'Like this: ' . $name . ': f583f22,110704d my $a = "a" x 2**16;for ^100000 {my $b = $a.chop($_)}'
 }
 
-Committable->new(
+Benchable->new(
   server      => 'irc.freenode.net',
   port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
-  alt_nicks   => [$name . '2', $name . '3', 'commit'],
+  alt_nicks   => [$name . '2', $name . '3', 'bench'],
   username    => ucfirst $name,
-  name        => 'Run code with a specific revision of Rakudo',
+  name        => 'Time code with specific revisions of Rakudo',
   ignore_list => [],
     )->run();
 
