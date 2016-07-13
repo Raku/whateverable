@@ -32,7 +32,6 @@ my $name = 'benchable';
 sub process_message {
   my ($self, $message, $body) = @_;
 
-  my %times;
   my $response = '';
 
   if ($body =~ /^ \s* (\S+) \s+ (.+) /xu) {
@@ -41,6 +40,7 @@ sub process_message {
 
     my $filename = $self->write_code($code);
 
+    my %times;
     for my $commit (@commits) {
       # convert to real ids so we can look up the builds
       my $full_commit = $self->to_full_commit($commit);
@@ -54,17 +54,18 @@ sub process_message {
 
       for (1..5) {
         my ($out, $exit, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
-        push @{$times{$full_commit}}, $time if ($exit == 0);
+        push @{$times{$commit}}, $time if ($exit == 0);
       }
-      $times{$full_commit} = min(@{$times{$full_commit}});
+      $times{$commit} = min(@{$times{$commit}});
 
       chdir $old_dir;
     }
+
+    $response .= join(' ', map { "$_=$times{$_}" } @commits);
   } else {
     return help();
   }
 
-  $response .= join(' ', map { substr($_, 0, 7) . "=$times{$_}" } sort { $times{$a} <=> $times{$b} } keys %times);
   return $response;
 }
 
@@ -77,7 +78,7 @@ Benchable->new(
   port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
-  alt_nicks   => [$name . '2', $name . '3'],
+  alt_nicks   => [$name . '2', $name . '3', 'bench'],
   username    => ucfirst $name,
   name        => 'Time code with specific revisions of Rakudo',
   ignore_list => [],
