@@ -59,7 +59,8 @@ sub to_full_commit {
 
   my $old_dir = cwd();
   chdir RAKUDO;
-  my ($result, $exit_status, $time) = $self->get_output('git', 'rev-parse', '--verify', $commit);
+  return if system('git', 'rev-parse', '--verify', $commit) != 0; # make sure that $commit is valid
+  my ($result, $exit_status, $time) = $self->get_output('git', 'rev-list', '-1', $commit); # use rev-list to handle tags
   chdir $old_dir;
 
   return if $exit_status != 0;
