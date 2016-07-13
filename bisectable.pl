@@ -54,27 +54,35 @@ sub process_message {
     # convert to real ids so we can look up the builds
     my $full_good = $self->to_full_commit($good);
     return "Cannot find 'good' revision" unless defined $full_good;
-    say $self->BUILDS . "/$full_good/bin/perl6";
-    return "No build for 'good' revision" if ! -e $self->BUILDS . "/$full_good/bin/perl6";
 
-    if (! -e $self->BUILDS . "/$full_good/bin/perl6" and -e $build_lock) {
-      # TODO fix the problem when it is building new commits
-      return "No build for 'good' revision. Right now the build process is in action, please try again later or specify some older 'good' commit (e.g., good=HEAD~10)";
+    if (! -e $self->BUILDS . "/$full_good/bin/perl6") {
+      if (-e $build_lock) {
+        # TODO fix the problem when it is building new commits
+        return "No build for 'good' revision. Right now the build process is in action, please try again later or specify some older 'good' commit (e.g., good=HEAD~10)";
+      } else {
+        return "No build for 'good' revision";
+      }
     }
 
     my $full_bad = $self->to_full_commit($bad);
-    return "Cannot find 'good' revision" unless defined $full_bad;
-    return "No build for 'good' revision" if ! -e $self->BUILDS . "/$full_bad/bin/perl6";
+    return "Cannot find 'bad' revision" unless defined $full_bad;
 
-    if (! -e $self->BUILDS . "/$full_bad/bin/perl6" and -e $build_lock) {
-      # TODO fix the problem when it is building new commits
-      return "No build for 'bad' revision. Right now the build process is in action, please try again later or specify some older 'bad' commit (e.g., bad=HEAD~40)";
+    if (! -e $self->BUILDS . "/$full_bad/bin/perl6") {
+      if (-e $build_lock) {
+        # TODO fix the problem when it is building new commits
+        return "No build for 'bad' revision. Right now the build process is in action, please try again later or specify some older 'bad' commit (e.g., bad=HEAD~40)";
+      } else {
+        return "No build for 'bad' revision";
+      }
     }
 
     my $filename = $self->write_code($code);
 
-    my ($out_good, $err_good, $exit_good) = $self->get_output($self->BUILDS . "/$full_good/bin/perl6 $filename");
-    my ($out_bad,  $err_bad,  $exit_bad)  = $self->get_output($self->BUILDS . "/$full_bad/bin/perl6 $filename");
+    my $old_dir = cwd();
+    chdir $self->RAKUDO;
+    my ($out_good, $exit_good, $time_good) = $self->get_output($self->BUILDS . "/$full_good/bin/perl6", $filename);
+    my ($out_bad,  $exit_bad,  $time_bad)  = $self->get_output($self->BUILDS . "/$full_bad/bin/perl6",  $filename);
+    chdir $old_dir;
     $out_good //= '';
     $out_bad  //= '';
 

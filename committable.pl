@@ -24,6 +24,8 @@ use utf8;
 package Committable;
 use parent 'Perl6IRCBotable';
 
+use Cwd qw(cwd abs_path);
+
 my $name = 'committable';
 
 sub process_message {
@@ -45,12 +47,14 @@ sub process_message {
         next;
       }
 
-      my ($out, $err, $exit) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6 $filename");
+      my $old_dir = cwd();
+      chdir $self->RAKUDO;
+      my ($out, $exit, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+      chdir $old_dir;
       $out =~ s/\n/␤/g if (defined $out);
-      $err =~ s/\n/␤/g if (defined $err);
 
-      $response .= "$commit: stdout = '" . ($out // '') . "' ";
-      $response .= "exit code = $exit, stderr = '" . ($err // '') . "' " if ($exit != 0);
+      $response .= "$commit: " . ($out // '') . " ";
+      $response .= " exit code = $exit" if ($exit != 0);
     }
   } else {
     $response = help();
@@ -66,7 +70,7 @@ sub help {
 Committable->new(
   server      => '127.0.0.1',
   port        => '6667',
-  channels    => ['#perl6-dev'],
+  channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
   alt_nicks   => [$name . '2', $name . '3'],
   username    => ucfirst $name,

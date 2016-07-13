@@ -30,6 +30,7 @@ use IO::Handle;
 use IPC::Open3;
 use HTTP::Tiny;
 use Encode qw(decode_utf8);
+use Time::HiRes qw(gettimeofday);
 
 use constant RAKUDO => './rakudo';
 use constant BUILDS => abs_path('./builds');
@@ -40,19 +41,17 @@ my $name = 'Perl6IRCBotable';
 sub get_output {
   my $self = shift;
 
-  my $pid = open3(\*IN, \*OUT, \*ERR, '/bin/bash');
-  say IN "@_;exit";
+  my ($s_start, $usec_start) = gettimeofday();
+  my $pid = open3(undef, \*RESULT, \*RESULT, @_);
   waitpid($pid, 0);
+  my ($s_end, $usec_end) = gettimeofday();
 
   my $exit_status = $? >> 8;
 
-  my $out = do { local $/; <OUT> };
+  my $out = do { local $/; <RESULT> };
   chomp $out if defined $out;
 
-  my $err = do { local $/; <ERR> };
-  chomp $err if defined $err;
-
-  return ($out, $err, $exit_status)
+  return ($out, $exit_status, $usec_end - $usec_start)
 }
 
 sub to_full_commit {
@@ -60,7 +59,7 @@ sub to_full_commit {
 
   my $old_dir = cwd();
   chdir RAKUDO;
-  my ($result, $err, $exit_status) = $self->get_output("git rev-parse --verify $commit");
+  my ($result, $exit_status, $time) = $self->get_output('git', 'rev-parse', '--verify', $commit);
   chdir $old_dir;
 
   return if $exit_status != 0;
@@ -78,26 +77,37 @@ sub write_code {
 }
 
 sub process_message {
-  my ($self, $body, $filename) = @_;
+  my ($self, $message, $body) = @_;
 
-  if ($body =~ /^ \s* (\S+) \s+ (.+) /xu) {
-    my $commit = $1;
-    my $code = $2;
+  return;
+}
 
-    # convert to real ids so we can look up the builds
-    my $full_commit = $self->to_full_commit($commit);
-    return "Cannot find such revision" unless defined $full_commit;
+sub process_url {
+  my ($self, $url, $message) = @_;
 
-    my $filename = $self->write_code($code);
-
-    my ($out, $err, $exit) = $self->get_output(BUILDS . "/$full_commit/bin/perl6", $filename);
-    $out =~ s/\n/␤/g if defined $out;
-    $err =~ s/\n/␤/g if defined $err;
-
-    return $exit == 0 ? $out : "exit code = $exit: stdout = '" . $out // '' . "', stderr = '" . $err // '' . "'";
-  } else {
-    return help();
+  my $response = HTTP::Tiny->new->get($url); # $body is actually a url
+  if (not $response->{success}) {
+    return "$message->{who}:It looks like a URL, but for some reason I cannot download it"
+         . " (HTTP status-code is $response->{status})",;
   }
+  if ($response->{headers}->{'content-type'} ne 'text/plain; charset=utf-8') {
+    return "$message->{who}:It looks like a URL, but mime type is '$response->{headers}->{'content-type'}'"
+         . " while I was expecting 'text/plain; charset=utf-8'. I can only understand raw links, sorry.";
+  }
+  my $body = decode_utf8($response->{content});
+  $self->say(
+    channel => $message->{channel},
+    body    => "Successfully fetched the code from the provided URL.",
+    who     => $message->{who},
+      );
+
+  return $body;
+}
+
+sub upload_output {
+  my ($self, $output) = @_;
+
+  return;
 }
 
 sub said {
@@ -115,28 +125,18 @@ sub said {
     return 'Sorry, it is too private here';
   } else {
     if ($body =~ m{ ^https?:// }x ) {
-      my $response = HTTP::Tiny->new->get($body); # $body is actually a url
-      if (not $response->{success}) {
-        return "$message->{who}: it looks like a URL, but for some reason I cannot download it"
-             . " (HTTP status-code is $response->{status})",;
-      }
-      if ($response->{headers}->{'content-type'} ne 'text/plain; charset=utf-8') {
-        return "$message->{who}: it looks like a URL, but mime type is '$response->{headers}->{'content-type'}'"
-             . " while I was expecting 'text/plain; charset=utf-8'. I can only understand raw links, sorry.";
-      }
-      $body = decode_utf8($response->{content});
-      $self->say(
-        channel => $message->{channel},
-        body    => "Successfully fetched the code from the provided URL.",
-        who     => $message->{who},
-          );
+      $body = $self->process_url($body, $message);
+      return $body if ($body =~ / ^$message->{who}: /x);
     } else {
       $body =~ s/␤/\n/g;
     }
 
+    my $response = $self->process_message($message, $body);
+    $response = $self->upload_output($response) if (length $response > 200);
+
     $self->say(
       channel => $message->{channel},
-      body    => $self->process_message($message, $body),
+      body    => $response,
       who     => $message->{who},
         );
   }
