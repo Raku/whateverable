@@ -30,7 +30,7 @@ use IO::Handle;
 use IPC::Open3;
 use HTTP::Tiny;
 use Encode qw(decode_utf8);
-use Time::HiRes qw(gettimeofday);
+use Time::HiRes qw(time);
 
 use constant RAKUDO => './rakudo';
 use constant BUILDS => abs_path('./builds');
@@ -41,17 +41,17 @@ my $name = 'Perl6IRCBotable';
 sub get_output {
   my $self = shift;
 
-  my ($s_start, $usec_start) = gettimeofday();
+  my $s_start = time();
   my $pid = open3(undef, \*RESULT, \*RESULT, @_);
   waitpid($pid, 0);
-  my ($s_end, $usec_end) = gettimeofday();
+  my $s_end = time();
 
   my $exit_status = $? >> 8;
 
   my $out = do { local $/; <RESULT> };
   chomp $out if defined $out;
 
-  return ($out, $exit_status, $usec_end - $usec_start)
+  return ($out, $exit_status, $s_end - $s_start)
 }
 
 sub to_full_commit {
@@ -107,7 +107,7 @@ sub process_url {
 sub upload_output {
   my ($self, $output) = @_;
 
-  return;
+  return $output;
 }
 
 sub said {
@@ -132,7 +132,7 @@ sub said {
     }
 
     my $response = $self->process_message($message, $body);
-    $response = $self->upload_output($response) if (length $response > 200);
+    $response = $self->upload_output($response) if (length $response > 500);
 
     $self->say(
       channel => $message->{channel},
