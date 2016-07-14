@@ -100,6 +100,7 @@ sub process_url {
     channel => $message->{channel},
     body    => "Successfully fetched the code from the provided URL.",
     who     => $message->{who},
+    address => 1,
       );
 
   return (1, $body);
@@ -149,6 +150,7 @@ sub said {
       channel => $message->{channel},
       body    => $response,
       who     => $message->{who},
+      address => 1,
         );
   }
 }
