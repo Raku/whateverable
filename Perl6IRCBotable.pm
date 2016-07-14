@@ -29,11 +29,14 @@ use Cwd qw(cwd abs_path);
 use IO::Handle;
 use IPC::Open3;
 use HTTP::Tiny;
-use Encode qw(decode_utf8);
+use Encode qw(encode_utf8 decode_utf8);
 use Time::HiRes qw(time);
+use Net::GitHub;
+use JSON::XS;
 
 use constant RAKUDO => './rakudo';
 use constant BUILDS => abs_path('./builds');
+use constant CONFIG => './config.json';
 use constant SOURCE => 'https://github.com/perl6/bisectbot';
 
 my $name = 'Perl6IRCBotable';
@@ -123,10 +126,38 @@ sub process_code {
     return (1, $code);
 }
 
-sub upload_output {
-  my ($self, $output) = @_;
+sub get_config {
+  my $config_contents = do {
+    local $/;
+    open my $fh, '<:encoding(UTF-8)', CONFIG or die "No config file found";
+    <$fh>;
+  };
 
-  return $output;
+  my $config = decode_json $config_contents; # TODO do it only once
+  return $config;
+}
+
+sub upload {
+  my ($self, $files) = @_;
+
+  my $config = get_config;
+  my $github = Net::GitHub->new(
+    login => $config->{'login'},
+    access_token => $config->{'access_token'},
+  );
+
+  my $gist = $github->gist;
+
+  my %files_param = map { $_ => { 'content' => encode_utf8($files->{$_}) } } keys %$files; # github format
+
+  my $res = $gist->create(
+    {
+      'description' => "the description for this gist",
+      'public'      => 'true',
+      'files'       => \%files_param,
+    });
+
+  return $res->{html_url};
 }
 
 sub said {
@@ -144,7 +175,12 @@ sub said {
     return 'Sorry, it is too private here';
   } else {
     my $response = $self->process_message($message, $body);
-    $response = $self->upload_output($response) if (length $response > 500);
+    if (length $response > 250) {
+      $response = $self->upload({ 'query'  => $body,
+                                  'result' => $response, });
+    } else {
+      $response =~ s/\n/␤/g;
+    }
 
     $self->say(
       channel => $message->{channel},
