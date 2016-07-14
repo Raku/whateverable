@@ -35,8 +35,26 @@ sub process_message {
   my $msg_response = '';
 
   if ($body =~ /^ \s* (\S+) \s+ (.+) /xu) {
-    my @commits = split(',', $1);
-    my $code = $2;
+    my ($config, $code) = ($1, $2);
+
+    my @commits;
+    if ($config =~ /,/) {
+      @commits = split(',', $config);
+    } elsif ($config =~ /^ (\S+) \.\. (\S+) $/x) {
+      my ($start, $end) = ($1, $2);
+
+      my $old_dir = cwd();
+      chdir $self->RAKUDO;
+      return "Bad start" if system('git', 'rev-parse', '--verify', $start) != 0;
+      return "Bad end"   if system('git', 'rev-parse', '--verify', $end)   != 0;
+
+      my ($result, $exit_status, $time) = $self->get_output('git', 'rev-list', "$start^..$end");
+      chdir $old_dir;
+
+      return "Couldn't find anything in the range" if $exit_status != 0;
+
+      @commits = split("\n", $result);
+    }
 
     my ($succeeded, $code_response) = $self->process_code($code, $message);
     if ($succeeded) {
