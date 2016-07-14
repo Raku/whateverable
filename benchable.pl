@@ -56,6 +56,8 @@ sub process_message {
       @commits = split("\n", $result);
       my $num_commits = scalar @commits;
       return "Too many commits ($num_commits) in range, you're only allowed 5" if ($num_commits > 5);
+    } else {
+      @commits = $config;
     }
 
     my ($succeeded, $code_response) = $self->process_code($code, $message);
