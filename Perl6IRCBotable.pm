@@ -88,12 +88,12 @@ sub process_url {
 
   my $response = HTTP::Tiny->new->get($url); # $body is actually a url
   if (not $response->{success}) {
-    return "$message->{who}:It looks like a URL, but for some reason I cannot download it"
-         . " (HTTP status-code is $response->{status})",;
+    return (0, "$message->{who}:It looks like a URL, but for some reason I cannot download it"
+             . " (HTTP status-code is $response->{status}).");
   }
   if ($response->{headers}->{'content-type'} ne 'text/plain; charset=utf-8') {
-    return "$message->{who}:It looks like a URL, but mime type is '$response->{headers}->{'content-type'}'"
-         . " while I was expecting 'text/plain; charset=utf-8'. I can only understand raw links, sorry.";
+    return (0, "$message->{who}:It looks like a URL, but mime type is '$response->{headers}->{'content-type'}'"
+             . " while I was expecting 'text/plain; charset=utf-8'. I can only understand raw links, sorry.");
   }
   my $body = decode_utf8($response->{content});
   $self->say(
@@ -102,7 +102,24 @@ sub process_url {
     who     => $message->{who},
       );
 
-  return $body;
+  return (1, $body);
+}
+
+sub process_code {
+  my ($self, $code) = @_;
+
+  if ($code =~ m{ ^https?:// }x ) {
+      my ($succeeded, $response) = $self->process_url($code);
+      if ($succeeded) {
+        $code = $response;
+      } else {
+        return (0, $response);
+      }
+    } else {
+      $code =~ s/␤/\n/g;
+    }
+
+    return (1, $code);
 }
 
 sub upload_output {
@@ -125,13 +142,6 @@ sub said {
   if ($message->{address} eq 'msg') {
     return 'Sorry, it is too private here';
   } else {
-    if ($body =~ m{ ^https?:// }x ) {
-      $body = $self->process_url($body, $message);
-      return $body if ($body =~ / ^$message->{who}: /x);
-    } else {
-      $body =~ s/␤/\n/g;
-    }
-
     my $response = $self->process_message($message, $body);
     $response = $self->upload_output($response) if (length $response > 500);
 

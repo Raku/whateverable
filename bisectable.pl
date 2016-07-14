@@ -51,6 +51,13 @@ sub process_message {
     my $bad  = $2 // $3 // 'HEAD';
     my $code = $5;
 
+    my ($succeeded, $code_response) = $self->process_code($code);
+    if ($succeeded) {
+      $code = $code_response;
+    } else {
+      return $code_response;
+    }
+
     # convert to real ids so we can look up the builds
     my $full_good = $self->to_full_commit($good);
     return "Cannot find 'good' revision" unless defined $full_good;

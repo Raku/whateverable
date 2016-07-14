@@ -32,11 +32,18 @@ my $name = 'benchable';
 sub process_message {
   my ($self, $message, $body) = @_;
 
-  my $response = '';
+  my $msg_response = '';
 
   if ($body =~ /^ \s* (\S+) \s+ (.+) /xu) {
     my @commits = split(',', $1);
     my $code = $2;
+
+    my ($succeeded, $code_response) = $self->process_code($code);
+    if ($succeeded) {
+      $code = $code_response;
+    } else {
+      return $code_response;
+    }
 
     my $filename = $self->write_code($code);
 
@@ -45,7 +52,7 @@ sub process_message {
       # convert to real ids so we can look up the builds
       my $full_commit = $self->to_full_commit($commit);
       unless (defined $full_commit) {
-        $response .= "Cannot find revision:$commit ";
+        $msg_response .= "Cannot find revision:$commit ";
         next;
       }
 
@@ -61,12 +68,12 @@ sub process_message {
       chdir $old_dir;
     }
 
-    $response .= join(' ', map { "$_=$times{$_}" } @commits);
+    $msg_response .= join(' ', map { "$_=$times{$_}" } @commits);
   } else {
     return help();
   }
 
-  return $response;
+  return $msg_response;
 }
 
 sub help {
