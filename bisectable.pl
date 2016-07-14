@@ -149,8 +149,8 @@ sub help {
 }
 
 Bisectable->new(
-  server   	  => 'irc.freenode.net',
-  port     	  => '6667',
+  server      => 'irc.freenode.net',
+  port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
   alt_nicks   => [$name . '2', $name . '3', 'bisect'],
