@@ -103,6 +103,7 @@ sub process_message {
         channel => $message->{channel},
         body    => "Exit code is $exit_bad on both starting points, bisecting by using the output",
         who     => $message->{who},
+        address => 1,
           );
       (my $fh, $output_file) = tempfile(UNLINK => 1);
       print $fh $out_good;
@@ -113,6 +114,7 @@ sub process_message {
         channel => $message->{channel},
         body    => "Exit code on a 'good' revision is $exit_good (which is bad), bisecting with inverted logic",
         who     => $message->{who},
+        address => 1,
           );
     }
 
