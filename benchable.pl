@@ -38,7 +38,7 @@ sub process_message {
     my @commits = split(',', $1);
     my $code = $2;
 
-    my ($succeeded, $code_response) = $self->process_code($code);
+    my ($succeeded, $code_response) = $self->process_code($code, $message);
     if ($succeeded) {
       $code = $code_response;
     } else {

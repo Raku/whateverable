@@ -88,11 +88,11 @@ sub process_url {
 
   my $response = HTTP::Tiny->new->get($url); # $body is actually a url
   if (not $response->{success}) {
-    return (0, "$message->{who}:It looks like a URL, but for some reason I cannot download it"
+    return (0, "It looks like a URL, but for some reason I cannot download it"
              . " (HTTP status-code is $response->{status}).");
   }
   if ($response->{headers}->{'content-type'} ne 'text/plain; charset=utf-8') {
-    return (0, "$message->{who}:It looks like a URL, but mime type is '$response->{headers}->{'content-type'}'"
+    return (0, "It looks like a URL, but mime type is '$response->{headers}->{'content-type'}'"
              . " while I was expecting 'text/plain; charset=utf-8'. I can only understand raw links, sorry.");
   }
   my $body = decode_utf8($response->{content});
@@ -106,10 +106,10 @@ sub process_url {
 }
 
 sub process_code {
-  my ($self, $code) = @_;
+  my ($self, $code, $message) = @_;
 
   if ($code =~ m{ ^https?:// }x ) {
-      my ($succeeded, $response) = $self->process_url($code);
+      my ($succeeded, $response) = $self->process_url($code, $message);
       if ($succeeded) {
         $code = $response;
       } else {
