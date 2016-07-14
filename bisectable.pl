@@ -51,7 +51,7 @@ sub process_message {
     my $bad  = $2 // $3 // 'HEAD';
     my $code = $5;
 
-    my ($succeeded, $code_response) = $self->process_code($code);
+    my ($succeeded, $code_response) = $self->process_code($code, $message);
     if ($succeeded) {
       $code = $code_response;
     } else {
