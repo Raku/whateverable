@@ -53,6 +53,8 @@ sub process_message {
       return "Couldn't find anything in the range" if $exit_status != 0;
 
       @commits = split("\n", $result);
+      my $num_commits = scalar @commits;
+      return "Too many commits ($num_commits) in range, you're only allowed 10" if ($num_commits > 10);
     }
 
     my ($succeeded, $code_response) = $self->process_code($code, $message);

@@ -54,6 +54,8 @@ sub process_message {
       return "Couldn't find anything in the range" if $exit_status != 0;
 
       @commits = split("\n", $result);
+      my $num_commits = scalar @commits;
+      return "Too many commits ($num_commits) in range, you're only allowed 5" if ($num_commits > 5);
     }
 
     my ($succeeded, $code_response) = $self->process_code($code, $message);
@@ -95,7 +97,7 @@ sub process_message {
 }
 
 sub help {
-  'Like this: ' . $name . ': f583f22,110704d my $a = "a" x 2**16;for ^100000 {my $b = $a.chop($_)}'
+  'Like this: ' . $name . ': f583f22,110704d my $a = "a" x 2**16;for ^1000 {my $b = $a.chop($_)}'
 }
 
 Benchable->new(
