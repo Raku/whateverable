@@ -7,6 +7,7 @@ export RAKUDO_LOCATION="$WORKING_DIRECTORY/rakudo"
 RAKUDO_ORIGIN='https://github.com/rakudo/rakudo.git'
 BUILD_LOCK="$WORKING_DIRECTORY/lock"
 PARALLEL_COUNT=7
+COMMIT_RANGE='2015.10^..HEAD'
 
 clean() {
     while popd &> /dev/null; do :; done # change directory back
@@ -29,6 +30,5 @@ fi
 
 git_orig=('git' '--git-dir' "$RAKUDO_LOCATION/.git" '--work-tree' "$RAKUDO_LOCATION")
 
-# you can change 2015.12^..HEAD to something else
-"${git_orig[@]}" log -z --pretty='%H' 2015.10^..HEAD \
+"${git_orig[@]}" log -z --pretty='%H' "$COMMIT_RANGE" \
     | xargs -0 -n 1 -P "$PARALLEL_COUNT" ./process-sha
