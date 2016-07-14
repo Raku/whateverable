@@ -24,6 +24,7 @@ use utf8;
 package Bisectable;
 use parent 'Perl6IRCBotable';
 
+use File::Temp qw(tempfile tempdir);
 use Cwd qw(cwd abs_path);
 
 my $name = 'bisectable';
