@@ -99,23 +99,13 @@ sub process_message {
     }
     my $output_file = '';
     if ($exit_good == $exit_bad) {
-      $self->say(
-        channel => $message->{channel},
-        body    => "Exit code is $exit_bad on both starting points, bisecting by using the output",
-        who     => $message->{who},
-        address => 1,
-          );
+      $self->tell($message, "Exit code is $exit_bad on both starting points, bisecting by using the output");
       (my $fh, $output_file) = tempfile(UNLINK => 1);
       print $fh $out_good;
       close $fh;
     }
     if ($exit_good != $exit_bad and $exit_good != 0) {
-      $self->say(
-        channel => $message->{channel},
-        body    => "Exit code on a 'good' revision is $exit_good (which is bad), bisecting with inverted logic",
-        who     => $message->{who},
-        address => 1,
-          );
+      $self->tell($message, "Exit code on a 'good' revision is $exit_good (which is bad), bisecting with inverted logic");
     }
 
     my $oldDir = cwd();
@@ -126,16 +116,21 @@ sub process_message {
     system('git', 'bisect', 'start');
     system('git', 'bisect', 'good', $full_good);
     system('git', 'bisect', 'bad',  $full_bad);
-    my $bisect_status;
+    my ($bisect_output, $bisect_status);
     if ($output_file) {
-      $bisect_status = system('git', 'bisect', 'run', $commit_tester, $self->BUILDS, $filename, $output_file);
+      ($bisect_output, $bisect_status)   = $self->get_output('git', 'bisect', 'run',
+                                                             $commit_tester, $self->BUILDS, $filename, $output_file);
     } else {
       if ($exit_good == 0) {
-        $bisect_status = system('git', 'bisect', 'run', $commit_tester, $self->BUILDS, $filename);
+        ($bisect_output, $bisect_status) = $self->get_output('git', 'bisect', 'run',
+                                                             $commit_tester, $self->BUILDS, $filename);
       } else {
-        $bisect_status = system('git', 'bisect', 'run', $commit_tester, $self->BUILDS, $filename, $exit_good);
+        ($bisect_output, $bisect_status) = $self->get_output('git', 'bisect', 'run',
+                                                             $commit_tester, $self->BUILDS, $filename, $exit_good);
       }
     }
+    $self->tell($message, 'bisect log: ' . $self->upload({ 'query'  => $body,
+                                                           'result' => $bisect_output }));
     if ($bisect_status != 0) {
       chdir($oldDir);
       return "'bisect run' failure";

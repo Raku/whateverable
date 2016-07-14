@@ -36,7 +36,7 @@ use JSON::XS;
 
 use constant RAKUDO => './rakudo';
 use constant BUILDS => abs_path('./builds');
-use constant CONFIG => './config.json';
+use constant CONFIG => abs_path('./config.json');
 use constant SOURCE => 'https://github.com/perl6/bisectbot';
 
 my $name = 'Perl6IRCBotable';
@@ -189,6 +189,16 @@ sub said {
       address => 1,
         );
   }
+}
+
+sub tell {
+  my ($self, $message, $text) = @_;
+  $self->say(
+    channel => $message->{channel},
+    body    => $text,
+    who     => $message->{who},
+    address => 1,
+      );
 }
 
 sub help {
