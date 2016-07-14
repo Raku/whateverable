@@ -37,6 +37,17 @@ sub process_message {
     my @commits = split(',', $1);
     my $code = $2;
 
+    if ($code =~ m{ ^https?:// }x ) {
+      my ($succeeded, $response) = $self->process_url($code);
+      if ($succeeded) {
+        $code = $response;
+      } else {
+        return $response;
+      }
+    } else {
+      $code =~ s/␤/\n/g;
+    }
+
     my $filename = $self->write_code($code);
 
     for my $commit (@commits) {
