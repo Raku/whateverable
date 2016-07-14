@@ -105,6 +105,23 @@ sub process_url {
   return (1, $body);
 }
 
+sub process_code {
+  my ($self, $code) = @_;
+
+  if ($code =~ m{ ^https?:// }x ) {
+      my ($succeeded, $response) = $self->process_url($code);
+      if ($succeeded) {
+        $code = $response;
+      } else {
+        return (0, $response);
+      }
+    } else {
+      $code =~ s/␤/\n/g;
+    }
+
+    return (1, $code);
+}
+
 sub upload_output {
   my ($self, $output) = @_;
 

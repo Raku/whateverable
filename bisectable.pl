@@ -51,15 +51,11 @@ sub process_message {
     my $bad  = $2 // $3 // 'HEAD';
     my $code = $5;
 
-    if ($code =~ m{ ^https?:// }x ) {
-      my ($succeeded, $response) = $self->process_url($code);
-      if ($succeeded) {
-        $code = $response;
-      } else {
-        return $response;
-      }
+    my ($succeeded, $code_response) = $self->process_code($code);
+    if ($succeeded) {
+      $code = $code_response;
     } else {
-      $code =~ s/␤/\n/g;
+      return $code_response;
     }
 
     # convert to real ids so we can look up the builds
