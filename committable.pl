@@ -26,6 +26,8 @@ use parent 'Perl6IRCBotable';
 
 use Cwd qw(cwd abs_path);
 
+use constant LIMIT => 300;
+
 my $name = 'committable';
 
 sub process_message {
@@ -54,7 +56,7 @@ sub process_message {
 
       @commits = split("\n", $result);
       my $num_commits = scalar @commits;
-      return "Too many commits ($num_commits) in range, you're only allowed 10" if ($num_commits > 10);
+      return "Too many commits ($num_commits) in range, you're only allowed 10" if ($num_commits > LIMIT);
     } else {
       @commits = $config;
     }
