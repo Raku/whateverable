@@ -80,10 +80,7 @@ sub process_message {
         next;
       }
 
-      my $old_dir = cwd();
-      chdir $self->RAKUDO;
       my ($out, $exit, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
-      chdir $old_dir;
 
       $out //= '';
       $out .= " exit code = $exit" if ($exit != 0);
