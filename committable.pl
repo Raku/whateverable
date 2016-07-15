@@ -104,7 +104,7 @@ Committable->new(
   port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
-  alt_nicks   => [$name . '2', $name . '3', 'commit'],
+  alt_nicks   => ['commit'],
   username    => ucfirst $name,
   name        => 'Run code with a specific revision of Rakudo',
   ignore_list => [],

@@ -158,7 +158,7 @@ Bisectable->new(
   port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
-  alt_nicks   => [$name . '2', $name . '3', 'bisect'],
+  alt_nicks   => ['bisect'],
   username    => ucfirst $name,
   name        => 'Quick git bisect for Rakudo',
   ignore_list => [],

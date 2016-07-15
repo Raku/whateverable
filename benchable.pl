@@ -107,7 +107,7 @@ Benchable->new(
   port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
-  alt_nicks   => [$name . '2', $name . '3', 'bench'],
+  alt_nicks   => ['bench'],
   username    => ucfirst $name,
   name        => 'Time code with specific revisions of Rakudo',
   ignore_list => [],
