@@ -68,6 +68,7 @@ sub process_message {
 
     my $filename = $self->write_code($code);
 
+    my %outputs;
     for my $commit (@commits) {
       # convert to real ids so we can look up the builds
       my $full_commit = $self->to_full_commit($commit);
@@ -81,9 +82,12 @@ sub process_message {
       my ($out, $exit, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
       chdir $old_dir;
 
-      $msg_response .= "$commit: " . ($out // '') . " ";
-      $msg_response .= " exit code = $exit" if ($exit != 0);
+      $out //= '';
+      $out .= " exit code = $exit" if ($exit != 0);
+      push @{$outputs{$out}}, substr($commit, 0, 7);
     }
+
+    $msg_response .= join("\n", map { "$_=" . join(',', @{$outputs{$_}}) } keys %outputs);
   } else {
     $msg_response = help();
   }
@@ -96,7 +100,7 @@ sub help {
 }
 
 Committable->new(
-  server      => 'irc.freenode.net',
+  server      => '127.0.0.1',
   port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
