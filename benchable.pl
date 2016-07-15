@@ -27,6 +27,8 @@ use parent 'Perl6IRCBotable';
 use Cwd qw(cwd abs_path);
 use List::Util qw(min);
 
+use constant LIMIT => 300;
+
 my $name = 'benchable';
 
 sub process_message {
@@ -55,7 +57,7 @@ sub process_message {
 
       @commits = split("\n", $result);
       my $num_commits = scalar @commits;
-      return "Too many commits ($num_commits) in range, you're only allowed 5" if ($num_commits > 5);
+      return "Too many commits ($num_commits) in range, you're only allowed " . LIMIT if ($num_commits > LIMIT);
     } else {
       @commits = $config;
     }
@@ -73,24 +75,23 @@ sub process_message {
     for my $commit (@commits) {
       # convert to real ids so we can look up the builds
       my $full_commit = $self->to_full_commit($commit);
-      unless (defined $full_commit) {
-        $msg_response .= "Cannot find revision:$commit ";
-        next;
+      my $out = '';
+      if (not defined $full_commit) {
+        $out = "Cannot find this revision";
+      } elsif (not -e $self->BUILDS . "/$full_commit/bin/perl6") {
+        $out = 'No build for this commit';
+      } else { # actually run the code
+        my $short_commit = substr($commit, 0, 7);
+        for (1..5) {
+          ($out, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+          push @{$times{$short_commit}}, $exit == 0 ? $time : "run failed, exit code = $exit";
+        }
+        $times{$short_commit} = min(@{$times{$short_commit}});
       }
-
-      my $old_dir = cwd();
-      chdir $self->RAKUDO;
-
-      for (1..5) {
-        my ($out, $exit, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
-        push @{$times{$commit}}, $time if ($exit == 0);
-      }
-      $times{$commit} = min(@{$times{$commit}});
-
-      chdir $old_dir;
+      $msg_response .= "$out\n" if ($out);
     }
 
-    $msg_response .= join(' ', map { "$_=$times{$_}" } @commits);
+    $msg_response .= '|' . join("\n|", map { $_ = substr($_, 0, 7); "«$_»:$times{$_}" } @commits);
   } else {
     return help();
   }
