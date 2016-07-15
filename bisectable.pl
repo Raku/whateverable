@@ -24,6 +24,7 @@ use utf8;
 package Bisectable;
 use parent 'Perl6IRCBotable';
 
+use Encode qw(decode_utf8);
 use File::Temp qw(tempfile tempdir);
 use Cwd qw(cwd abs_path);
 
@@ -95,7 +96,8 @@ sub process_message {
     $out_bad  //= '';
 
     if ($exit_good == $exit_bad and $out_good eq $out_bad) {
-      return "On both starting points the exit code is $exit_bad and the output is identical as well";
+      $self->tell($message, "On both starting points the exit code is $exit_bad and the output is identical as well");
+      return "Output on both points: $out_good"; # will be gisted automatically if required
     }
     my $output_file = '';
     if ($exit_good == $exit_bad) {
@@ -113,9 +115,15 @@ sub process_message {
     system('git', 'clone', $self->RAKUDO, $dir);
     chdir($dir);
 
-    system('git', 'bisect', 'start');
-    system('git', 'bisect', 'good', $full_good);
-    system('git', 'bisect', 'bad',  $full_bad);
+    $self->get_output('git', 'bisect', 'start');
+    $self->get_output('git', 'bisect', 'good', $full_good);
+    my ($init_output, $init_status) = $self->get_output('git', 'bisect', 'bad',  $full_bad);
+    if ($init_status != 0) {
+      chdir($oldDir);
+      $self->tell($message, 'bisect log: ' . $self->upload({ 'query'  => $body,
+                                                             'result' => decode_utf8($init_output) }));
+      return 'bisect init failure';
+    }
     my ($bisect_output, $bisect_status);
     if ($output_file) {
       ($bisect_output, $bisect_status)   = $self->get_output('git', 'bisect', 'run',
@@ -130,7 +138,7 @@ sub process_message {
       }
     }
     $self->tell($message, 'bisect log: ' . $self->upload({ 'query'  => $body,
-                                                           'result' => $bisect_output }));
+                                                           'result' => decode_utf8("$init_output\n$bisect_output") }));
     if ($bisect_status != 0) {
       chdir($oldDir);
       return "'bisect run' failure";

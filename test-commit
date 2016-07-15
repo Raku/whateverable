@@ -4,30 +4,55 @@ code_file=$2
 current_commit=$(git rev-parse HEAD)
 perl6="$builds/$current_commit/bin/perl6"
 
-[[ -e $perl6 ]] || exit 125 # skip failed builds
+function finish {
+    echo "»»»»» -------------------------------------------------------------------------"
+}
+trap finish EXIT # looks a bit nicer this way
+
+echo "»»»»» Testing $current_commit"
+if [[ ! -e $perl6 ]]; then
+    echo '»»»»» perl6 executable does not exist, skip this commit'
+    echo "»»»»» Final exit code: 125"
+    exit 125 # skip failed builds
+fi
+
+output=$("$perl6" --setting=RESTRICTED -- "$code_file" 2>&1)
+exit_code=$?
+echo "»»»»» Script output:"
+printf "%s\n" "$output"
+echo "»»»»» Script exit code: $exit_code"
 
 # plain bisect
 if (( $# < 3 )); then
-    "$perl6" --setting=RESTRICTED -- "$code_file"
-    exit $?
+    echo "»»»»» Plain bisect, using the same exit code"
+    echo "»»»»» Final exit code: $exit_code"
+    exit "$exit_code"
 fi
 
 # inverted exit code
 if [[ $3 =~ ^[0-9]+$ ]]; then # invert exit code
-    "$perl6" --setting=RESTRICTED -- "$code_file"
-    exit_code=$?
+    echo "»»»»» Inverted logic, comparing $exit_code to $3"
     if (( $exit_code == $3 )); then
+        echo '»»»»» Final exit code: 0'
         exit 0
     else
-        exit $(( $exit_code == 0 ? 1 : $exit_code ))
+        final_exit_code=$(( $exit_code == 0 ? 1 : $exit_code ))
+        echo "»»»»» Final exit code: $final_exit_code"
+        exit "$final_exit_code"
     fi
 fi
 
 # compare the output
-output=$("$perl6" --setting=RESTRICTED -- "$code_file" 2>&1)
+echo "»»»»» Bisecting by using the output"
 output_good=$(<"$3")
+echo "»»»»» Comparing the output to:"
+printf "%s\n" "$output_good"
 if [[ $output == "$output_good" ]]; then
+    echo '»»»»» The output is identical'
+    echo '»»»»» Final exit code: 0'
     exit 0
 else
+    echo '»»»»» The output is different'
+    echo '»»»»» Final exit code: 1'
     exit 1
 fi
