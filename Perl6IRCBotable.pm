@@ -113,17 +113,17 @@ sub process_code {
   my ($self, $code, $message) = @_;
 
   if ($code =~ m{ ^https?:// }x ) {
-      my ($succeeded, $response) = $self->process_url($code, $message);
-      if ($succeeded) {
-        $code = $response;
-      } else {
-        return (0, $response);
-      }
+    my ($succeeded, $response) = $self->process_url($code, $message);
+    if ($succeeded) {
+      $code = $response;
     } else {
-      $code =~ s/␤/\n/g;
+      return (0, $response);
     }
+  } else {
+    $code =~ s/␤/\n/g;
+  }
 
-    return (1, $code);
+  return (1, $code);
 }
 
 sub get_config {
