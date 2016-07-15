@@ -87,7 +87,7 @@ sub process_message {
       push @{$outputs{$out}}, substr($commit, 0, 7);
     }
 
-    $msg_response .= join("\n", map { join(',', @{$outputs{$_}}) . "=$_" } keys %outputs);
+    $msg_response .= join("\n", map { join(',', @{$outputs{$_}}) . "=$_" } sort keys %outputs);
   } else {
     $msg_response = help();
   }
