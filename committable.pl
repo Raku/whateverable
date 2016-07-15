@@ -70,7 +70,8 @@ sub process_message {
 
     my $filename = $self->write_code($code);
 
-    my %outputs;
+    my @result;
+    my %lookup;
     for my $commit (@commits) {
       # convert to real ids so we can look up the builds
       my $full_commit = $self->to_full_commit($commit);
@@ -86,10 +87,21 @@ sub process_message {
 
       $out //= '';
       $out .= " exit code = $exit" if ($exit != 0);
-      push @{$outputs{$out}}, substr($commit, 0, 7);
+      my $short_commit = substr($commit, 0, 7);
+
+      # Code below keeps results in order. Example state:
+      # @result = [ { commits => ['A', 'B'], output => '42' },
+      #             { commits => ['C'],      output => '69' }, ];
+      # %lookup = { '42' => 0, '69' => 1 }
+      if (not exists $lookup{$out}) {
+        $lookup{$out} = $#result;
+        push @result, { commits => [$short_commit], output => $out };
+      } else {
+        push @{@result[$lookup{$out}]->{commits}}, $short_commit;
+      }
     }
 
-    $msg_response .= join("\n", map { join(',', @{$outputs{$_}}) . "=$_" } sort keys %outputs);
+    $msg_response .= '|' . join("\n|", map { '«' . join(',', @{$_->{commits}}) . '»: ' . $_->{output} } @result);
   } else {
     $msg_response = help();
   }
