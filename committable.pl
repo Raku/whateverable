@@ -75,15 +75,15 @@ sub process_message {
     for my $commit (@commits) {
       # convert to real ids so we can look up the builds
       my $full_commit = $self->to_full_commit($commit);
-      unless (defined $full_commit) {
-        $msg_response .= "Cannot find revision:$commit ";
-        next;
+      my $out = '';
+      if (not defined $full_commit) {
+        $out = "Cannot find this revision";
+      } elsif (not -e $self->BUILDS . "/$full_commit/bin/perl6") {
+        $out = 'No build for this commit';
+      } else { # actually run the code
+        ($out, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+        $out .= " exit code = $exit" if ($exit != 0);
       }
-
-      my ($out, $exit, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
-
-      $out //= '';
-      $out .= " exit code = $exit" if ($exit != 0);
       my $short_commit = substr($commit, 0, 7);
 
       # Code below keeps results in order. Example state:
