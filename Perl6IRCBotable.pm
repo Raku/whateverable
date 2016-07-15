@@ -24,22 +24,20 @@ use utf8;
 package Perl6IRCBotable;
 use base 'Bot::BasicBot';
 
-use File::Temp qw(tempfile tempdir);
 use Cwd qw(cwd abs_path);
+use Encode qw(encode_utf8 decode_utf8);
+use File::Temp qw(tempfile tempdir);
+use HTTP::Tiny;
 use IO::Handle;
 use IPC::Open3;
-use HTTP::Tiny;
-use Encode qw(encode_utf8 decode_utf8);
-use Time::HiRes qw(time);
-use Net::GitHub;
 use JSON::XS;
+use Net::GitHub;
+use Time::HiRes qw(time);
 
 use constant RAKUDO => './rakudo';
 use constant BUILDS => abs_path('./builds');
 use constant CONFIG => abs_path('./config.json');
 use constant SOURCE => 'https://github.com/perl6/bisectbot';
-
-my $name = 'Perl6IRCBotable';
 
 sub get_output {
   my $self = shift;
@@ -67,23 +65,23 @@ sub to_full_commit {
   chdir $old_dir;
 
   return if $exit_status != 0;
-  return $result;
+  return $result
 }
 
 sub write_code {
   my $self = shift;
 
-  my ($fh, $filename) = tempfile(UNLINK => 1);
+  my ($fh, $filename) = tempfile(UNLINK => 1); # will unlink on program exit
   binmode $fh, ':encoding(UTF-8)';
   print $fh @_;
   close $fh;
-  return $filename;
+  return $filename
 }
 
 sub process_message {
   my ($self, $message, $body) = @_;
-
-  return;
+  # Bot-specific code goes here
+  return
 }
 
 sub process_url {
@@ -106,7 +104,7 @@ sub process_url {
     address => 1,
       );
 
-  return (1, $body);
+  return (1, $body)
 }
 
 sub process_code {
@@ -114,16 +112,13 @@ sub process_code {
 
   if ($code =~ m{ ^https?:// }x ) {
     my ($succeeded, $response) = $self->process_url($code, $message);
-    if ($succeeded) {
-      $code = $response;
-    } else {
-      return (0, $response);
-    }
+    return (0, $response) unless $succeeded;
+    $code = $response;
   } else {
     $code =~ s/␤/\n/g;
   }
 
-  return (1, $code);
+  return (1, $code)
 }
 
 sub get_config {
@@ -134,7 +129,7 @@ sub get_config {
   };
 
   my $config = decode_json $config_contents; # TODO do it only once
-  return $config;
+  return $config
 }
 
 sub upload {
@@ -157,38 +152,26 @@ sub upload {
       'files'       => \%files_param,
     });
 
-  return $res->{html_url};
+  return $res->{html_url}
 }
 
 sub said {
   my ($self, $message) = @_;
-
-  return unless ($message->{address});
-
-  if ($message->{body} eq 'source') {
-    return SOURCE;
-  }
-
   my $body = $message->{body};
 
-  if ($message->{address} eq 'msg') {
-    return 'Sorry, it is too private here';
-  } else {
-    my $response = $self->process_message($message, $body);
-    if (length $response > 250) {
-      $response = $self->upload({ 'query'  => $body,
-                                  'result' => $response, });
-    } else {
-      $response =~ s/\n/␤/g;
-    }
+  return unless $message->{address};
+  return SOURCE if $body eq 'source';
+  return 'Sorry, it is too private here' if $message->{address} eq 'msg';
 
-    $self->say(
-      channel => $message->{channel},
-      body    => $response,
-      who     => $message->{who},
-      address => 1,
-        );
+  my $response = $self->process_message($message, $body);
+  if (length $response > 250) { # upload code somewhere if the output is way too long
+    $response = $self->upload({ 'query'  => $body,
+                                'result' => $response, });
+  } else {
+    $response =~ s/\n/␤/g;
   }
+
+  $self->tell($message, $response);
 }
 
 sub tell {
@@ -199,10 +182,6 @@ sub tell {
     who     => $message->{who},
     address => 1,
       );
-}
-
-sub help {
-  "Like this: $name: f583f22 say 'hello'; say 'world'";
 }
 
 1
