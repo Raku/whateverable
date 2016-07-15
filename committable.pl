@@ -56,7 +56,7 @@ sub process_message {
 
       @commits = split("\n", $result);
       my $num_commits = scalar @commits;
-      return "Too many commits ($num_commits) in range, you're only allowed 10" if ($num_commits > LIMIT);
+      return "Too many commits ($num_commits) in range, you're only allowed " . LIMIT if ($num_commits > LIMIT);
     } else {
       @commits = $config;
     }
