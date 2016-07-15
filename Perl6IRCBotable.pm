@@ -152,7 +152,7 @@ sub upload {
 
   my $res = $gist->create(
     {
-      'description' => "the description for this gist",
+      'description' => $self->nick,
       'public'      => 'true',
       'files'       => \%files_param,
     });
