@@ -83,8 +83,8 @@ sub process_message {
       } else { # actually run the code
         my $short_commit = substr($commit, 0, 7);
         for (1..5) {
-          ($out, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
-          push @{$times{$short_commit}}, $exit == 0 ? $time : "run failed, exit code = $exit";
+          (undef, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+          push @{$times{$short_commit}}, $exit == 0 ? sprintf('%.4f', $time) : "run failed, exit code = $exit";
         }
         $times{$short_commit} = min(@{$times{$short_commit}});
       }
