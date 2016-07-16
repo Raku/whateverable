@@ -25,6 +25,7 @@ package Committable;
 use parent 'Perl6IRCBotable';
 
 use Cwd qw(cwd abs_path);
+use Encode qw(decode_utf8);
 
 use constant LIMIT => 300;
 
