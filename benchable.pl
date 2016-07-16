@@ -75,20 +75,18 @@ sub process_message {
     for my $commit (@commits) {
       # convert to real ids so we can look up the builds
       my $full_commit = $self->to_full_commit($commit);
-      my $out = '';
+      my $short_commit = substr($commit, 0, 7);
       if (not defined $full_commit) {
-        $out = "Cannot find this revision";
+        $times{$short_commit} = 'Cannot find this revision';
       } elsif (not -e $self->BUILDS . "/$full_commit/bin/perl6") {
-        $out = 'No build for this commit';
+        $times{$short_commit} = 'No build for this commit';
       } else { # actually run the code
-        my $short_commit = substr($commit, 0, 7);
         for (1..5) {
           (undef, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
           push @{$times{$short_commit}}, $exit == 0 ? sprintf('%.4f', $time) : "run failed, exit code = $exit";
         }
         $times{$short_commit} = min(@{$times{$short_commit}});
       }
-      $msg_response .= "|$out\n" if ($out);
     }
 
     $msg_response .= '|' . join("\n|", map { $_ = substr($_, 0, 7); "«$_»:$times{$_}" } @commits);
@@ -104,7 +102,7 @@ sub help {
 }
 
 Benchable->new(
-  server      => 'irc.freenode.net',
+  server      => '127.0.0.1',
   port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
