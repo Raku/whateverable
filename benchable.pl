@@ -88,7 +88,7 @@ sub process_message {
         }
         $times{$short_commit} = min(@{$times{$short_commit}});
       }
-      $msg_response .= "$out\n" if ($out);
+      $msg_response .= "|$out\n" if ($out);
     }
 
     $msg_response .= '|' . join("\n|", map { $_ = substr($_, 0, 7); "«$_»:$times{$_}" } @commits);
