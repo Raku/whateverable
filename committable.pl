@@ -82,6 +82,7 @@ sub process_message {
         $out = 'No build for this commit';
       } else { # actually run the code
         ($out, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+        $out = decode_utf8($out);
         $out .= " exit code = $exit" if ($exit != 0);
       }
       my $short_commit = substr($commit, 0, 7);

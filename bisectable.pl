@@ -97,7 +97,7 @@ sub process_message {
 
     if ($exit_good == $exit_bad and $out_good eq $out_bad) {
       $self->tell($message, "On both starting points the exit code is $exit_bad and the output is identical as well");
-      return "Output on both points: $out_good"; # will be gisted automatically if required
+      return 'Output on both points: ' . decode_utf8($out_good); # will be gisted automatically if required
     }
     my $output_file = '';
     if ($exit_good == $exit_bad) {
