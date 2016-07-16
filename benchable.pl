@@ -102,7 +102,7 @@ sub help {
 }
 
 Benchable->new(
-  server      => '127.0.0.1',
+  server      => 'irc.freenode.net',
   port        => '6667',
   channels    => ['#perl6', '#perl6-dev'],
   nick        => $name,
