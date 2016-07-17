@@ -34,7 +34,7 @@ use JSON::XS;
 use Net::GitHub;
 use Time::HiRes qw(time);
 
-use constant RAKUDO => './rakudo';
+use constant RAKUDO => abs_path('./rakudo');
 use constant BUILDS => abs_path('./builds');
 use constant CONFIG => abs_path('./config.json');
 use constant SOURCE => 'https://github.com/perl6/bisectbot';
@@ -163,10 +163,11 @@ sub said {
   return SOURCE if $body eq 'source';
   return 'Sorry, it is too private here' if $message->{address} eq 'msg';
 
-  my $response = $self->process_message($message, $body);
-  if (length $response > 250) { # upload code somewhere if the output is way too long
+  my ($response, $additional_files) = $self->process_message($message, $body);
+  if (length $response > 250 or defined $additional_files) { # upload code somewhere if the output is way too long
     $response = $self->upload({ 'query'  => $body,
-                                'result' => $response, });
+                                'result' => $response,
+                                %{$additional_files // {}}, });
   } else {
     $response =~ s/\n/␤/g;
   }

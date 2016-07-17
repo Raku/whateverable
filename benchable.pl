@@ -25,7 +25,10 @@ package Benchable;
 use parent 'Perl6IRCBotable';
 
 use Cwd qw(cwd abs_path);
+use File::Temp qw(tempfile tempdir);
 use List::Util qw(min);
+use Chart::Gnuplot;
+use File::Basename;
 
 use constant LIMIT => 300;
 
@@ -35,6 +38,7 @@ sub process_message {
   my ($self, $message, $body) = @_;
 
   my $msg_response = '';
+  my $graph = undef;
 
   if ($body =~ /^ \s* (\S+) \s+ (.+) /xu) {
     my ($config, $code) = ($1, $2);
@@ -89,12 +93,33 @@ sub process_message {
       }
     }
 
+    if (scalar @commits >= 5) {
+      my ($gfh, $gfilename) = tempfile(SUFFIX => '.svg', UNLINK => 1);
+      my $chart = Chart::Gnuplot->new(
+        output   => $gfilename,
+        terminal => 'svg mousing',
+        xlabel   => 'Commits',
+        ylabel   => 'Seconds',
+        xtics    => { labels => [map { "'$commits[$_]' $_" } 0..$#commits], },
+          );
+      my $dataSet = Chart::Gnuplot::DataSet->new(
+        ydata => [map { $times{substr($_, 0, 7)} } @commits],
+        style => 'linespoints',
+          );
+      $chart->plot2d($dataSet);
+
+      $graph->{basename($gfilename)} = do {
+        local $/;
+        <$gfh>;
+      };
+    }
+
     $msg_response .= '|' . join("\n|", map { $_ = substr($_, 0, 7); "«$_»:$times{$_}" } @commits);
   } else {
     return help();
   }
 
-  return $msg_response;
+  return ($msg_response, $graph);
 }
 
 sub help {
