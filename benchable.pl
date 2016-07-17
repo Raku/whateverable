@@ -28,7 +28,6 @@ use Cwd qw(cwd abs_path);
 use File::Temp qw(tempfile tempdir);
 use List::Util qw(min);
 use Chart::Gnuplot;
-use File::Basename;
 
 use constant LIMIT => 300;
 
@@ -108,7 +107,7 @@ sub process_message {
           );
       $chart->plot2d($dataSet);
 
-      $graph->{basename($gfilename)} = do {
+      $graph->{'graph.svg'} = do {
         local $/;
         <$gfh>;
       };
