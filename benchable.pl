@@ -25,6 +25,7 @@ package Benchable;
 use parent 'Perl6IRCBotable';
 
 use Cwd qw(cwd abs_path);
+use Encode qw(encode_utf8 decode_utf8);
 use File::Temp qw(tempfile tempdir);
 use List::Util qw(min);
 use Chart::Gnuplot;
@@ -96,7 +97,12 @@ sub process_message {
       my ($gfh, $gfilename) = tempfile(SUFFIX => '.svg', UNLINK => 1);
       my $chart = Chart::Gnuplot->new(
         output   => $gfilename,
-        terminal => 'svg mousing',
+        encoding => 'utf8',
+        title	 => {
+          text     => encode_utf8($body =~ s/"/\\"/g),
+          enhanced => 'off',
+        },
+#        terminal => 'svg mousing',
         xlabel   => 'Commits',
         ylabel   => 'Seconds',
         xtics    => { labels => [map { "'$commits[$_]' $_" } 0..$#commits], },
