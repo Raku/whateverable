@@ -27,10 +27,12 @@ use parent 'Perl6IRCBotable';
 use Cwd qw(cwd abs_path);
 use Encode qw(encode_utf8 decode_utf8);
 use File::Temp qw(tempfile tempdir);
-use List::Util qw(min);
+use List::Util qw(min max);
 use Chart::Gnuplot;
+use Statistics::Basic qw(mean stddev);
 
 use constant LIMIT => 300;
+use constant ITERATIONS => 5;
 
 my $name = 'benchable';
 
@@ -85,30 +87,39 @@ sub process_message {
       } elsif (not -e $self->BUILDS . "/$full_commit/bin/perl6") {
         $times{$short_commit} = 'No build for this commit';
       } else { # actually run the code
-        for (1..5) {
+        for (1..ITERATIONS) {
           (undef, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
           push @{$times{$short_commit}}, $exit == 0 ? sprintf('%.4f', $time) : "run failed, exit code = $exit";
         }
-        $times{$short_commit} = min(@{$times{$short_commit}});
+        my @times = @{$times{$short_commit}};
+        $times{$short_commit} = {};
+        $times{$short_commit}{'min'} = min(@times);
+        $times{$short_commit}{'max'} = max(@times);
+        $times{$short_commit}{'mean'} = mean(@times);
+        $times{$short_commit}{'stddev'} = stddev(@times);
       }
     }
 
-    if (scalar @commits >= 5) {
+    if (scalar @commits >= ITERATIONS) {
       my ($gfh, $gfilename) = tempfile(SUFFIX => '.svg', UNLINK => 1);
+      (my $title = $body) =~ s/"/\\"/g;
       my $chart = Chart::Gnuplot->new(
-        output   => $gfilename,
+        output   => 'graph.svg',
         encoding => 'utf8',
         title	 => {
-          text     => encode_utf8($body =~ s/"/\\"/g),
+          text     => encode_utf8($title),
           enhanced => 'off',
         },
 #        terminal => 'svg mousing',
-        xlabel   => 'Commits',
+        xlabel   => {
+          text   => 'Commits\\nMean,Max,Stddev',
+          offset => '0,-1',
+        },
         ylabel   => 'Seconds',
-        xtics    => { labels => [map { "'$commits[$_]' $_" } 0..$#commits], },
+        xtics    => { labels => [map { "\"$commits[$_]\\n" . join(',', @{$times{substr($commits[$_], 0, 7)}}{qw(mean max stddev)}) . "\" $_" } 0..$#commits], },
           );
       my $dataSet = Chart::Gnuplot::DataSet->new(
-        ydata => [map { $times{substr($_, 0, 7)} } @commits],
+        ydata => [map { $times{substr($_, 0, 7)}{'min'} } @commits],
         style => 'linespoints',
           );
       $chart->plot2d($dataSet);
