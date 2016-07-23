@@ -28,7 +28,6 @@ use Cwd qw(cwd abs_path);
 use Encode qw(encode_utf8 decode_utf8);
 use File::Temp qw(tempfile tempdir);
 use HTTP::Tiny;
-#use IO::Handle;
 use IPC::Open3;
 use JSON::XS;
 use Net::GitHub;
@@ -60,7 +59,7 @@ sub get_output {
   }
   my $s_end = time();
 
-  my $exit_status = $? >> 8;
+  my $exit_status = $? & 127;
 
   $out = do { local $/; <RESULT> } unless defined $out;
   chomp $out if defined $out;
