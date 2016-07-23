@@ -36,6 +36,10 @@ use constant ITERATIONS => 5;
 
 my $name = 'benchable';
 
+sub timeout {
+  return 200;
+}
+
 sub process_message {
   my ($self, $message, $body) = @_;
 

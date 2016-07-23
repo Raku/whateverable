@@ -28,7 +28,7 @@ use Cwd qw(cwd abs_path);
 use Encode qw(encode_utf8 decode_utf8);
 use File::Temp qw(tempfile tempdir);
 use HTTP::Tiny;
-use IO::Handle;
+#use IO::Handle;
 use IPC::Open3;
 use JSON::XS;
 use Net::GitHub;
@@ -41,17 +41,28 @@ use constant SOURCE => 'https://github.com/perl6/bisectbot';
 
 $ENV{'RAKUDO_ERROR_COLOR'} = 0;
 
+sub timeout {
+  return 10;
+}
+
 sub get_output {
   my $self = shift;
 
+  my $out = undef;
+  my $wait = $self->timeout();
   my $s_start = time();
   my $pid = open3(undef, \*RESULT, \*RESULT, @_);
-  waitpid($pid, 0);
+  {
+    local $SIG{ALRM} = sub { kill 9, $pid; $out = "timed out after $wait seconds"; };
+    alarm $wait;
+    waitpid($pid, 0);
+    alarm 0;
+  }
   my $s_end = time();
 
   my $exit_status = $? >> 8;
 
-  my $out = do { local $/; <RESULT> };
+  $out = do { local $/; <RESULT> } unless defined $out;
   chomp $out if defined $out;
 
   return ($out, $exit_status, $s_end - $s_start)

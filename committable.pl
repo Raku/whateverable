@@ -31,6 +31,10 @@ use constant LIMIT => 300;
 
 my $name = 'committable';
 
+sub timeout {
+  return 50;
+}
+
 sub process_message {
   my ($self, $message, $body) = @_;
 
