@@ -25,7 +25,7 @@ package Benchable;
 use parent 'Perl6IRCBotable';
 
 use Cwd qw(cwd abs_path);
-use Encode qw(encode_utf8 decode_utf8);
+use Encode qw(encode_utf8);
 use File::Temp qw(tempfile tempdir);
 use List::Util qw(min max);
 use Chart::Gnuplot;

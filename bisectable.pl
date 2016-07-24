@@ -24,7 +24,6 @@ use utf8;
 package Bisectable;
 use parent 'Perl6IRCBotable';
 
-use Encode qw(decode_utf8);
 use File::Temp qw(tempfile tempdir);
 use Cwd qw(cwd abs_path);
 
@@ -101,12 +100,13 @@ sub process_message {
 
     if ($exit_good == $exit_bad and $out_good eq $out_bad) {
       $self->tell($message, "On both starting points the exit code is $exit_bad and the output is identical as well");
-      return 'Output on both points: ' . decode_utf8($out_good); # will be gisted automatically if required
+      return "Output on both points: $out_good"; # will be gisted automatically if required
     }
     my $output_file = '';
     if ($exit_good == $exit_bad) {
       $self->tell($message, "Exit code is $exit_bad on both starting points, bisecting by using the output");
       (my $fh, $output_file) = tempfile(UNLINK => 1);
+      binmode $fh, ':encoding(UTF-8)';
       print $fh $out_good;
       close $fh;
     }
@@ -125,7 +125,7 @@ sub process_message {
     if ($init_status != 0) {
       chdir($oldDir);
       $self->tell($message, 'bisect log: ' . $self->upload({ 'query'  => $body,
-                                                             'result' => decode_utf8($init_output) }));
+                                                             'result' => $init_output }));
       return 'bisect init failure';
     }
     my ($bisect_output, $bisect_status);
@@ -142,7 +142,7 @@ sub process_message {
       }
     }
     $self->tell($message, 'bisect log: ' . $self->upload({ 'query'  => $body,
-                                                           'result' => decode_utf8("$init_output\n$bisect_output") }));
+                                                           'result' => "$init_output\n$bisect_output" }));
     if ($bisect_status != 0) {
       chdir($oldDir);
       return "'bisect run' failure";

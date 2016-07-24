@@ -52,7 +52,7 @@ sub get_output {
   my $s_start = time();
   my $pid = open3(undef, \*RESULT, \*RESULT, @_);
   {
-    local $SIG{ALRM} = sub { kill 9, $pid; $out = encode_utf8("«timed out after $wait seconds, output»: "); };
+    local $SIG{ALRM} = sub { kill 9, $pid; $out = "«timed out after $wait seconds, output»: " };
     alarm $wait;
     waitpid($pid, 0);
     alarm 0;
@@ -62,7 +62,7 @@ sub get_output {
   my $exit_status = $? >> 8;
   my $exit_signal = $? & 127;
 
-  $out .= do { local $/; <RESULT> } // '';
+  $out .= decode_utf8(do { local $/; <RESULT> }) // ''; # assume UTF-8, that's the best we can do
   chomp $out;
 
   return ($out, $exit_status, $exit_signal, $s_end - $s_start)
