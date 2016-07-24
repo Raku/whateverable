@@ -26,6 +26,7 @@ use parent 'Perl6IRCBotable';
 
 use Cwd qw(cwd abs_path);
 use Encode qw(decode_utf8);
+use IPC::Signal 'sig_name';
 
 use constant LIMIT => 300;
 
@@ -89,7 +90,10 @@ sub process_message {
         ($out, my $exit, my $signal, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
         $out = decode_utf8($out);
         $out .= " «exit code = $exit»" if ($exit != 0);
-        $out .= " «exit signal = $signal»" if ($signal != 0);
+        if ($signal != 0) {
+          my $signal_name = sig_name $signal;
+          $out .= " «exit signal = $signal_name ($signal)»";
+        }
       }
       my $short_commit = substr($commit, 0, 7);
 
