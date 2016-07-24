@@ -30,6 +30,7 @@ use File::Temp qw(tempfile tempdir);
 use List::Util qw(min max);
 use Chart::Gnuplot;
 use Statistics::Basic qw(mean stddev);
+use Scalar::Util qw(looks_like_number);
 
 use constant LIMIT => 300;
 use constant ITERATIONS => 5;
@@ -38,6 +39,29 @@ my $name = 'benchable';
 
 sub timeout {
   return 200;
+}
+
+sub benchmark_code {
+  my ($self, $full_commit, $filename) = @_;
+
+  my @times;
+  my %stats;
+  for (1..ITERATIONS) {
+    my (undef, $exit, $signal, $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+    if ($exit == 0) {
+      push @times, sprintf('%.4f', $time);
+    } else {
+      $stats{'err'} = "«run failed, exit code = $exit, exit signal = $signal»";
+      return \%stats;
+    }
+  }
+
+  $stats{'min'}    = min(@times);
+  $stats{'max'}    = max(@times);
+  $stats{'mean'}   = mean(@times);
+  $stats{'stddev'} = stddev(@times);
+
+  return \%stats;
 }
 
 sub process_message {
@@ -68,6 +92,8 @@ sub process_message {
       @commits = split("\n", $result);
       my $num_commits = scalar @commits;
       return "Too many commits ($num_commits) in range, you're only allowed " . LIMIT if ($num_commits > LIMIT);
+    } elsif (lc $config eq 'releases') {
+      @commits = qw(2015.10 2015.11 2015.12 2016.01 2016.02 2016.03 2016.04 2016.05 2016.06 2016.07 HEAD);
     } else {
       @commits = $config;
     }
@@ -87,54 +113,73 @@ sub process_message {
       my $full_commit = $self->to_full_commit($commit);
       my $short_commit = substr($commit, 0, 7);
       if (not defined $full_commit) {
-        $times{$short_commit} = 'Cannot find this revision';
+        $times{$short_commit}{'err'} = 'Cannot find this revision';
       } elsif (not -e $self->BUILDS . "/$full_commit/bin/perl6") {
-        $times{$short_commit} = 'No build for this commit';
+        $times{$short_commit}{'err'} = 'No build for this commit';
       } else { # actually run the code
-        for (1..ITERATIONS) {
-          (undef, my $exit, my $signal, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
-          push @{$times{$short_commit}}, $exit == 0 ? sprintf('%.4f', $time) : "«run failed, exit code = $exit, exit signal = $signal»";
-        }
-        my @times = @{$times{$short_commit}};
-        $times{$short_commit} = {};
-        $times{$short_commit}{'min'} = min(@times);
-        $times{$short_commit}{'max'} = max(@times);
-        $times{$short_commit}{'mean'} = mean(@times);
-        $times{$short_commit}{'stddev'} = stddev(@times);
+        $times{$short_commit} = $self->benchmark_code($full_commit, $filename);
       }
     }
 
+    # for these two config options, check if there are any large speed differences between two commits and if so, 
+    # recursively find the commit in the middle until there are either no more large speed differences or no
+    # more commits inbetween (i.e., the next commit is the exact one that caused the difference)
+    if (lc $config eq 'releases' or $config =~ /,/) {
+      my $old_dir = cwd();
+      chdir $self->RAKUDO;
+
+Z:    for (my $x = 0; $x < scalar @commits - 1; $x++) {
+        next unless (exists $times{$commits[$x]} and exists $times{$commits[$x + 1]});          # the commits have to have been run at all
+        next if (exists $times{$commits[$x]}{'err'} or exists $times{$commits[$x + 1]}{'err'}); # and without error
+        if (abs($times{$commits[$x]}{'min'} - $times{$commits[$x + 1]}{'min'}) >= $times{$commits[$x]}{'min'}*0.1) {
+          my ($new_commit, $exit_status, $exit_signal, $time) = $self->get_output('git', 'rev-list', '--bisect', $commits[$x] . '^..' . $commits[$x + 1]);
+          if ($exit_status == 0 and defined $new_commit and $new_commit ne '' and !exists $times{$new_commit} and $new_commit ne $commits[$x] and $new_commit ne $commits[$x + 1]) {
+             my $full_commit = $self->to_full_commit($new_commit);
+             $times{$new_commit} = $self->benchmark_code($full_commit, $filename);
+             splice(@commits, $x + 1, 0, $new_commit);
+             redo Z;
+          }
+        }
+      }
+
+      chdir $old_dir;
+    }
+
     if (scalar @commits >= ITERATIONS) {
-      my ($gfh, $gfilename) = tempfile(SUFFIX => '.svg', UNLINK => 1);
+      my $gfilename = 'graph.svg';
       (my $title = $body) =~ s/"/\\"/g;
+      my @ydata = map { $times{substr($_, 0, 7)}{'err'} // $times{substr($_, 0, 7)}{'min'} } @commits;
       my $chart = Chart::Gnuplot->new(
-        output   => 'graph.svg',
+        output   => $gfilename,
         encoding => 'utf8',
         title	 => {
           text     => encode_utf8($title),
           enhanced => 'off',
         },
+        size     => '2,1',
 #        terminal => 'svg mousing',
         xlabel   => {
           text   => 'Commits\\nMean,Max,Stddev',
           offset => '0,-1',
         },
+        xtics    => { labels => [map { my $commit = substr($commits[$_], 0, 7); "\"$commit\\n" . ($times{$commit}{'err'} // join(',', @{$times{$commit}}{qw(mean max stddev)})) . "\" $_" } 0..$#commits], },
         ylabel   => 'Seconds',
-        xtics    => { labels => [map { "\"$commits[$_]\\n" . join(',', @{$times{substr($commits[$_], 0, 7)}}{qw(mean max stddev)}) . "\" $_" } 0..$#commits], },
+        yrange   => [0, max(grep { looks_like_number($_) } @ydata)*1.25],
           );
       my $dataSet = Chart::Gnuplot::DataSet->new(
-        ydata => [map { $times{substr($_, 0, 7)}{'min'} } @commits],
+        ydata => \@ydata,
         style => 'linespoints',
           );
       $chart->plot2d($dataSet);
 
-      $graph->{'graph.svg'} = do {
+      open my $gfh, '<', $gfilename or die $!;
+      $graph->{$gfilename} = do {
         local $/;
         <$gfh>;
       };
     }
 
-    $msg_response .= '|' . join("\n|", map { $_ = substr($_, 0, 7); "«$_»:$times{$_}" } @commits);
+    $msg_response .= '¦' . join("\n¦", map { $_ = substr($_, 0, 7); "«$_»:" . ($times{$_}{'err'} // $times{$_}{'min'}) } @commits);
   } else {
     return help();
   }
