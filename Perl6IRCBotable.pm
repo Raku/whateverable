@@ -61,7 +61,7 @@ sub get_output {
 
   my $exit_status = $? & 127;
 
-  $out = do { local $/; <RESULT> } unless defined $out;
+  $out .= do { local $/; <RESULT> };
   chomp $out if defined $out;
 
   return ($out, $exit_status, $s_end - $s_start)
