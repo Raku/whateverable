@@ -54,7 +54,7 @@ sub process_message {
       return "Bad start" if system('git', 'rev-parse', '--verify', $start) != 0;
       return "Bad end"   if system('git', 'rev-parse', '--verify', $end)   != 0;
 
-      my ($result, $exit_status, $time) = $self->get_output('git', 'rev-list', "$start^..$end");
+      my ($result, $exit_status, $exit_signal, $time) = $self->get_output('git', 'rev-list', "$start^..$end");
       chdir $old_dir;
 
       return "Couldn't find anything in the range" if $exit_status != 0;
@@ -86,9 +86,10 @@ sub process_message {
       } elsif (not -e $self->BUILDS . "/$full_commit/bin/perl6") {
         $out = 'No build for this commit';
       } else { # actually run the code
-        ($out, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+        ($out, my $exit, my $signal, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
         $out = decode_utf8($out);
-        $out .= " exit code = $exit" if ($exit != 0);
+        $out .= " «exit code = $exit»" if ($exit != 0);
+        $out .= " «exit signal = $signal»" if ($signal != 0);
       }
       my $short_commit = substr($commit, 0, 7);
 
@@ -104,7 +105,7 @@ sub process_message {
       }
     }
 
-    $msg_response .= '|' . join("\n|", map { '«' . join(',', @{$_->{commits}}) . '»: ' . $_->{output} } @result);
+    $msg_response .= '¦' . join("\n|", map { '«' . join(',', @{$_->{commits}}) . '»: ' . $_->{output} } @result);
   } else {
     $msg_response = help();
   }

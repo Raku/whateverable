@@ -47,24 +47,25 @@ sub timeout {
 sub get_output {
   my $self = shift;
 
-  my $out = undef;
+  my $out = '';
   my $wait = $self->timeout();
   my $s_start = time();
   my $pid = open3(undef, \*RESULT, \*RESULT, @_);
   {
-    local $SIG{ALRM} = sub { kill 9, $pid; $out = "timed out after $wait seconds"; };
+    local $SIG{ALRM} = sub { kill 9, $pid; $out = encode_utf8("«timed out after $wait seconds, output»: "); };
     alarm $wait;
     waitpid($pid, 0);
     alarm 0;
   }
   my $s_end = time();
 
-  my $exit_status = $? & 127;
+  my $exit_status = $? >> 8;
+  my $exit_signal = $? & 127;
 
-  $out .= do { local $/; <RESULT> };
-  chomp $out if defined $out;
+  $out .= do { local $/; <RESULT> } // '';
+  chomp $out;
 
-  return ($out, $exit_status, $s_end - $s_start)
+  return ($out, $exit_status, $exit_signal, $s_end - $s_start)
 }
 
 sub to_full_commit {
@@ -73,7 +74,7 @@ sub to_full_commit {
   my $old_dir = cwd();
   chdir RAKUDO;
   return if system('git', 'rev-parse', '--verify', $commit) != 0; # make sure that $commit is valid
-  my ($result, $exit_status, $time) = $self->get_output('git', 'rev-list', '-1', $commit); # use rev-list to handle tags
+  my ($result, $exit_status, $exit_signal, $time) = $self->get_output('git', 'rev-list', '-1', $commit); # use rev-list to handle tags
   chdir $old_dir;
 
   return if $exit_status != 0;

@@ -93,8 +93,8 @@ sub process_message {
 
     my $old_dir = cwd();
     chdir $self->RAKUDO;
-    my ($out_good, $exit_good, $time_good) = $self->get_output($self->BUILDS . "/$full_good/bin/perl6", $filename);
-    my ($out_bad,  $exit_bad,  $time_bad)  = $self->get_output($self->BUILDS . "/$full_bad/bin/perl6",  $filename);
+    my ($out_good, $exit_good, $signal_good, $time_good) = $self->get_output($self->BUILDS . "/$full_good/bin/perl6", $filename);
+    my ($out_bad,  $exit_bad,  $signal_bad,  $time_bad)  = $self->get_output($self->BUILDS . "/$full_bad/bin/perl6",  $filename);
     chdir $old_dir;
     $out_good //= '';
     $out_bad  //= '';

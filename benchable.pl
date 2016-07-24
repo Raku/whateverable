@@ -60,7 +60,7 @@ sub process_message {
       return "Bad start" if system('git', 'rev-parse', '--verify', $start) != 0;
       return "Bad end"   if system('git', 'rev-parse', '--verify', $end)   != 0;
 
-      my ($result, $exit_status, $time) = $self->get_output('git', 'rev-list', "$start^..$end");
+      my ($result, $exit_status, $exit_signal, $time) = $self->get_output('git', 'rev-list', "$start^..$end");
       chdir $old_dir;
 
       return "Couldn't find anything in the range" if $exit_status != 0;
@@ -92,8 +92,8 @@ sub process_message {
         $times{$short_commit} = 'No build for this commit';
       } else { # actually run the code
         for (1..ITERATIONS) {
-          (undef, my $exit, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
-          push @{$times{$short_commit}}, $exit == 0 ? sprintf('%.4f', $time) : "run failed, exit code = $exit";
+          (undef, my $exit, my $signal, my $time) = $self->get_output($self->BUILDS . "/$full_commit/bin/perl6", $filename);
+          push @{$times{$short_commit}}, $exit == 0 ? sprintf('%.4f', $time) : "«run failed, exit code = $exit, exit signal = $signal»";
         }
         my @times = @{$times{$short_commit}};
         $times{$short_commit} = {};
