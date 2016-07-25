@@ -133,11 +133,15 @@ Z:    for (my $x = 0; $x < scalar @commits - 1; $x++) {
         next if (exists $times{$commits[$x]}{'err'} or exists $times{$commits[$x + 1]}{'err'}); # and without error
         if (abs($times{$commits[$x]}{'min'} - $times{$commits[$x + 1]}{'min'}) >= $times{$commits[$x]}{'min'}*0.1) {
           my ($new_commit, $exit_status, $exit_signal, $time) = $self->get_output('git', 'rev-list', '--bisect', $commits[$x] . '^..' . $commits[$x + 1]);
-          if ($exit_status == 0 and defined $new_commit and $new_commit ne '' and !exists $times{$new_commit} and $new_commit ne $commits[$x] and $new_commit ne $commits[$x + 1]) {
-             my $full_commit = $self->to_full_commit($new_commit);
-             $times{$new_commit} = $self->benchmark_code($full_commit, $filename);
-             splice(@commits, $x + 1, 0, $new_commit);
-             redo Z;
+          if ($exit_status == 0 and defined $new_commit and $new_commit ne '') {
+            my $short_commit = substr($new_commit, 0, 7);
+            if (not -e $self->BUILDS . "/$new_commit/bin/perl6") {
+              $times{$short_commit}{'err'} = 'No build for this commit';
+            } elsif (!exists $times{$short_commit} and $short_commit ne $commits[$x] and $short_commit ne $commits[$x + 1]) { # actually run the code
+              $times{$short_commit} = $self->benchmark_code($new_commit, $filename);
+              splice(@commits, $x + 1, 0, $short_commit);
+              redo Z;
+            }
           }
         }
       }
