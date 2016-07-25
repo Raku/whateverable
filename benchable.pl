@@ -93,7 +93,7 @@ sub process_message {
       my $num_commits = scalar @commits;
       return "Too many commits ($num_commits) in range, you're only allowed " . LIMIT if ($num_commits > LIMIT);
     } elsif (lc $config eq 'releases') {
-      @commits = qw(2015.10 2015.11 2015.12 2016.01 2016.02 2016.03 2016.04 2016.05 2016.06 2016.07 HEAD);
+      @commits = qw(2015.10 2015.11 2015.12 2016.02 2016.03 2016.04 2016.05 2016.06 2016.07 HEAD);
     } else {
       @commits = $config;
     }
