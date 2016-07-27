@@ -34,7 +34,7 @@ my $commit_tester = abs_path('./test-commit');
 my $build_lock    = abs_path('./lock');
 
 sub timeout {
-  return 200;
+  return 10;
 }
 
 sub process_message {
