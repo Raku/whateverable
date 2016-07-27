@@ -27,7 +27,7 @@ use parent 'Perl6IRCBotable';
 use Cwd qw(cwd abs_path);
 use IPC::Signal 'sig_name';
 
-use constant LIMIT => 300;
+use constant LIMIT => 1000;
 
 my $name = 'committable';
 
