@@ -38,7 +38,7 @@ use constant BUILDS => abs_path('./builds');
 use constant CONFIG => abs_path('./config.json');
 use constant SOURCE => 'https://github.com/perl6/bisectbot';
 
-$ENV{'RAKUDO_ERROR_COLOR'} = 0;
+$ENV{'RAKUDO_ERROR_COLOR'} = '';
 
 sub timeout {
   return 10;
