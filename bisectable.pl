@@ -77,6 +77,7 @@ sub process_message {
     }
 
     my $full_bad = $self->to_full_commit($bad);
+    my $short_bad = substr($bad eq 'HEAD' ? $full_bad : $bad, 0, 7);
     return "Cannot find 'bad' revision" unless defined $full_bad;
 
     if (! -e $self->BUILDS . "/$full_bad/bin/perl6") {
@@ -99,19 +100,19 @@ sub process_message {
     $out_bad  //= '';
 
     if ($exit_good == $exit_bad and $out_good eq $out_bad) {
-      $self->tell($message, "On both starting points the exit code is $exit_bad and the output is identical as well");
+      $self->tell($message, "On both starting points (good=$good bad=$short_bad) the exit code is $exit_bad and the output is identical as well");
       return "Output on both points: $out_good"; # will be gisted automatically if required
     }
     my $output_file = '';
     if ($exit_good == $exit_bad) {
-      $self->tell($message, "Exit code is $exit_bad on both starting points, bisecting by using the output");
+      $self->tell($message, "Exit code is $exit_bad on both starting points (good=$good bad=$short_bad), bisecting by using the output");
       (my $fh, $output_file) = tempfile(UNLINK => 1);
       binmode $fh, ':encoding(UTF-8)';
       print $fh $out_good;
       close $fh;
     }
     if ($exit_good != $exit_bad and $exit_good != 0) {
-      $self->tell($message, "Exit code on a 'good' revision is $exit_good (which is bad), bisecting with inverted logic");
+      $self->tell($message, "For the given starting points (good=$good bad=$short_bad), exit code on a 'good' revision is $exit_good (which is bad), bisecting with inverted logic");
     }
 
     my $oldDir = cwd();
