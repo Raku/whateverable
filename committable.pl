@@ -26,17 +26,20 @@ use parent 'Perl6IRCBotable';
 
 use Cwd qw(cwd abs_path);
 use IPC::Signal 'sig_name';
+use Time::HiRes qw(time);
 
-use constant LIMIT => 1000;
+use constant LIMIT      => 1000;
+use constant TOTAL_TIME => 60*2;
 
 my $name = 'committable';
 
 sub timeout {
-  return 50;
+  return 10;
 }
 
 sub process_message {
   my ($self, $message, $body) = @_;
+  my $start_time = time();
 
   my $msg_response = '';
 
@@ -106,6 +109,10 @@ sub process_message {
         push @result, { commits => [$short_commit], output => $out };
       } else {
         push @{@result[$lookup{$out}]->{commits}}, $short_commit;
+      }
+
+      if (time() - $start_time > TOTAL_TIME) {
+        return "«hit the total time limit of " . TOTAL_TIME . " seconds»";
       }
     }
 

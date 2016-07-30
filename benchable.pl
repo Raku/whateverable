@@ -32,13 +32,14 @@ use Chart::Gnuplot;
 use Statistics::Basic qw(mean stddev);
 use Scalar::Util qw(looks_like_number);
 
-use constant LIMIT => 300;
+use constant LIMIT      => 300;
+use constant TOTAL_TIME => 60*3;
 use constant ITERATIONS => 5;
 
 my $name = 'benchable';
 
 sub timeout {
-  return 200;
+  return 10;
 }
 
 sub benchmark_code {
@@ -66,6 +67,7 @@ sub benchmark_code {
 
 sub process_message {
   my ($self, $message, $body) = @_;
+  my $start_time = time();
 
   my $msg_response = '';
   my $graph = undef;
@@ -119,6 +121,10 @@ sub process_message {
       } else { # actually run the code
         $times{$short_commit} = $self->benchmark_code($full_commit, $filename);
       }
+
+      if (time() - $start_time > TOTAL_TIME) {
+        return "«hit the total time limit of " . TOTAL_TIME . " seconds»";
+      }
     }
 
     # for these two config options, check if there are any large speed differences between two commits and if so, 
@@ -129,6 +135,10 @@ sub process_message {
       chdir $self->RAKUDO;
 
 Z:    for (my $x = 0; $x < scalar @commits - 1; $x++) {
+        if (time() - $start_time > TOTAL_TIME) {
+          return "«hit the total time limit of " . TOTAL_TIME . " seconds»";
+        }
+
         next unless (exists $times{$commits[$x]} and exists $times{$commits[$x + 1]});          # the commits have to have been run at all
         next if (exists $times{$commits[$x]}{'err'} or exists $times{$commits[$x + 1]}{'err'}); # and without error
         if (abs($times{$commits[$x]}{'min'} - $times{$commits[$x + 1]}{'min'}) >= $times{$commits[$x]}{'min'}*0.1) {
