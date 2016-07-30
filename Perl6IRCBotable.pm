@@ -173,6 +173,7 @@ sub said {
   my $body = $message->{body};
 
   return unless $message->{address};
+  return unless $message->{raw_body} =~ /^\w+[,:]/;
   return SOURCE if $body eq 'source';
   return 'Sorry, it is too private here' if $message->{address} eq 'msg';
 
