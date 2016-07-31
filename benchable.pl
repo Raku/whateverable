@@ -142,7 +142,7 @@ Z:    for (my $x = 0; $x < scalar @commits - 1; $x++) {
         next unless (exists $times{$commits[$x]} and exists $times{$commits[$x + 1]});          # the commits have to have been run at all
         next if (exists $times{$commits[$x]}{'err'} or exists $times{$commits[$x + 1]}{'err'}); # and without error
         if (abs($times{$commits[$x]}{'min'} - $times{$commits[$x + 1]}{'min'}) >= $times{$commits[$x]}{'min'}*0.1) {
-          my ($new_commit, $exit_status, $exit_signal, $time) = $self->get_output('git', 'rev-list', '--bisect', $commits[$x] . '^..' . $commits[$x + 1]);
+          my ($new_commit, $exit_status, $exit_signal, $time) = $self->get_output('git', 'rev-list', '--bisect', '--no-merges', $commits[$x] . '^..' . $commits[$x + 1]);
           if ($exit_status == 0 and defined $new_commit and $new_commit ne '') {
             my $short_commit = substr($new_commit, 0, 7);
             if (not -e $self->BUILDS . "/$new_commit/bin/perl6") {
