@@ -76,16 +76,16 @@ method get-output(*@run-args, :$timeout = $!timeout) {
 method to-full-commit($commit) {
     my $old-dir = $*CWD;
     chdir RAKUDO;
-    if run(‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode != 0 { # make sure that $commit is valid
-        chdir $old-dir;
-        return;
-    }
+
+    return if run(‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode != 0; # make sure that $commit is valid
+
     my ($result, $exit-status, $exit-signal, $time)
          = self.get-output(‘git’, ‘rev-list’, ‘-1’, $commit); # use rev-list to handle tags
-    chdir $old-dir;
 
     return if $exit-status != 0;
     return $result
+
+    LEAVE chdir $old-dir;
 }
 
 method write-code($code) {
@@ -148,3 +148,5 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
     dd %files;
     return $gist.paste(%files, desc => $description, public => $public);
 }
+
+# vim: expandtab shiftwidth=4 ft=perl6
