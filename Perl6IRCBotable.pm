@@ -36,7 +36,7 @@ use Time::HiRes qw(time);
 use constant RAKUDO => abs_path('./rakudo');
 use constant BUILDS => abs_path('./builds');
 use constant CONFIG => abs_path('./config.json');
-use constant SOURCE => 'https://github.com/perl6/bisectbot';
+use constant SOURCE => 'https://github.com/perl6/whateverable';
 
 $ENV{'RAKUDO_ERROR_COLOR'} = '';
 

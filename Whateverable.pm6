@@ -25,7 +25,7 @@ use HTTP::UserAgent;
 constant RAKUDO = ‘./rakudo’.IO.absolute;
 constant BUILDS = ‘./builds’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
-constant SOURCE = ‘https://github.com/perl6/bisectbot’;
+constant SOURCE = ‘https://github.com/perl6/whateverable’;
 
 %*ENV{‘RAKUDO_ERROR_COLOR’} = ‘’;
 
