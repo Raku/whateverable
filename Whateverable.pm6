@@ -83,7 +83,7 @@ method to-full-commit($commit) {
          = self.get-output(‘git’, ‘rev-list’, ‘-1’, $commit); # use rev-list to handle tags
 
     return if $exit-status != 0;
-    return $result
+    return $result;
 
     LEAVE chdir $old-dir;
 }
