@@ -30,8 +30,8 @@ method help($message) {
 };
 
 multi method irc-to-me($message where .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ /) {
-    my $answer = self.process($message, ~$<config>, ~$<code>);
-    return ResponseStr.new(value => $answer, message => $message);
+    my $value = self.process($message, ~$<config>, ~$<code>);
+    return ResponseStr.new(:$value, :$message);
 }
 
 method process($message, $config, $code is copy) {
@@ -68,16 +68,16 @@ method process($message, $config, $code is copy) {
     for @commits -> $commit {
         # convert to real ids so we can look up the builds
         my $full-commit = self.to-full-commit($commit);
-        my $out = ‘’;
+        my $output = ‘’;
         if not defined $full-commit {
-            $out = ‘Cannot find this revision’;
+            $output = ‘Cannot find this revision’;
         } elsif “{BUILDS}/$full-commit/bin/perl6”.IO !~~ :e {
             say “{BUILDS}/$full-commit/bin/perl6”;
-            $out = ‘No build for this commit’;
+            $output = ‘No build for this commit’;
         } else { # actually run the code
-            ($out, my $exit, my $signal, my $time) = self.get-output(“{BUILDS}/$full-commit/bin/perl6”, $filename);
-            $out ~= “ «exit code = $exit»” if $exit != 0;
-            $out ~= “ «exit signal = {Signal($signal)} ($signal)»” if $signal != 0;
+            ($output, my $exit, my $signal, my $time) = self.get-output(“{BUILDS}/$full-commit/bin/perl6”, $filename);
+            $output ~= “ «exit code = $exit»” if $exit != 0;
+            $output ~= “ «exit signal = {Signal($signal)} ($signal)»” if $signal != 0;
         }
         my $short-commit = $commit.substr(0, 7);
 
@@ -85,12 +85,12 @@ method process($message, $config, $code is copy) {
         # @result = [ { commits => [‘A’, ‘B’], output => ‘42‘ },
         #             { commits => [‘C’],      output => ‘69’ }, ];
         # %lookup = { ‘42’ => 0, ‘69’ => 1 }
-        if not %lookup{$out}:exists {
-            %lookup{$out} = +@result;
-            @result.push: { commits => [$short-commit], output => $out };
+        if not %lookup{$output}:exists {
+            %lookup{$output} = +@result;
+            @result.push: { commits => [$short-commit], :$output };
         } else {
-            say “Lookup(out): %lookup{$out}”;
-            @result[%lookup{$out}]<commits>.push: $short-commit;
+            say “Lookup(output): %lookup{$output}”;
+            @result[%lookup{$output}]<commits>.push: $short-commit;
         }
     }
 
@@ -102,7 +102,7 @@ my $plugin = Committable.new;
 my $nick = ‘committable6’;
 
 .run with IRC::Client.new(
-    :nick($nick)
+    :$nick
     :userreal($nick.tc)
     :username($nick.tc)
     :host<irc.freenode.net>
@@ -111,3 +111,5 @@ my $nick = ‘committable6’;
     :plugins($plugin)
     :filters( -> |c { $plugin.filter(|c) } )
 );
+
+# vim: expandtab shiftwidth=4 ft=perl6
