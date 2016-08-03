@@ -115,7 +115,6 @@ sub process_message {
       $self->tell($message, "For the given starting points (good=$good bad=$short_bad), exit code on a 'good' revision is $exit_good (which is bad), bisecting with inverted logic");
     }
 
-    my $oldDir = cwd();
     my $dir = tempdir(CLEANUP => 1);
     system('git', 'clone', $self->RAKUDO, $dir);
     chdir($dir);
@@ -124,7 +123,7 @@ sub process_message {
     $self->get_output('git', 'bisect', 'good', $full_good);
     my ($init_output, $init_status) = $self->get_output('git', 'bisect', 'bad',  $full_bad);
     if ($init_status != 0) {
-      chdir($oldDir);
+      chdir($old_dir);
       $self->tell($message, 'bisect log: ' . $self->upload({ 'query'  => $body,
                                                              'result' => $init_output }));
       return 'bisect init failure';
@@ -145,11 +144,11 @@ sub process_message {
     $self->tell($message, 'bisect log: ' . $self->upload({ 'query'  => $body,
                                                            'result' => "$init_output\n$bisect_output" }));
     if ($bisect_status != 0) {
-      chdir($oldDir);
+      chdir($old_dir);
       return "'bisect run' failure";
     }
     my ($result) = $self->get_output('git', 'show', '--quiet', '--date=short', "--pretty=(%cd) $link/%h", 'bisect/bad');
-    chdir($oldDir);
+    chdir($old_dir);
     return $result;
   }
 }
