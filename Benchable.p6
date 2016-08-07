@@ -62,7 +62,7 @@ method benchmark-code($full-commit, $filename) {
 
 multi method irc-to-me($message where .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ /) {
     my ($value, %additional_files) = self.process($message, ~$<config>, ~$<code>);
-    return (ResponseStr.new(:$value, :$message, :%additional_files);
+    return ResponseStr.new(:$value, :$message, :%additional_files);
 }
 
 method process($message, $config, $code is copy) {
@@ -153,8 +153,6 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
     if @commits >= ITERATIONS {
         my $gfilename = 'graph.svg';
         my $title = "$config $code".trans(['"'] => ['\"']);
-        put $title;
-        $title = 'f583f22,110704d my \$a = \"a\" x 2**16;for ^1000 {my \$b = \$a.chop(\$_)}';
         my @ydata = @commits.map({ .<err> // .<min> with %times{$_.substr(0, 7)} });
         my $chart = Chart::Gnuplot.new(
             output   => $gfilename,
@@ -194,7 +192,7 @@ my $nick = ‘benchable6’;
     :$nick
     :userreal($nick.tc)
     :username($nick.tc)
-    :host<127.0.0.1>
+    :host<irc.freenode.net>
     :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev>)
     :debug(?%*ENV<DEBUGGABLE>)
     :plugins($plugin)
