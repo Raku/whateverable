@@ -38,6 +38,7 @@ class ResponseStr is Str is export {
     # that our object propagates right to the filter.
     # Otherwise there is no way to get required data in the filter.
     has IRC::Client::Message $.message;
+    has %.additional_files;
 }
 
 multi method irc-to-me($msg where .text ~~ /:i^ [source|url] ‘?’? $/) {
@@ -125,9 +126,9 @@ method process-code($code is copy, $message) {
     return (1, $code)
 }
 
-multi method filter($response where .chars > 300) {
+multi method filter($response where (.chars > 300 or .additional_files)) {
     if $response ~~ ResponseStr {
-        self.upload({‘result’ => $response, ‘query’ => $response.message.text},
+        self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.additional_files},
                     description => $response.message.server.current-nick, :public);
     } else {
         self.upload({‘result’ => $response}, description => ‘Whateverable’, :public);
@@ -145,7 +146,6 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
     %files = %files.pairs.map: { .key => %( ‘content’ => .value ) }; # github format
 
     my $gist = Pastebin::Gist.new(token => $config<access_token>);
-    dd %files;
     return $gist.paste(%files, desc => $description, public => $public);
 }
 
