@@ -126,9 +126,9 @@ method process-code($code is copy, $message) {
     return (1, $code)
 }
 
-multi method filter($response where (.chars > 300 or .additional_files)) {
+multi method filter($response where (.chars > 300 or .?additional_files)) {
     if $response ~~ ResponseStr {
-        self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.additional_files},
+        self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.?additional_files},
                     description => $response.message.server.current-nick, :public);
     } else {
         self.upload({‘result’ => $response}, description => ‘Whateverable’, :public);

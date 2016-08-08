@@ -57,8 +57,8 @@ method benchmark-code($full-commit, $filename) {
 }
 
 multi method irc-to-me($message where .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ /) {
-    my ($value, %additional_files) = self.process($message, ~$<config>, ~$<code>);
-    return ResponseStr.new(:$value, :$message, :%additional_files);
+    my ($value, %additional-files) = self.process($message, ~$<config>, ~$<code>);
+    return ResponseStr.new(:$value, :$message, :%additional-files);
 }
 
 method process($message, $config, $code is copy) {
