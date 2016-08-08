@@ -68,7 +68,7 @@ method get-output(*@run-args, :$timeout = $!timeout) {
     my $s-end = now;
 
     if not $promise.status ~~ Kept { # timed out
-        $proc.kill;
+        $proc.kill; # TODO sends HUP, but should kill the process tree instead
         @out.unshift: “«timed out after $timeout seconds, output»: ”;
     }
     return (@out.join.chomp, $promise.result.exitcode, $promise.result.signal, $s-end - $s-start)
