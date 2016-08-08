@@ -77,6 +77,7 @@ method get-output(*@run-args, :$timeout = $!timeout) {
 method to-full-commit($commit) {
     my $old-dir = $*CWD;
     chdir RAKUDO;
+    LEAVE chdir $old-dir;
 
     return if run(‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode != 0; # make sure that $commit is valid
 
@@ -85,8 +86,6 @@ method to-full-commit($commit) {
 
     return if $exit-status != 0;
     return $result;
-
-    LEAVE chdir $old-dir;
 }
 
 method write-code($code) {

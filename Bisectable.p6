@@ -91,6 +91,7 @@ method process($message, $code is copy, $good, $bad) {
     my ($out-good, $exit-good, $signal-good, $time-good) = self.get-output(“{BUILDS}/$full-good/bin/perl6”, $filename);
     my ($out-bad,  $exit-bad,  $signal-bad,  $time-bad)  = self.get-output(“{BUILDS}/$full-bad/bin/perl6”,  $filename);
     chdir $old-dir;
+
     $out-good //= ‘’;
     $out-bad //=  ‘’;
 
@@ -109,40 +110,41 @@ method process($message, $code is copy, $good, $bad) {
         $message.reply: “For the given starting points (good=$good bad=$short-bad), exit code on a ‘good’ revision is $exit-good (which is bad), bisecting with inverted logic”;
     }
 
-    my $dir = tempdir :unlink;
-    run(‘git’, ‘clone’, RAKUDO, $dir);
-    chdir($dir);
+    my $result; # RT 128872
+    {
+        my $dir = tempdir :unlink;
+        run(‘git’, ‘clone’, RAKUDO, $dir);
+        chdir($dir);
+        LEAVE chdir $old-dir;
 
-    self.get-output(‘git’, ‘bisect’, ‘start’);
-    self.get-output(‘git’, ‘bisect’, ‘good’, $full-good);
-    my ($init-output, $init-status) = self.get-output(‘git’, ‘bisect’, ‘bad’, $full-bad);
-    if $init-status != 0 {
-        chdir($old-dir);
-        $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’  => $message.text,
-                                                       ‘result’ => $init-output });
-        return ‘bisect init failure’;
-    }
-    my ($bisect-output, $bisect-status);
-    if $output-file {
-        ($bisect-output, $bisect-status)     = self.get-output(‘git’, ‘bisect’, ‘run’,
-                                                               COMMIT-TESTER, BUILDS, $filename, $output-file);
-    } else {
-        if $exit-good == 0 {
-            ($bisect-output, $bisect-status) = self.get-output(‘git’, ‘bisect’, ‘run’,
-                                                               COMMIT-TESTER, BUILDS, $filename);
-        } else {
-            ($bisect-output, $bisect-status) = self.get-output(‘git’, ‘bisect’, ‘run’,
-                                                               COMMIT-TESTER, BUILDS, $filename, $exit-good);
+        self.get-output(‘git’, ‘bisect’, ‘start’);
+        self.get-output(‘git’, ‘bisect’, ‘good’, $full-good);
+        my ($init-output, $init-status) = self.get-output(‘git’, ‘bisect’, ‘bad’, $full-bad);
+        if $init-status != 0 {
+            $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’  => $message.text,
+                                                           ‘result’ => $init-output });
+            return ‘bisect init failure’;
         }
+        my ($bisect-output, $bisect-status);
+        if $output-file {
+            ($bisect-output, $bisect-status)     = self.get-output(‘git’, ‘bisect’, ‘run’,
+                                                                   COMMIT-TESTER, BUILDS, $filename, $output-file);
+        } else {
+            if $exit-good == 0 {
+                ($bisect-output, $bisect-status) = self.get-output(‘git’, ‘bisect’, ‘run’,
+                                                                   COMMIT-TESTER, BUILDS, $filename);
+            } else {
+                ($bisect-output, $bisect-status) = self.get-output(‘git’, ‘bisect’, ‘run’,
+                                                                   COMMIT-TESTER, BUILDS, $filename, $exit-good);
+            }
+        }
+        $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’  => $message.text,
+                                                       ‘result’ => “$init-output\n$bisect-output” });
+
+        return “‘bisect run’ failure” if $bisect-status != 0;
+
+        ($result,) = self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%h”, ‘bisect/bad’);
     }
-    $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’  => $message.text,
-                                                   ‘result’ => “$init-output\n$bisect-output” });
-    if $bisect-status != 0 {
-        chdir($old-dir);
-        return “‘bisect run’ failure”;
-    }
-    my ($result) = self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%h”, ‘bisect/bad’);
-    chdir($old-dir);
     return $result;
 }
 

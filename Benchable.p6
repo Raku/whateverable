@@ -73,11 +73,11 @@ method process($message, $config, $code is copy) {
     } elsif $config ~~ /^ $<start>=\S+ \.\. $<end>=\S+ $/ {
         my $old-dir = $*CWD;
         chdir RAKUDO;
+        LEAVE chdir $old-dir;
         return "Bad start" if run('git', 'rev-parse', '--verify', $<start>).exitcode != 0;
         return "Bad end"   if run('git', 'rev-parse', '--verify', $<end>).exitcode   != 0;
 
         my ($result, $exit-status, $exit-signal, $time) = self.get-output('git', 'rev-list', "$<start>^..$<end>");
-        chdir $old-dir;
 
         return "Couldn't find anything in the range" if $exit-status != 0;
 
@@ -120,6 +120,7 @@ method process($message, $config, $code is copy) {
     if $config ~~ /:i releases / or $config ~~ / ',' / {
         my $old-dir = $*CWD;
         chdir RAKUDO;
+        LEAVE chdir $old-dir;
 
 Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
             if (now - $start-time > TOTAL-TIME) {
@@ -142,8 +143,6 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
                 }
             }
         }
-
-        chdir $old-dir;
     }
 
     if @commits >= ITERATIONS {
