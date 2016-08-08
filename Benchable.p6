@@ -35,10 +35,6 @@ method help($message) {
     'Like this: ' ~ $message.server.current-nick ~ ': f583f22,HEAD my $a = "a" x 2**16;for ^1000 {my $b = $a.chop($_)}'
 }
 
-method timeout {
-    return 10;
-}
-
 method benchmark-code($full-commit, $filename) {
     my @times;
     my %stats;
