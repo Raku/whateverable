@@ -23,11 +23,16 @@ use IRC::Client;
 
 unit class Committable is Whateverable;
 
-constant LIMIT = 1000;
+constant LIMIT      = 1000;
+constant TOTAL-TIME = 60*3;
 
 method help($message) {
     “Like this: {$message.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 };
+
+method timeout {
+    return 10;
+}
 
 multi method irc-to-me($message where .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ /) {
     my $value = self.process($message, ~$<config>, ~$<code>);
@@ -35,6 +40,7 @@ multi method irc-to-me($message where .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=
 }
 
 method process($message, $config, $code is copy) {
+    my $start-time = now;
     my @commits;
     if $config ~~ / ‘,’ / {
         @commits = $config.split: ‘,’;
@@ -91,6 +97,10 @@ method process($message, $config, $code is copy) {
         } else {
             say “Lookup(output): %lookup{$output}”;
             @result[%lookup{$output}]<commits>.push: $short-commit;
+        }
+
+        if (now - $start-time > TOTAL-TIME) {
+            return "«hit the total time limit of {TOTAL-TIME} seconds»";
         }
     }
 
