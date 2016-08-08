@@ -181,18 +181,6 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
     return ($msg-response, %graph);
 }
 
-my $plugin = Benchable.new;
-my $nick = ‘benchable6’;
-
-.run with IRC::Client.new(
-    :$nick
-    :userreal($nick.tc)
-    :username($nick.tc)
-    :host<irc.freenode.net>
-    :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev>)
-    :debug(?%*ENV<DEBUGGABLE>)
-    :plugins($plugin)
-    :filters( -> |c { $plugin.filter(|c) } )
-);
+Benchable.new.selfrun(‘benchable6’);
 
 # vim: expandtab shiftwidth=4 ft=perl6

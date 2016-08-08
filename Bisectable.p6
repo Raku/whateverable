@@ -146,18 +146,6 @@ method process($message, $code is copy, $good, $bad) {
     return $result;
 }
 
-my $plugin = Bisectable.new;
-my $nick = ‘bisectable6’;
-
-.run with IRC::Client.new(
-    :$nick
-    :userreal($nick.tc)
-    :username($nick.tc)
-    :host<irc.freenode.net>
-    :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev>)
-    :debug(?%*ENV<DEBUGGABLE>)
-    :plugins($plugin)
-    :filters( -> |c { $plugin.filter(|c) } )
-);
+Bisectable.new.selfrun(‘bisectable6’);
 
 # vim: expandtab shiftwidth=4 ft=perl6

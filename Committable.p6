@@ -104,18 +104,6 @@ method process($message, $config, $code is copy) {
     return $msg-response;
 }
 
-my $plugin = Committable.new;
-my $nick = ‘committable6’;
-
-.run with IRC::Client.new(
-    :$nick
-    :userreal($nick.tc)
-    :username($nick.tc)
-    :host<irc.freenode.net>
-    :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev>)
-    :debug(?%*ENV<DEBUGGABLE>)
-    :plugins($plugin)
-    :filters( -> |c { $plugin.filter(|c) } )
-);
+Committable.new.selfrun(‘committable6’);
 
 # vim: expandtab shiftwidth=4 ft=perl6

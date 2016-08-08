@@ -149,4 +149,17 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
     return $gist.paste(%files, desc => $description, public => $public);
 }
 
+method selfrun($nick) {
+    .run with IRC::Client.new(
+        :$nick
+        :userreal($nick.tc)
+        :username($nick.tc)
+        :host<irc.freenode.net>
+        :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev>)
+        :debug(?%*ENV<DEBUGGABLE>)
+        :plugins(self)
+        :filters( -> |c { self.filter(|c) } )
+    )
+}
+
 # vim: expandtab shiftwidth=4 ft=perl6
