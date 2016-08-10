@@ -56,11 +56,10 @@ multi method irc-privmsg-me($msg) {
 method help($message) { “See {SOURCE}” } # override this in your bot
 
 method get-output(*@run-args, :$timeout = $!timeout) {
-    # TODO is the whole async stuff here sane? I don't think so…
-    my @out;
+    my $out = Channel.new; # TODO switch to some Proc :merge thing once it is implemented
     my $proc = Proc::Async.new(|@run-args);
-    $proc.stdout.tap(-> $v { @out.push: $v });
-    $proc.stderr.tap(-> $v { @out.push: $v });
+    $proc.stdout.tap(-> $v { $out.send: $v });
+    $proc.stderr.tap(-> $v { $out.send: $v });
 
     my $s-start = now;
     my $promise = $proc.start;
@@ -69,9 +68,10 @@ method get-output(*@run-args, :$timeout = $!timeout) {
 
     if not $promise.status ~~ Kept { # timed out
         $proc.kill; # TODO sends HUP, but should kill the process tree instead
-        @out.unshift: “«timed out after $timeout seconds, output»: ”;
+        $out.send: “«timed out after $timeout seconds, output»: ”;
     }
-    return (@out.join.chomp, $promise.result.exitcode, $promise.result.signal, $s-end - $s-start)
+    $out.close;
+    return ($out.list.join.chomp, $promise.result.exitcode, $promise.result.signal, $s-end - $s-start)
 }
 
 method to-full-commit($commit) {
