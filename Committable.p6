@@ -48,10 +48,9 @@ method process($message, $config, $code is copy) {
             return ‘Bad start’ if run(‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0;
             return ‘Bad end’   if run(‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0;
             my ($result, $exit-status, $exit-signal, $time) = self.get-output(‘git’, ‘rev-list’, “$<start>^..$<end>”);
+            return ‘Couldn't find anything in the range’ if $exit-status != 0;
+            @commits = $result.split: “\n”;
         }
-        return ‘Couldn't find anything in the range’ if $exit-status != 0;
-
-        @commits = $result.split: “\n”;
         my $num-commits = @commits.elems;
         return “Too many commits ($num-commits) in range, you're only allowed {LIMIT}” if $num-commits > LIMIT;
     } elsif $config ~~ /:i releases / {
