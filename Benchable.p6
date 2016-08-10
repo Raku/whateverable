@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl6
 # Copyright © 2016
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 #     Daniel Green <ddgreen@gmail.com>
