@@ -148,7 +148,8 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
     return $gist.paste(%files, desc => $description, public => $public);
 }
 
-method selfrun($nick) {
+method selfrun($nick is copy) {
+    $nick ~= ‘test’ if %*ENV<DEBUGGABLE>;
     .run with IRC::Client.new(
         :$nick
         :userreal($nick.tc)
