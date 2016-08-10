@@ -154,7 +154,7 @@ method selfrun($nick) {
         :userreal($nick.tc)
         :username($nick.tc)
         :host<irc.freenode.net>
-        :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev>)
+        :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable>)
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )
