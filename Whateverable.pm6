@@ -32,6 +32,7 @@ constant SOURCE = ‘https://github.com/perl6/whateverable’;
 unit class Whateverable does IRC::Client::Plugin;
 
 has $!timeout = 10;
+has $!stdin = slurp ‘stdin’;
 
 class ResponseStr is Str is export {
     # I know it looks crazy, but we will subclass a Str and hope
@@ -39,6 +40,22 @@ class ResponseStr is Str is export {
     # Otherwise there is no way to get required data in the filter.
     has IRC::Client::Message $.message;
     has %.additional_files;
+}
+
+#↓ Matches only one space on purpose (for whitespace-only stdin)
+multi method irc-to-me($msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] [clear|delete|reset|unset] $/) {
+    $!stdin = slurp ‘stdin’;
+    ResponseStr.new(value => “STDIN is reset to the default value”, message => $msg)
+}
+
+multi method irc-to-me($msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdin>=.* $/) {
+    my ($ok, $new-stdin) = self.process-code(~$<stdin>, $msg);
+    if $ok {
+        $!stdin = $new-stdin;
+        return ResponseStr.new(value => “STDIN is set to «{$!stdin}»”, message => $msg)
+    } else {
+        return ResponseStr.new(value => “Nothing done”, message => $msg)
+    }
 }
 
 multi method irc-to-me($msg where .text ~~ /:i^ [source|url] ‘?’? $/) {
@@ -55,14 +72,18 @@ multi method irc-privmsg-me($msg) {
 
 method help($message) { “See {SOURCE}” } # override this in your bot
 
-method get-output(*@run-args, :$timeout = $!timeout) {
+method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
     my $out = Channel.new; # TODO switch to some Proc :merge thing once it is implemented
-    my $proc = Proc::Async.new(|@run-args);
+    my $proc = Proc::Async.new(|@run-args, :w(defined $stdin));
     $proc.stdout.tap(-> $v { $out.send: $v });
     $proc.stderr.tap(-> $v { $out.send: $v });
 
     my $s-start = now;
     my $promise = $proc.start;
+    if defined $stdin {
+        $proc.print: $stdin;
+        $proc.close-stdin;
+    }
     await Promise.anyof(Promise.in($timeout), $promise);
     my $s-end = now;
 
@@ -72,6 +93,10 @@ method get-output(*@run-args, :$timeout = $!timeout) {
     }
     $out.close;
     return ($out.list.join.chomp, $promise.result.exitcode, $promise.result.signal, $s-end - $s-start)
+}
+
+method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
+    self.get-output(“{BUILDS}/$full-commit-hash/bin/perl6”, $file, stdin => $!stdin, timeout => $timeout);
 }
 
 method to-full-commit($commit) {

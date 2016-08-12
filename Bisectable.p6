@@ -47,7 +47,7 @@ my regex bisect-cmd {
     $
 }
 
-multi method irc-to-me($message where { .text !~~ /^ [help|source|url] ‘?’? $/
+multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?’? $ | ^stdin /
                                         # ↑ stupid, I know. See RT #123577
                                         and .text ~~ &bisect-cmd}) {
     my $value = self.process($message, ~$<code>,
@@ -88,8 +88,8 @@ method process($message, $code is copy, $good, $bad) {
 
     my $old-dir = $*CWD;
     chdir RAKUDO;
-    my ($out-good, $exit-good, $signal-good, $time-good) = self.get-output(“{BUILDS}/$full-good/bin/perl6”, $filename);
-    my ($out-bad,  $exit-bad,  $signal-bad,  $time-bad)  = self.get-output(“{BUILDS}/$full-bad/bin/perl6”,  $filename);
+    my ($out-good, $exit-good, $signal-good, $time-good) = self.run-snippet($full-good, $filename);
+    my ($out-bad,  $exit-bad,  $signal-bad,  $time-bad)  = self.run-snippet($full-bad,  $filename);
     chdir $old-dir;
 
     $out-good //= ‘’;

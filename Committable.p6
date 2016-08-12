@@ -30,7 +30,9 @@ method help($message) {
     “Like this: {$message.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 };
 
-multi method irc-to-me($message where .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ /) {
+multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?’? $ | ^stdin /
+                                        # ↑ stupid, I know. See RT #123577
+                                        and .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ / }) {
     my $value = self.process($message, ~$<config>, ~$<code>);
     return ResponseStr.new(:$value, :$message);
 }
@@ -78,7 +80,7 @@ method process($message, $config, $code is copy) {
             say “{BUILDS}/$full-commit/bin/perl6”;
             $output = ‘No build for this commit’;
         } else { # actually run the code
-            ($output, my $exit, my $signal, my $time) = self.get-output(“{BUILDS}/$full-commit/bin/perl6”, $filename);
+            ($output, my $exit, my $signal, my $time) = self.run-snippet($full-commit, $filename);
             $output ~= “ «exit code = $exit»” if $exit != 0;
             $output ~= “ «exit signal = {Signal($signal)} ($signal)»” if $signal != 0;
         }
