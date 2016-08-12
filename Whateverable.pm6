@@ -148,12 +148,13 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
     return $gist.paste(%files, desc => $description, public => $public);
 }
 
-method selfrun($nick is copy) {
+method selfrun($nick is copy, @alias?) {
     $nick ~= ‘test’ if %*ENV<DEBUGGABLE>;
     .run with IRC::Client.new(
         :$nick
         :userreal($nick.tc)
         :username($nick.tc)
+        :@alias
         :host<irc.freenode.net>
         :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable>)
         :debug(?%*ENV<DEBUGGABLE>)

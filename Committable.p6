@@ -105,6 +105,6 @@ method process($message, $config, $code is copy) {
     return $msg-response;
 }
 
-Committable.new.selfrun(‘committable6’);
+Committable.new.selfrun(‘committable6’, [‘commit’]);
 
 # vim: expandtab shiftwidth=4 ft=perl6

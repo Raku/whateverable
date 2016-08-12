@@ -180,6 +180,6 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
     return ($msg-response, %graph);
 }
 
-Benchable.new.selfrun(‘benchable6’);
+Benchable.new.selfrun(‘benchable6’, [‘bench’]);
 
 # vim: expandtab shiftwidth=4 ft=perl6
