@@ -30,12 +30,13 @@ unit class Benchable is Whateverable;
 constant LIMIT      = 300;
 constant TOTAL-TIME = 60*3;
 constant ITERATIONS = 5;
+constant LIB-DIR    = '.'.IO.absolute;
 
 method help($message) {
     'Like this: ' ~ $message.server.current-nick ~ ': f583f22,HEAD my $a = "a" x 2**16;for ^1000 {my $b = $a.chop($_)}'
 }
 
-method benchmark-code($full-commit, $filename) {
+multi method benchmark-code($full-commit, $filename) {
     my @times;
     my %stats;
     for ^ITERATIONS {
@@ -55,6 +56,15 @@ method benchmark-code($full-commit, $filename) {
 
     return %stats;
 }
+
+multi method benchmark-code($full-commit, @code) {
+    my $code-to-compare = 'use Bench; my %subs = ' ~ @code.kv.map({ $^k => " => sub \{ $^v \} " }).join(',') ~ ';'
+                        ~ ' my $b = Bench.new; $b.cmpthese(' ~ ITERATIONS*2 ~ ', %subs)';
+    my ($timing) = self.get-output("{BUILDS}/$full-commit/bin/perl6", '-I', "{LIB-DIR}/perl6-bench/lib,{LIB-DIR}/Perl6-Text--Table--Simple/lib", '-e', $code-to-compare);
+
+    return $timing;
+}
+    
 
 multi method irc-to-me($message where .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ /) {
     my ($value, %additional-files) = self.process($message, ~$<config>, ~$<code>);
@@ -86,6 +96,8 @@ method process($message, $config, $code is copy) {
         return "Too many commits ($num-commits) in range, you're only allowed " ~ LIMIT if $num-commits > LIMIT;
     } elsif $config ~~ /:i releases / {
         @commits = <2015.10 2015.11 2015.12 2016.02 2016.03 2016.04 2016.05 2016.06 2016.07 HEAD>;
+    } elsif $config ~~ /:i compare / {
+        @commits = 'HEAD';
     } else {
         @commits = $config;
     }
@@ -106,7 +118,12 @@ method process($message, $config, $code is copy) {
         } elsif “{BUILDS}/$full-commit/bin/perl6”.IO !~~ :e {
             %times{$short-commit}<err> = 'No build for this commit';
         } else { # actually run the code
-            %times{$short-commit} = self.benchmark-code($full-commit, $filename);
+            if $config ~~ /:i compare / {
+                %times{$short-commit} = self.benchmark-code($full-commit, $code.split('|||'));
+                dd %times;
+            } else {
+                %times{$short-commit} = self.benchmark-code($full-commit, $filename);
+            }
         }
 
         if (now - $start-time > TOTAL-TIME) {
@@ -175,7 +192,7 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
         %graph{$gfilename} = $gfilename.IO.slurp;
     }
 
-    $msg-response ~= '¦' ~ @commits.map({ my $c = .substr(0, 7); "«$c»:" ~ (%times{$c}<err> // %times{$c}<min>) }).join("\n¦");
+    $msg-response ~= '¦' ~ @commits.map({ my $c = .substr(0, 7); "«$c»:" ~ (%times{$c}<err> // %times{$c}<min> // %times{$c}) }).join("\n¦");
 
     return ($msg-response, %graph);
 }
