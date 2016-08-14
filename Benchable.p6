@@ -66,7 +66,7 @@ multi method benchmark-code($full-commit, @code) {
 }
     
 
-multi method irc-to-me($message where .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ /) {
+multi method irc-to-me($message where .text ~~ /^ \s* $<config>=([:i compare \s]? \S+) \s+ $<code>=.+ /) {
     my ($value, %additional-files) = self.process($message, ~$<config>, ~$<code>);
     return ResponseStr.new(:$value, :$message, :%additional-files);
 }
@@ -96,8 +96,8 @@ method process($message, $config, $code is copy) {
         return "Too many commits ($num-commits) in range, you're only allowed " ~ LIMIT if $num-commits > LIMIT;
     } elsif $config ~~ /:i releases / {
         @commits = <2015.10 2015.11 2015.12 2016.02 2016.03 2016.04 2016.05 2016.06 2016.07 HEAD>;
-    } elsif $config ~~ /:i compare / {
-        @commits = 'HEAD';
+    } elsif $config ~~ /:i compare \s $<commit>=\S+ / {
+        @commits = $<commit>;
     } else {
         @commits = $config;
     }
