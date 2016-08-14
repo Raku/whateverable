@@ -120,7 +120,6 @@ method process($message, $config, $code is copy) {
         } else { # actually run the code
             if $config ~~ /:i compare / {
                 %times{$short-commit} = self.benchmark-code($full-commit, $code.split('|||'));
-                dd %times;
             } else {
                 %times{$short-commit} = self.benchmark-code($full-commit, $filename);
             }
