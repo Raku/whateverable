@@ -63,6 +63,7 @@ method process($message, $code is copy, $good, $bad) {
     # convert to real ids so we can look up the builds
     my $full-good = self.to-full-commit($good);
     return ‘Cannot find ‘good’ revision’ unless defined $full-good;
+    my $short-good = $good eq $full-good | 'HEAD' ?? substr($full-good, 0, 7) !! $good;
 
     if “{BUILDS}/$full-good/bin/perl6”.IO !~~ :e {
         if BUILD-LOCK.IO ~~ :e {
@@ -73,8 +74,8 @@ method process($message, $code is copy, $good, $bad) {
     }
 
     my $full-bad = self.to-full-commit($bad);
-    my $short-bad = substr($bad eq ‘HEAD’ ?? $full-bad !! $bad, 0, 7);
     return ‘Cannot find ‘bad’ revision’ unless defined $full-bad;
+    my $short-bad = substr($bad eq ‘HEAD’ ?? $full-bad !! $bad, 0, 7);
 
     if “{BUILDS}/$full-bad/bin/perl6”.IO !~~ :e {
         if BUILD-LOCK.IO ~~ :e {
@@ -96,18 +97,18 @@ method process($message, $code is copy, $good, $bad) {
     $out-bad //=  ‘’;
 
     if $exit-good == $exit-bad and $out-good eq $out-bad {
-        $message.reply: “On both starting points (good=$good bad=$short-bad) the exit code is $exit-bad and the output is identical as well”;
+        $message.reply: “On both starting points (good=$short-good bad=$short-bad) the exit code is $exit-bad and the output is identical as well”;
         return “Output on both points: $out-good”; # will be gisted automatically if required
     }
     my $output-file = ‘’;
     if $exit-good == $exit-bad {
-        $message.reply: “Exit code is $exit-bad on both starting points (good=$good bad=$short-bad), bisecting by using the output”;
+        $message.reply: “Exit code is $exit-bad on both starting points (good=$short-good bad=$short-bad), bisecting by using the output”;
         ($output-file, my $fh) = tempfile :unlink;
         $fh.print: $out-good;
         $fh.close;
     }
     if $exit-good != $exit-bad and $exit-good != 0 {
-        $message.reply: “For the given starting points (good=$good bad=$short-bad), exit code on a ‘good’ revision is $exit-good (which is bad), bisecting with inverted logic”;
+        $message.reply: “For the given starting points (good=$short-good bad=$short-bad), exit code on a ‘good’ revision is $exit-good (which is bad), bisecting with inverted logic”;
     }
 
     my $result; # RT 128872
