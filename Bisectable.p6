@@ -25,12 +25,96 @@ use IRC::Client;
 unit class Bisectable is Whateverable;
 
 constant LINK          = ‘https://github.com/rakudo/rakudo/commit’;
-constant COMMIT-TESTER = ‘./test-commit’.IO.absolute;
 constant BUILD-LOCK    = ‘./lock’.IO.absolute;
 
 method help($message) {
     ~ “Like this: {$message.server.current-nick}”
     ~ ‘: good=2015.12 bad=HEAD exit 1 if (^∞).grep({ last })[5] // 0 == 4 # RT128181’
+}
+
+method run-bisect($code-file, $compare-to?) {
+    my $bisect-log = '';
+    loop {
+        my ($log, $exit-code) = self.test-commit($code-file, $compare-to);
+        $bisect-log ~= $log;
+
+        if $exit-code < 0 or $exit-code >= 128 {
+            return ("bisect run failed: exit code $exit-code from '$code-file' is < 0 or >= 128", $exit-code);
+        }
+
+        given $exit-code {
+            my ($output, $status);
+            when 125  { run('git', 'bisect', 'skip') }
+            when 1..* {
+                ($output, $status) = self.get-output('git', 'bisect', 'bad');
+                if $output ~~ /^^ \S+ ' is the first bad commit' / {
+                    return ($bisect-log ~ $output, $status);
+                }
+            }
+            default   {
+                ($output, $status) = self.get-output('git', 'bisect', 'good');
+                if $output ~~ /^^ \S+ ' is the first bad commit' / {
+                    return ($bisect-log ~ $output, $status);
+                }
+            }
+        }
+    }
+}
+
+method test-commit($code-file, $compare-to?) {
+    my ($current-commit,) = self.get-output('git', 'rev-parse', 'HEAD');
+    my $perl6             = "{BUILDS}/$current-commit/bin/perl6";
+    my $log               = '';
+
+    $log ~= "»»»»» Testing $current-commit\n";
+    if $perl6.IO !~~ :e {
+        $log ~= "»»»»» perl6 executable does not exist, skip this commit\n";
+        $log ~= "»»»»» Final exit code: 125\n";
+        return ($log, 125) # skip failed builds;
+    }
+
+    my ($output, $exit-code) = self.get-output($perl6, '--setting=RESTRICTED', '--', $code-file);
+    $log ~= "»»»»» Script output:\n";
+    $log ~= $output;
+    $log ~= "»»»»» Script exit code: $exit-code\n";
+
+    # plain bisect
+    unless $compare-to {
+        $log ~= "»»»»» Plain bisect, using the same exit code\n";
+        $log ~= "»»»»» Final exit code: $exit-code\n";
+        return ($log, $exit-code);
+    }
+
+    # inverted exit code
+    if $compare-to ~~ /^ \d+ $/ { # invert exit code
+        $log ~= "»»»»» Inverted logic, comparing $exit-code to $compare-to\n";
+        if $exit-code == $compare-to {
+            $log ~= "»»»»» Final exit code: 0\n";
+            return ($log, 0);
+        } else {
+            my $final-exit-code = $exit-code == 0 ?? 1 !! $exit-code;
+            $log ~= "»»»»» Final exit code: $final-exit-code\n";
+            return ($log, $final-exit-code);
+        }
+    }
+
+    # compare the output
+    $log ~= "»»»»» Bisecting by using the output\n";
+    my $output-good = slurp $compare-to;
+    $log ~= "»»»»» Comparing the output to:\n";
+    $log ~= $output-good;
+    if $output eq $output-good {
+        $log ~= "»»»»» The output is identical\n";
+        $log ~= "»»»»» Final exit code: 0\n";
+        return ($log, 0);
+    } else {
+        $log ~= "»»»»» The output is different\n";
+        $log ~= "»»»»» Final exit code: 1\n";
+        return ($log, 1);
+    }
+
+    # looks a bit nicer this way
+    LEAVE $log ~= "»»»»» -------------------------------------------------------------------------\n";
 }
 
 my regex spaceeq { \s* ‘=’ \s* | \s+ }
@@ -94,7 +178,7 @@ method process($message, $code is copy, $good, $bad) {
     chdir $old-dir;
 
     $out-good //= ‘’;
-    $out-bad //=  ‘’;
+    $out-bad  //= ‘’;
 
     if $exit-good == $exit-bad and $out-good eq $out-bad {
         $message.reply: “On both starting points (good=$short-good bad=$short-bad) the exit code is $exit-bad and the output is identical as well”;
@@ -115,7 +199,7 @@ method process($message, $code is copy, $good, $bad) {
     {
         my $dir = tempdir :unlink;
         run(‘git’, ‘clone’, RAKUDO, $dir);
-        chdir($dir);
+        chdir $dir;
         LEAVE chdir $old-dir;
 
         self.get-output(‘git’, ‘bisect’, ‘start’);
@@ -129,20 +213,17 @@ method process($message, $code is copy, $good, $bad) {
         }
         my ($bisect-output, $bisect-status);
         if $output-file {
-            ($bisect-output, $bisect-status)     = self.get-output(‘git’, ‘bisect’, ‘run’,
-                                                                   COMMIT-TESTER, BUILDS, $filename, $output-file);
+            ($bisect-output, $bisect-status)     = self.run-bisect($filename, $output-file);
         } else {
             if $exit-good == 0 {
-                ($bisect-output, $bisect-status) = self.get-output(‘git’, ‘bisect’, ‘run’,
-                                                                   COMMIT-TESTER, BUILDS, $filename);
+                ($bisect-output, $bisect-status) = self.run-bisect($filename);
             } else {
-                ($bisect-output, $bisect-status) = self.get-output(‘git’, ‘bisect’, ‘run’,
-                                                                   COMMIT-TESTER, BUILDS, $filename, $exit-good);
+                ($bisect-output, $bisect-status) = self.run-bisect($filename, $exit-good);
             }
         }
-        $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’  => $message.text,
+        $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
                                                        ‘description’ => $message.server.current-nick,
-                                                       ‘result’ => “$init-output\n$bisect-output” });
+                                                       ‘result’      => “$init-output\n$bisect-output” });
 
         return “‘bisect run’ failure” if $bisect-status != 0;
 
