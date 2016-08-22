@@ -205,8 +205,8 @@ method process($message, $code is copy, $good, $bad) {
     my ($init-output, $init-status) = self.get-output(‘git’, ‘bisect’, ‘bad’, $full-bad);
     if $init-status != 0 {
         $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
-                                                       ‘description’ => $message.server.current-nick,
-                                                       ‘result’      => $init-output });
+                                                       ‘result’      => $init-output, },
+                                                     ‘description’ => $message.server.current-nick);
         return ‘bisect init failure’;
     }
     my ($bisect-output, $bisect-status);
@@ -220,8 +220,8 @@ method process($message, $code is copy, $good, $bad) {
         }
     }
     $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
-                                                   ‘description’ => $message.server.current-nick,
-                                                   ‘result’      => “$init-output\n$bisect-output” });
+                                                   ‘result’      => “$init-output\n$bisect-output”, },
+                                                 ‘description’ => $message.server.current-nick);
 
     if $bisect-status != 0 {
         return “‘bisect run’ failure”;
