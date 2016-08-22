@@ -73,6 +73,7 @@ multi method irc-to-me($message where .text ~~ /^ \s* $<config>=([:i compare \s]
 
 method process($message, $config, $code is copy) {
     my $start-time = now;
+    my $old-dir = $*CWD;
 
     my $msg-response = '';
     my %graph;
@@ -81,9 +82,7 @@ method process($message, $config, $code is copy) {
     if $config ~~ / ',' / {
         @commits = $config.split: ',';
     } elsif $config ~~ /^ $<start>=\S+ \.\. $<end>=\S+ $/ {
-        my $old-dir = $*CWD;
         chdir RAKUDO;
-        LEAVE chdir $old-dir;
         return "Bad start" if run('git', 'rev-parse', '--verify', $<start>).exitcode != 0;
         return "Bad end"   if run('git', 'rev-parse', '--verify', $<end>).exitcode   != 0;
 
@@ -134,9 +133,7 @@ method process($message, $config, $code is copy) {
     # recursively find the commit in the middle until there are either no more large speed differences or no
     # more commits inbetween (i.e., the next commit is the exact one that caused the difference)
     if $config ~~ /:i releases / or $config ~~ / ',' / {
-        my $old-dir = $*CWD;
         chdir RAKUDO;
-        LEAVE chdir $old-dir;
 
 Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
             if (now - $start-time > TOTAL-TIME) {
@@ -162,6 +159,7 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
     }
 
     if @commits >= ITERATIONS {
+        chdir $old-dir;
         my $gfilename = 'graph.svg';
         my $title = "$config $code".trans(['"'] => ['\"']);
         my @ydata = @commits.map({ .<err> // .<min> with %times{$_.substr(0, 7)} });
@@ -194,6 +192,11 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
     $msg-response ~= '¦' ~ @commits.map({ my $c = .substr(0, 7); "«$c»:" ~ (%times{$c}<err> // %times{$c}<min> // %times{$c}) }).join("\n¦");
 
     return ($msg-response, %graph);
+
+    LEAVE {
+        chdir $old-dir;
+        unlink $filename;
+    }
 }
 
 Benchable.new.selfrun(‘benchable6’, [‘bench’]);

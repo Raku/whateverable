@@ -114,7 +114,7 @@ method to-full-commit($commit) {
 }
 
 method write-code($code) {
-    my ($filename, $filehandle) = tempfile :unlink;
+    my ($filename, $filehandle) = tempfile :!unlink;
     $filehandle.print: $code;
     $filehandle.close;
     return $filename

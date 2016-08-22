@@ -20,6 +20,7 @@ use lib ‘.’;
 use Whateverable;
 
 use File::Temp;
+use File::Directory::Tree;
 use IRC::Client;
 
 unit class Bisectable is Whateverable;
@@ -76,7 +77,7 @@ method test-commit($code-file, $compare-to?) {
     my ($output, $exit-code) = self.get-output($perl6, '--setting=RESTRICTED', '--', $code-file);
     $log ~= "»»»»» Script output:\n";
     $log ~= $output;
-    $log ~= "»»»»» Script exit code: $exit-code\n";
+    $log ~= "\n»»»»» Script exit code: $exit-code\n";
 
     # plain bisect
     unless $compare-to {
@@ -104,11 +105,11 @@ method test-commit($code-file, $compare-to?) {
     $log ~= "»»»»» Comparing the output to:\n";
     $log ~= $output-good;
     if $output eq $output-good {
-        $log ~= "»»»»» The output is identical\n";
+        $log ~= "\n»»»»» The output is identical\n";
         $log ~= "»»»»» Final exit code: 0\n";
         return ($log, 0);
     } else {
-        $log ~= "»»»»» The output is different\n";
+        $log ~= "\n»»»»» The output is different\n";
         $log ~= "»»»»» Final exit code: 1\n";
         return ($log, 1);
     }
@@ -187,7 +188,7 @@ method process($message, $code is copy, $good, $bad) {
     my $output-file = ‘’;
     if $exit-good == $exit-bad {
         $message.reply: “Exit code is $exit-bad on both starting points (good=$short-good bad=$short-bad), bisecting by using the output”;
-        ($output-file, my $fh) = tempfile :unlink;
+        ($output-file, my $fh) = tempfile :!unlink;
         $fh.print: $out-good;
         $fh.close;
     }
@@ -195,41 +196,45 @@ method process($message, $code is copy, $good, $bad) {
         $message.reply: “For the given starting points (good=$short-good bad=$short-bad), exit code on a ‘good’ revision is $exit-good (which is bad), bisecting with inverted logic”;
     }
 
-    my $result; # RT 128872
-    {
-        my $dir = tempdir :unlink;
-        run(‘git’, ‘clone’, RAKUDO, $dir);
-        chdir $dir;
-        LEAVE chdir $old-dir;
+    my $dir = tempdir :!unlink;
+    run(‘git’, ‘clone’, RAKUDO, $dir);
+    chdir $dir;
 
-        self.get-output(‘git’, ‘bisect’, ‘start’);
-        self.get-output(‘git’, ‘bisect’, ‘good’, $full-good);
-        my ($init-output, $init-status) = self.get-output(‘git’, ‘bisect’, ‘bad’, $full-bad);
-        if $init-status != 0 {
-            $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’  => $message.text,
-                                                           ‘description’ => $message.server.current-nick,
-                                                           ‘result’ => $init-output });
-            return ‘bisect init failure’;
-        }
-        my ($bisect-output, $bisect-status);
-        if $output-file {
-            ($bisect-output, $bisect-status)     = self.run-bisect($filename, $output-file);
-        } else {
-            if $exit-good == 0 {
-                ($bisect-output, $bisect-status) = self.run-bisect($filename);
-            } else {
-                ($bisect-output, $bisect-status) = self.run-bisect($filename, $exit-good);
-            }
-        }
+    self.get-output(‘git’, ‘bisect’, ‘start’);
+    self.get-output(‘git’, ‘bisect’, ‘good’, $full-good);
+    my ($init-output, $init-status) = self.get-output(‘git’, ‘bisect’, ‘bad’, $full-bad);
+    if $init-status != 0 {
         $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
                                                        ‘description’ => $message.server.current-nick,
-                                                       ‘result’      => “$init-output\n$bisect-output” });
-
-        return “‘bisect run’ failure” if $bisect-status != 0;
-
-        ($result,) = self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%h”, ‘bisect/bad’);
+                                                       ‘result’      => $init-output });
+        return ‘bisect init failure’;
     }
-    return $result;
+    my ($bisect-output, $bisect-status);
+    if $output-file {
+        ($bisect-output, $bisect-status)     = self.run-bisect($filename, $output-file);
+    } else {
+        if $exit-good == 0 {
+            ($bisect-output, $bisect-status) = self.run-bisect($filename);
+        } else {
+            ($bisect-output, $bisect-status) = self.run-bisect($filename, $exit-good);
+        }
+    }
+    $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
+                                                   ‘description’ => $message.server.current-nick,
+                                                   ‘result’      => “$init-output\n$bisect-output” });
+
+    if $bisect-status != 0 {
+        return “‘bisect run’ failure”;
+    } else {
+        return self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%h”, ‘bisect/bad’).first;
+    }
+
+    LEAVE {
+        chdir $old-dir;
+        unlink $output-file;
+        unlink $filename;
+        rmtree $dir;
+    }
 }
 
 Bisectable.new.selfrun(‘bisectable6’, [‘bisect’]);

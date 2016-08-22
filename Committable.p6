@@ -47,7 +47,6 @@ method process($message, $config, $code is copy) {
         {
             my $old_dir = $*CWD;
             chdir RAKUDO;
-            LEAVE chdir $old_dir;
             return ‘Bad start’ if run(‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0;
             return ‘Bad end’   if run(‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0;
             ($result, $exit-status, $exit-signal, $time) = self.get-output(‘git’, ‘rev-list’, “$<start>^..$<end>”);
@@ -105,6 +104,11 @@ method process($message, $config, $code is copy) {
 
     my $msg-response = ‘¦’ ~ @result.map({ “«{.<commits>.join(‘,’)}»: {.<output>}” }).join(“\n¦”);
     return $msg-response;
+
+    LEAVE {
+        chdir $old_dir;
+        unlink $filename;
+    }
 }
 
 Committable.new.selfrun(‘committable6’, [‘commit’]);
