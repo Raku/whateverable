@@ -107,7 +107,7 @@ method process($message, $config, $code is copy) {
 
     LEAVE {
         chdir $old_dir;
-        unlink $filename;
+        unlink $filename if $filename.defined and $filename.chars > 0;
     }
 }
 

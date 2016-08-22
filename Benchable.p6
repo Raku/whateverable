@@ -195,7 +195,7 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
 
     LEAVE {
         chdir $old-dir;
-        unlink $filename;
+        unlink $filename if $filename.defined and $filename.chars > 0;
     }
 }
 
