@@ -20,10 +20,10 @@ constant BUILD-LOCK        = ‘/tmp/whateverable/build-lock’;
 
 constant LEGACY-BUILDS-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
 
-# TODO IO::Handle.lock ? run ‘flock’? P5 modules?
 mkdir BUILDS-LOCATION;
 mkdir ARCHIVES-LOCATION;
 
+# TODO IO::Handle.lock ? run ‘flock’? P5 modules?
 exit 0 unless run ‘mkdir’, ‘--’, BUILD-LOCK; # only one instance running
 my $locked = True;
 END BUILD-LOCK.IO.rmdir if $locked;
