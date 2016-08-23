@@ -75,8 +75,7 @@ method process($message, $config, $code is copy) {
         my $output = ‘’;
         if not defined $full-commit {
             $output = ‘Cannot find this revision’;
-        } elsif “{BUILDS}/$full-commit/bin/perl6”.IO !~~ :e {
-            say “{BUILDS}/$full-commit/bin/perl6”;
+        } elsif “{ARCHIVES-LOCATION}/$full-commit.zst”.IO !~~ :e {
             $output = ‘No build for this commit’;
         } else { # actually run the code
             ($output, my $exit, my $signal, my $time) = self.run-snippet($full-commit, $filename);

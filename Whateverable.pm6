@@ -17,15 +17,18 @@
 
 use IRC::Client;
 
+use File::Directory::Tree;
 use File::Temp;
 use JSON::Fast;
 use Pastebin::Gist;
 use HTTP::UserAgent;
 
 constant RAKUDO = ‘./rakudo’.IO.absolute;
-constant BUILDS = ‘./builds’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
 constant SOURCE = ‘https://github.com/perl6/whateverable’;
+constant WORKING-DIRECTORY = ‘.’; # TODO not supported yet
+constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/rakudo-moar”.IO.absolute;
+constant BUILDS-LOCATION   = ‘/tmp/whateverable/rakudo-moar’;
 
 %*ENV{‘RAKUDO_ERROR_COLOR’} = ‘’;
 
@@ -96,7 +99,12 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
 }
 
 method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
-    self.get-output(“{BUILDS}/$full-commit-hash/bin/perl6”, $file, stdin => $!stdin, timeout => $timeout);
+    # TODO don't extract it blindly, use some sort of locking
+    my $proc = run(:out, :bin, ‘zstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
+    run(:in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’);
+    my $out = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, $file, :$!stdin, :$timeout);
+    rmtree “{BUILDS-LOCATION}/$full-commit-hash”;
+    return $out
 }
 
 method to-full-commit($commit) {

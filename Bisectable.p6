@@ -150,7 +150,7 @@ method process($message, $code is copy, $good, $bad) {
     return ‘Cannot find ‘good’ revision’ unless defined $full-good;
     my $short-good = $good eq $full-good | 'HEAD' ?? substr($full-good, 0, 7) !! $good;
 
-    if “{BUILDS}/$full-good/bin/perl6”.IO !~~ :e {
+    if “{ARCHIVES-LOCATION}/$full-good.zst”.IO !~~ :e {
         if BUILD-LOCK.IO ~~ :e {
             # TODO make it possible to use bisectable while it is building something
             return ‘No build for ‘good’ revision. Right now the build process is in action, please try again later or specify some older ‘good’ commit (e.g., good=HEAD~10)’;
@@ -162,7 +162,7 @@ method process($message, $code is copy, $good, $bad) {
     return ‘Cannot find ‘bad’ revision’ unless defined $full-bad;
     my $short-bad = substr($bad eq ‘HEAD’ ?? $full-bad !! $bad, 0, 7);
 
-    if “{BUILDS}/$full-bad/bin/perl6”.IO !~~ :e {
+    if “{ARCHIVES-LOCATION}/$full-bad.zst”.IO !~~ :e {
         if BUILD-LOCK.IO ~~ :e {
             # TODO make it possible to use bisectable while it is building something
             return ‘No build for ‘bad’ revision. Right now the build process is in action, please try again later or specify some older ‘bad’ commit (e.g., bad=HEAD~40)’;
