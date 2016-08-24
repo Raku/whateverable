@@ -99,7 +99,17 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
 }
 
 method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
-    # TODO don't extract it blindly, use some sort of locking
+    # lock on the destination directory to make
+    # sure that other bots will not get in our way.
+    while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/$full-commit-hash”).exitcode != 0 {
+        sleep 0.5;
+        # Uh, wait! Does it mean that at the same time we can use only one
+        # specific build? Yes, and you will have to wait until another bot
+        # deletes the directory so that you can extract it back again…
+        # There are some ways to make it work, but don't bother. Instead,
+        # we should be doing everything in separate isolated containers (soon),
+        # so this problem will fade away.
+    }
     my $proc = run(:out, :bin, ‘zstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
     run(:in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’);
     my $out = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, $file, :$!stdin, :$timeout);
