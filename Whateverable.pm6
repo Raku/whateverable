@@ -29,6 +29,7 @@ constant SOURCE = ‘https://github.com/perl6/whateverable’;
 constant WORKING-DIRECTORY = ‘.’; # TODO not supported yet
 constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/rakudo-moar”.IO.absolute;
 constant BUILDS-LOCATION   = ‘/tmp/whateverable/rakudo-moar’;
+constant LEGACY-BUILDS-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
 
 %*ENV{‘RAKUDO_ERROR_COLOR’} = ‘’;
 
@@ -95,10 +96,23 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
         $out.send: “«timed out after $timeout seconds, output»: ”;
     }
     $out.close;
-    return ($out.list.join.chomp, $promise.result.exitcode, $promise.result.signal, $s-end - $s-start)
+    return $out.list.join.chomp, $promise.result.exitcode, $promise.result.signal, $s-end - $s-start
+}
+
+method build-exists($full-commit-hash) {
+    return True if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash”.IO ~~ :d; # old builds # TODO remove after transition
+    “{ARCHIVES-LOCATION}/$full-commit-hash.zst”.IO ~~ :e
 }
 
 method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
+    # old builds # TODO remove after transition
+    if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash”.IO ~~ :e {
+        if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
+            return ‘commit exists, but a perl6 executable could not be built for it’, -1, -1;
+        }
+        return self.get-output(“{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, $file, :$!stdin, :$timeout);
+    }
+
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
     while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/$full-commit-hash”).exitcode != 0 {
@@ -112,9 +126,14 @@ method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
     }
     my $proc = run(:out, :bin, ‘zstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
     run(:in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’);
-    my $out = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, $file, :$!stdin, :$timeout);
+    my @out;
+    if “{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
+        @out = ‘Commit exists, but a perl6 executable could not be built for it’, -1, -1;
+    } else {
+        @out = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, $file, :$!stdin, :$timeout);
+    }
     rmtree “{BUILDS-LOCATION}/$full-commit-hash”;
-    return $out
+    return @out
 }
 
 method to-full-commit($commit) {
