@@ -77,12 +77,16 @@ method process($message, $config, $code is copy) {
         my $output = ‘’;
         if not defined $full-commit {
             $output = ‘Cannot find this revision’;
-        } elsif “{ARCHIVES-LOCATION}/$full-commit.zst”.IO !~~ :e {
+        } elsif not self.build-exists($full-commit) {
             $output = ‘No build for this commit’;
         } else { # actually run the code
             ($output, my $exit, my $signal, my $time) = self.run-snippet($full-commit, $filename);
-            $output ~= “ «exit code = $exit»” if $exit != 0;
-            $output ~= “ «exit signal = {Signal($signal)} ($signal)»” if $signal != 0;
+            if $signal < 0 { # numbers less than zero indicate other weird failures
+                $output = “Cannot test this commit ($output)”;
+            } else {
+                $output ~= “ «exit code = $exit»” if $exit != 0;
+                $output ~= “ «exit signal = {Signal($signal)} ($signal)»” if $signal != 0;
+            }
         }
         my $short-commit = $commit.substr(0, 7);
 

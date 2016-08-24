@@ -64,20 +64,27 @@ method run-bisect($code-file, $compare-to?) {
 
 method test-commit($code-file, $compare-to?) {
     my ($current-commit,) = self.get-output('git', 'rev-parse', 'HEAD');
-    my $perl6             = "{BUILDS}/$current-commit/bin/perl6";
     my $log               = '';
 
     $log ~= "»»»»» Testing $current-commit\n";
-    if $perl6.IO !~~ :e {
-        $log ~= "»»»»» perl6 executable does not exist, skip this commit\n";
+    if self.build-exists($current-commit) {
+        $log ~= "»»»»» Build does not exist, skip this commit\n";
         $log ~= "»»»»» Final exit code: 125\n";
-        return ($log, 125) # skip failed builds;
+        return $log, 125 # skip non-existent builds
     }
 
-    my ($output, $exit-code) = self.get-output($perl6, '--setting=RESTRICTED', '--', $code-file);
+    my ($output, $exit-code, $signal) = self.run-snippet($current-commit, $code-file);
+    if $signal < 0 {
+        $log ~= “»»»»» Cannot test this commit. Reason: $output\n”;
+        $log ~= "»»»»» Final exit code: 125\n";
+        return $log, 125 # skip failed builds
+    }
+
     $log ~= "»»»»» Script output:\n";
     $log ~= $output;
     $log ~= "\n»»»»» Script exit code: $exit-code\n";
+
+    # TODO bisect by signal (issue #14)
 
     # plain bisect
     unless $compare-to {
@@ -91,11 +98,11 @@ method test-commit($code-file, $compare-to?) {
         $log ~= "»»»»» Inverted logic, comparing $exit-code to $compare-to\n";
         if $exit-code == $compare-to {
             $log ~= "»»»»» Final exit code: 0\n";
-            return ($log, 0);
+            return $log, 0;
         } else {
             my $final-exit-code = $exit-code == 0 ?? 1 !! $exit-code;
             $log ~= "»»»»» Final exit code: $final-exit-code\n";
-            return ($log, $final-exit-code);
+            return $log, $final-exit-code;
         }
     }
 
@@ -107,11 +114,11 @@ method test-commit($code-file, $compare-to?) {
     if $output eq $output-good {
         $log ~= "\n»»»»» The output is identical\n";
         $log ~= "»»»»» Final exit code: 0\n";
-        return ($log, 0);
+        return $log, 0;
     } else {
         $log ~= "\n»»»»» The output is different\n";
         $log ~= "»»»»» Final exit code: 1\n";
-        return ($log, 1);
+        return $log, 1;
     }
 
     # looks a bit nicer this way
@@ -149,34 +156,23 @@ method process($message, $code is copy, $good, $bad) {
     my $full-good = self.to-full-commit($good);
     return ‘Cannot find ‘good’ revision’ unless defined $full-good;
     my $short-good = $good eq $full-good | 'HEAD' ?? substr($full-good, 0, 7) !! $good;
-
-    if “{ARCHIVES-LOCATION}/$full-good.zst”.IO !~~ :e {
-        if BUILD-LOCK.IO ~~ :e {
-            # TODO make it possible to use bisectable while it is building something
-            return ‘No build for ‘good’ revision. Right now the build process is in action, please try again later or specify some older ‘good’ commit (e.g., good=HEAD~10)’;
-        }
-        return ‘No build for ‘good’ revision’;
-    }
+    return ‘No build for ‘good’ revision’ if not self.build-exists($full-good);
 
     my $full-bad = self.to-full-commit($bad);
     return ‘Cannot find ‘bad’ revision’ unless defined $full-bad;
     my $short-bad = substr($bad eq ‘HEAD’ ?? $full-bad !! $bad, 0, 7);
-
-    if “{ARCHIVES-LOCATION}/$full-bad.zst”.IO !~~ :e {
-        if BUILD-LOCK.IO ~~ :e {
-            # TODO make it possible to use bisectable while it is building something
-            return ‘No build for ‘bad’ revision. Right now the build process is in action, please try again later or specify some older ‘bad’ commit (e.g., bad=HEAD~40)’;
-        }
-        return ‘No build for ‘bad’ revision’;
-    }
+    return ‘No build for ‘bad’ revision’ if not self.build-exists($full-bad);
 
     my $filename = self.write-code($code);
 
     my $old-dir = $*CWD;
     chdir RAKUDO;
-    my ($out-good, $exit-good, $signal-good, $time-good) = self.get-output(“{BUILDS}/$full-good/bin/perl6”, $filename);
-    my ($out-bad,  $exit-bad,  $signal-bad,  $time-bad)  = self.get-output(“{BUILDS}/$full-bad/bin/perl6”,  $filename);
+    my ($out-good, $exit-good, $signal-good, $time-good) = self.run-snippet($full-good, $filename);
+    my ($out-bad,  $exit-bad,  $signal-bad,  $time-bad)  = self.run-snippet($full-bad,  $filename);
     chdir $old-dir;
+
+    return “Problem with ‘good’ commit: $out-good” if $signal-good < 0;
+    return “Problem with ‘bad’ commit: $out-bad”   if $signal-bad  < 0;
 
     $out-good //= ‘’;
     $out-bad  //= ‘’;
