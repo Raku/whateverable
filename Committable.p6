@@ -45,8 +45,12 @@ method process($message, $config, $code is copy) {
         @commits = $config.split: ‘,’;
     } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
         chdir RAKUDO; # goes back in LEAVE
-        return ‘Bad start’ if run(‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0;
-        return ‘Bad end’   if run(‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0;
+        if run(‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0 {
+            return “Bad start, cannot find a commit for “$<start>””;
+        }
+        if run(‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0 {
+            return “Bad end, cannot find a commit for “$<end>””;
+        }
         my ($result, $exit-status, $exit-signal, $time) =
           self.get-output(‘git’, ‘rev-list’, “$<start>^..$<end>”); # TODO unfiltered input
         return ‘Couldn't find anything in the range’ if $exit-status != 0;
