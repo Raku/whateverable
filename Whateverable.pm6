@@ -111,7 +111,8 @@ method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
         if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
             return ‘commit exists, but a perl6 executable could not be built for it’, -1, -1;
         }
-        return self.get-output(“{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, $file, :$!stdin, :$timeout);
+        return self.get-output(“{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”,
+                               ‘--setting=RESTRICTED’, ‘--’, $file, :$!stdin, :$timeout);
     }
 
     # lock on the destination directory to make
@@ -131,7 +132,8 @@ method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
     if “{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
         @out = ‘Commit exists, but a perl6 executable could not be built for it’, -1, -1;
     } else {
-        @out = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, $file, :$!stdin, :$timeout);
+        @out = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”,
+                               ‘--setting=RESTRICTED’, ‘--’, $file, :$!stdin, :$timeout);
     }
     rmtree “{BUILDS-LOCATION}/$full-commit-hash”;
     return @out
