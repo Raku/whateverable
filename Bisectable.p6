@@ -67,7 +67,7 @@ method test-commit($code-file, $compare-to?) {
     my $log               = '';
 
     $log ~= "»»»»» Testing $current-commit\n";
-    if self.build-exists($current-commit) {
+    if not self.build-exists($current-commit) {
         $log ~= "»»»»» Build does not exist, skip this commit\n";
         $log ~= "»»»»» Final exit code: 125\n";
         return $log, 125 # skip non-existent builds
