@@ -37,6 +37,7 @@ unit class Whateverable does IRC::Client::Plugin;
 
 has $!timeout = 10;
 has $!stdin = slurp ‘stdin’;
+has $!releases = <2015.10 2015.11 2015.12 2016.02 2016.03 2016.04 2016.05 2016.06 2016.07.1 2016.08.1 HEAD>;
 
 class ResponseStr is Str is export {
     # I know it looks crazy, but we will subclass a Str and hope
