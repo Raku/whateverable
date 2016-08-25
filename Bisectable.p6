@@ -202,7 +202,7 @@ method process($message, $code is copy, $good, $bad) {
     if $init-status != 0 {
         $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
                                                        ‘result’      => $init-output, },
-                                                     ‘description’ => $message.server.current-nick);
+                                                     description => $message.server.current-nick);
         return ‘bisect init failure’;
     }
     my ($bisect-output, $bisect-status);
@@ -217,7 +217,7 @@ method process($message, $code is copy, $good, $bad) {
     }
     $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
                                                    ‘result’      => “$init-output\n$bisect-output”, },
-                                                 ‘description’ => $message.server.current-nick);
+                                                 description => $message.server.current-nick);
 
     if $bisect-status != 0 {
         return “‘bisect run’ failure”;
