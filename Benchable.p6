@@ -21,9 +21,10 @@ use Whateverable;
 
 use IRC::Client;
 
+use SVG;
+use SVG::Plot;
+use File::Directory::Tree;
 use Stats;
-use Chart::Gnuplot:from<Perl5>;
-use Chart::Gnuplot::DataSet:from<Perl5>;
 
 unit class Benchable is Whateverable;
 
@@ -40,7 +41,7 @@ multi method benchmark-code($full-commit, $filename) {
     my @times;
     my %stats;
     for ^ITERATIONS {
-        my ($, $exit, $signal, $time) = self.get-output("{BUILDS}/$full-commit/bin/perl6", $filename);
+        my ($, $exit, $signal, $time) = self.run-snippet($full-commit, $filename);
         if $exit == 0 {
             @times.push: sprintf('%.4f', $time);
         } else {
@@ -57,42 +58,72 @@ multi method benchmark-code($full-commit, $filename) {
     return %stats;
 }
 
-multi method benchmark-code($full-commit, @code) {
+multi method benchmark-code($full-commit-hash, @code) {
     my $code-to-compare = 'use Bench; my %subs = ' ~ @code.kv.map({ $^k => " => sub \{ $^v \} " }).join(',') ~ ';'
                         ~ ' my $b = Bench.new; $b.cmpthese(' ~ ITERATIONS*2 ~ ', %subs)';
-    my ($timing) = self.get-output("{BUILDS}/$full-commit/bin/perl6", '-I', "{LIB-DIR}/perl6-bench/lib,{LIB-DIR}/Perl6-Text--Table--Simple/lib", '-e', $code-to-compare);
 
+    # old builds # TODO remove after transition
+    if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash”.IO ~~ :e {
+        if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
+            return ‘commit exists, but a perl6 executable could not be built for it’;
+        }
+        return self.get-output(“{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, '--setting=RESTRICTED', '-I', "{LIB-DIR}/perl6-bench/lib,{LIB-DIR}/Perl6-Text--Table--Simple/lib", '-e', $code-to-compare).head;
+    }
+
+    # lock on the destination directory to make
+    # sure that other bots will not get in our way.
+    while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/$full-commit-hash”).exitcode != 0 {
+        sleep 0.5;
+        # Uh, wait! Does it mean that at the same time we can use only one
+        # specific build? Yes, and you will have to wait until another bot
+        # deletes the directory so that you can extract it back again…
+        # There are some ways to make it work, but don't bother. Instead,
+        # we should be doing everything in separate isolated containers (soon),
+        # so this problem will fade away.
+    }
+    my $proc = run(:out, :bin, ‘zstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
+    run(:in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’);
+    my $timing;
+    if “{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
+        return ‘Commit exists, but a perl6 executable could not be built for it’;
+    } else {
+        $timing = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, '--setting=RESTRICTED', '-I', "{LIB-DIR}/perl6-bench/lib,{LIB-DIR}/Perl6-Text--Table--Simple/lib", '-e', $code-to-compare).head;
+    }
+    rmtree “{BUILDS-LOCATION}/$full-commit-hash”;
     return $timing;
 }
-    
 
-multi method irc-to-me($message where .text ~~ /^ \s* $<config>=([:i compare \s]? \S+) \s+ $<code>=.+ /) {
-    my ($value, %additional-files) = self.process($message, ~$<config>, ~$<code>);
-    return ResponseStr.new(:$value, :$message, :%additional-files);
+multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?’? $ | ^stdin /
+                                        # ↑ stupid, I know. See RT #123577
+                                        and .text ~~ /^ \s* $<config>=([:i compare \s]? \S+) \s+ $<code>=.+ / }) {
+    my ($value, %additional_files) = self.process($message, ~$<config>, ~$<code>);
+    return ResponseStr.new(:$value, :$message, :%additional_files);
 }
 
 method process($message, $config, $code is copy) {
     my $start-time = now;
+    my @commits;
     my $old-dir = $*CWD;
 
     my $msg-response = '';
     my %graph;
 
-    my @commits;
-    if $config ~~ / ',' / {
-        @commits = $config.split: ',';
-    } elsif $config ~~ /^ $<start>=\S+ \.\. $<end>=\S+ $/ {
-        chdir RAKUDO;
-        return "Bad start" if run('git', 'rev-parse', '--verify', $<start>).exitcode != 0;
-        return "Bad end"   if run('git', 'rev-parse', '--verify', $<end>).exitcode   != 0;
-
-        my ($result, $exit-status, $exit-signal, $time) = self.get-output('git', 'rev-list', "$<start>^..$<end>");
-
-        return "Couldn't find anything in the range" if $exit-status != 0;
-
-        @commits = $result.split: "\n";
+    if $config ~~ / ‘,’ / {
+        @commits = $config.split: ‘,’;
+    } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
+        chdir RAKUDO; # goes back in LEAVE
+        if run(‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0 {
+            return “Bad start, cannot find a commit for “$<start>””;
+        }
+        if run(‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0 {
+            return “Bad end, cannot find a commit for “$<end>””;
+        }
+        my ($result, $exit-status, $exit-signal, $time) =
+          self.get-output(‘git’, ‘rev-list’, “$<start>^..$<end>”); # TODO unfiltered input
+        return ‘Couldn't find anything in the range’ if $exit-status != 0;
+        @commits = $result.split: “\n”;
         my $num-commits = @commits.elems;
-        return "Too many commits ($num-commits) in range, you're only allowed " ~ LIMIT if $num-commits > LIMIT;
+        return “Too many commits ($num-commits) in range, you're only allowed {LIMIT}” if $num-commits > LIMIT;
     } elsif $config ~~ /:i releases / {
         @commits = @.releases;
     } elsif $config ~~ /:i compare \s $<commit>=\S+ / {
@@ -107,15 +138,16 @@ method process($message, $config, $code is copy) {
 
     my $filename = self.write-code($code);
 
+    $message.reply: "starting to benchmark the {+@commits} given commits";
     my %times;
     for @commits -> $commit {
         # convert to real ids so we can look up the builds
         my $full-commit = self.to-full-commit($commit);
         my $short-commit = $commit.substr(0, 7);
-        if !$full-commit.defined {
-            %times{$short-commit}<err> = 'Cannot find this revision';
-        } elsif “{BUILDS}/$full-commit/bin/perl6”.IO !~~ :e {
-            %times{$short-commit}<err> = 'No build for this commit';
+        if not defined $full-commit {
+            %times{$short-commit}<err> = ‘Cannot find this revision’;
+        } elsif not self.build-exists($full-commit) {
+            %times{$short-commit}<err> = ‘No build for this commit’;
         } else { # actually run the code
             if $config ~~ /:i compare / {
                 %times{$short-commit} = self.benchmark-code($full-commit, $code.split('|||'));
@@ -133,9 +165,10 @@ method process($message, $config, $code is copy) {
     # recursively find the commit in the middle until there are either no more large speed differences or no
     # more commits inbetween (i.e., the next commit is the exact one that caused the difference)
     if $config ~~ /:i releases / or $config ~~ / ',' / {
+        $message.reply: 'benchmarked the given commits, now zooming in on performance differences';
         chdir RAKUDO;
 
-Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
+Z:      loop (my int $x = 0; $x < @commits - 1; $x++) {
             if (now - $start-time > TOTAL-TIME) {
                 return "«hit the total time limit of {TOTAL-TIME} seconds»";
             }
@@ -144,10 +177,10 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
             next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists;     # and without error
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) >= %times{@commits[$x]}<min>*0.1 {
                 my ($new-commit, $exit-status, $exit-signal, $time) = self.get-output('git', 'rev-list', '--bisect', '--no-merges', @commits[$x] ~ '^..' ~ @commits[$x + 1]);
-                if $exit-status == 0 and $new-commit.defined  and $new-commit ne '' {
+                if $exit-status == 0 and $new-commit.defined and $new-commit ne '' {
                     my $short-commit = $new-commit.substr(0, 7);
-                    if "{BUILDS}/$new-commit/bin/perl6".IO !~~ :e {
-                        %times{$short-commit}<err> = 'No build for this commit';
+                    if not self.build-exists($new-commit) {
+                        %times{$short-commit}<err> = ‘No build for this commit’;
                     } elsif %times{$short-commit}:!exists and $short-commit ne @commits[$x] and $short-commit ne @commits[$x + 1] { # actually run the code
                         %times{$short-commit} = self.benchmark-code($new-commit, $filename);
                         @commits.splice($x + 1, 0, $short-commit);
@@ -158,38 +191,28 @@ Z:      loop (my int $x = 0; $x < +@commits - 1; $x++) {
         }
     }
 
-    if @commits >= ITERATIONS {
-        chdir $old-dir;
-        my $gfilename = 'graph.svg';
-        my $title = "$config $code".trans(['"'] => ['\"']);
-        my @ydata = @commits.map({ .<err> // .<min> with %times{$_.substr(0, 7)} });
-        my $chart = Chart::Gnuplot.new(
-            output   => $gfilename,
-            encoding => 'utf8',
-            title	 => {
-                text     => $title.encode('UTF-8'),
-                enhanced => 'off',
-            },
-            size     => '2,1',
-#        terminal => 'svg mousing',
-            xlabel   => {
-                text   => 'Commits\\nMean,Max,Stddev',
-                offset => '0,-1',
-            },
-            xtics    => { labels => [@commits.kv.map({ my $commit = $^v.substr(0, 7); "\"$commit\\n{.<err> // .<mean max stddev>.join(',') with %times{$commit}}\" $^k" })], },
-            ylabel   => 'Seconds',
-            yrange   => [0, @ydata.grep(*.Num).max * 1.25],
-          );
-        my $dataSet = Chart::Gnuplot::DataSet.new(
-            ydata => item(@ydata),
-            style => 'linespoints',
-          );
-        $chart.plot2d($dataSet);
+    @commits .= map(*.substr(0, 7));
 
-        %graph{$gfilename} = $gfilename.IO.slurp;
+    if @commits >= ITERATIONS {
+        my $pfilename = 'plot.svg';
+        my $title = "$config $code".trans(['"'] => ['\"']);
+        my @valid-commits = @commits.grep({ %times{$_}<err>:!exists });
+        my @values = @valid-commits.map({ %times{$_}<min> });
+        my @labels = @valid-commits.map({ "$_ ({ .<mean max stddev>.map({ sprintf("%.2f", $_) }).join(',') with %times{$_} })" });
+
+        my $plot = SVG::Plot.new(
+            width => 1000,
+            height => 800,
+            min-y-axis => 0,
+            :$title,
+            values => (@values,),
+            :@labels,
+        ).plot(:lines);
+
+        %graph{$pfilename} = SVG.serialize($plot);
     }
 
-    $msg-response ~= '¦' ~ @commits.map({ my $c = .substr(0, 7); "«$c»:" ~ (%times{$c}<err> // %times{$c}<min> // %times{$c}) }).join("\n¦");
+    $msg-response ~= '¦' ~ @commits.map({ "«$_»:" ~(%times{$_}<err> // %times{$_}<min> // %times{$_}) }).join("\n¦");
 
     return ($msg-response, %graph);
 
