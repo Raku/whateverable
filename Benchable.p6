@@ -143,7 +143,7 @@ method process($message, $config, $code is copy) {
     for @commits -> $commit {
         # convert to real ids so we can look up the builds
         my $full-commit = self.to-full-commit($commit);
-        my $short-commit = $commit.substr(0, 7);
+        my $short-commit = self.get-short-commit($commit);
         if not defined $full-commit {
             %times{$short-commit}<err> = ‘Cannot find this revision’;
         } elsif not self.build-exists($full-commit) {
@@ -178,7 +178,7 @@ Z:      loop (my int $x = 0; $x < @commits - 1; $x++) {
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) >= %times{@commits[$x]}<min>*0.1 {
                 my ($new-commit, $exit-status, $exit-signal, $time) = self.get-output('git', 'rev-list', '--bisect', '--no-merges', @commits[$x] ~ '^..' ~ @commits[$x + 1]);
                 if $exit-status == 0 and $new-commit.defined and $new-commit ne '' {
-                    my $short-commit = $new-commit.substr(0, 7);
+                    my $short-commit = self.get-short-commit($new-commit);
                     if not self.build-exists($new-commit) {
                         %times{$short-commit}<err> = ‘No build for this commit’;
                     } elsif %times{$short-commit}:!exists and $short-commit ne @commits[$x] and $short-commit ne @commits[$x + 1] { # actually run the code
@@ -191,7 +191,7 @@ Z:      loop (my int $x = 0; $x < @commits - 1; $x++) {
         }
     }
 
-    @commits .= map(*.substr(0, 7));
+    @commits .= map({ self.get-short-commit($_) });
 
     if @commits >= ITERATIONS {
         my $pfilename = 'plot.svg';

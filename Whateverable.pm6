@@ -77,6 +77,10 @@ multi method irc-privmsg-me($msg) {
 
 method help($message) { “See {SOURCE}” } # override this in your bot
 
+method get-short-commit($original-commit) {
+    $original-commit ~~ /^ <xdigit> ** 7..40 $/ ?? $original-commit.substr(0, 7) !! $original-commit;
+}
+
 method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
     my $out = Channel.new; # TODO switch to some Proc :merge thing once it is implemented
     my $proc = Proc::Async.new(|@run-args, :w(defined $stdin));

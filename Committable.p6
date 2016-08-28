@@ -88,7 +88,7 @@ method process($message, $config, $code is copy) {
                 $output ~= “ «exit signal = {Signal($signal)} ($signal)»” if $signal != 0;
             }
         }
-        my $short-commit = $commit.substr(0, 7);
+        my $short-commit = self.get-short-commit($commit);
 
         # Code below keeps results in order. Example state:
         # @result = [ { commits => [‘A’, ‘B’], output => ‘42‘ },
