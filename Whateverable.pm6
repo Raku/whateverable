@@ -44,7 +44,7 @@ class ResponseStr is Str is export {
     # that our object propagates right to the filter.
     # Otherwise there is no way to get required data in the filter.
     has IRC::Client::Message $.message;
-    has %.additional_files;
+    has %.additional-files;
 }
 
 #↓ Matches only one space on purpose (for whitespace-only stdin)
@@ -190,9 +190,9 @@ method process-code($code is copy, $message) {
     return (1, $code)
 }
 
-multi method filter($response where (.chars > 300 or .?additional_files)) {
+multi method filter($response where (.chars > 300 or .?additional-files)) {
     if $response ~~ ResponseStr {
-        self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.?additional_files},
+        self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.?additional-files},
                     description => $response.message.server.current-nick, :public);
     } else {
         self.upload({‘result’ => $response}, description => ‘Whateverable’, :public);
