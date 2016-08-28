@@ -191,7 +191,7 @@ Z:      loop (my int $x = 0; $x < @commits - 1; $x++) {
         }
     }
 
-    @commits .= map({ self.get-short-commit($_) });
+    @commits .= map(self.get-short-commit(*));
 
     if @commits >= ITERATIONS {
         my $pfilename = 'plot.svg';
@@ -201,12 +201,13 @@ Z:      loop (my int $x = 0; $x < @commits - 1; $x++) {
         my @labels = @valid-commits.map({ "$_ ({ .<mean max stddev>.map({ sprintf("%.2f", $_) }).join(',') with %times{$_} })" });
 
         my $plot = SVG::Plot.new(
-            width => 1000,
-            height => 800,
+            width      => 1000,
+            height     => 800,
             min-y-axis => 0,
             :$title,
-            values => (@values,),
+            values     => (@values,),
             :@labels,
+            background => 'white',
         ).plot(:lines);
 
         %graph{$pfilename} = SVG.serialize($plot);
