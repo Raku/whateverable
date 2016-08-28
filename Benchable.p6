@@ -191,7 +191,7 @@ Z:      loop (my int $x = 0; $x < @commits - 1; $x++) {
         }
     }
 
-    @commits .= map(self.get-short-commit(*));
+    @commits .= map({ self.get-short-commit($_) });
 
     if @commits >= ITERATIONS {
         my $pfilename = 'plot.svg';
