@@ -155,12 +155,12 @@ method process($message, $code is copy, $good, $bad) {
     # convert to real ids so we can look up the builds
     my $full-good = self.to-full-commit($good);
     return ‘Cannot find ‘good’ revision’ unless defined $full-good;
-    my $short-good = $good eq $full-good | 'HEAD' ?? substr($full-good, 0, 7) !! $good;
+    my $short-good = self.get-short-commit($good eq $full-good | 'HEAD' ?? $full-good !! $good);
     return ‘No build for ‘good’ revision’ if not self.build-exists($full-good);
 
     my $full-bad = self.to-full-commit($bad);
     return ‘Cannot find ‘bad’ revision’ unless defined $full-bad;
-    my $short-bad = substr($bad eq ‘HEAD’ ?? $full-bad !! $bad, 0, 7);
+    my $short-bad = self.get-short-commit($bad eq ‘HEAD’ ?? $full-bad !! $bad);
     return ‘No build for ‘bad’ revision’ if not self.build-exists($full-bad);
 
     my $filename = self.write-code($code);
