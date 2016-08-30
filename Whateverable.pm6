@@ -172,12 +172,12 @@ method process-url($url, $message) {
         return (0, ‘It looks like a URL, but for some reason I cannot download it’
                        ~ “ (HTTP status line is {$response.status-line}).”);
     }
-    if $response.field(‘content-type’) ne ‘text/plain; charset=utf-8’ {
-        return (0, “It looks like a URL, but mime type is ‘{$response.field(‘content-type’)}’”
-                       ~ ‘ while I was expecting ‘text/plain; charset=utf-8’.’
-                       ~ ‘ I can only understand raw links, sorry.’);
+    if not $response.content-type.contains(any(‘text/plain’, ‘perl’)) {
+        return (0, “It looks like a URL, but mime type is ‘{$response.content-type}’”
+                       ~ ‘ while I was expecting something with ‘text/plain’ or ‘perl’’
+                       ~ ‘ in it. I can only understand raw links, sorry.’);
     }
-    my $body = $response.content;
+    my $body = $response.decoded-content;
 
     $message.reply: ‘Successfully fetched the code from the provided URL.’;
     return (1, $body)
