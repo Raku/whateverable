@@ -98,7 +98,6 @@ method process($message, $config, $code is copy) {
             %lookup{$output} = +@result;
             @result.push: { commits => [$short-commit], :$output };
         } else {
-            say “Lookup(output): %lookup{$output}”;
             @result[%lookup{$output}]<commits>.push: $short-commit;
         }
 
