@@ -226,7 +226,7 @@ method process($message, $code is copy, $good, $bad) {
     }
 
     LEAVE {
-        chdir $old-dir;
+        chdir  $old-dir     if defined $old-dir;
         unlink $output-file if $output-file.defined and $output-file.chars > 0;
         unlink $filename if $filename.defined and $filename.chars > 0;
         rmtree $dir if $dir.defined and $dir.chars > 0;
