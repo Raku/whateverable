@@ -223,6 +223,6 @@ Z:      loop (my int $x = 0; $x < @commits - 1; $x++) {
     }
 }
 
-Benchable.new.selfrun(‘benchable6’, [‘bench’]);
+Benchable.new.selfrun(‘benchable6’, [‘bench’, ‘bench6’]);
 
 # vim: expandtab shiftwidth=4 ft=perl6

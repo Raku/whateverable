@@ -34,6 +34,28 @@ $t.test(‘source link’,
         “{$t.bot-nick}:  urL?   ”,
         “{$t.our-nick}, https://github.com/perl6/whateverable”);
 
+$t.test(‘“bisect:” shortcut’,
+        ‘bisect: url’,
+        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+
+$t.test(‘“bisect,” shortcut’,
+        ‘bisect, url’,
+        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+
+$t.test(‘“bisect6:” shortcut’,
+        ‘bisect6: url’,
+        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+
+$t.test(‘“bisect6,” shortcut’,
+        ‘bisect6, url’,
+        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+
+$t.test(‘“bisect” shortcut does not work’,
+        ‘bisect url’);
+
+$t.test(‘“bisect6” shortcut does not work’,
+        ‘bisect6 url’);
+
 # Basics
 
 $t.test(‘bisect by exit code’,

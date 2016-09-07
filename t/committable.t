@@ -52,8 +52,19 @@ $t.test(‘“commit,” shortcut’,
         ‘commit, HEAD say ‘hello’’,
         “{$t.our-nick}, ¦«HEAD»: hello”);
 
+$t.test(‘“commit6:” shortcut’,
+        ‘commit6: HEAD say ‘hello’’,
+        “{$t.our-nick}, ¦«HEAD»: hello”);
+
+$t.test(‘“commit6,” shortcut’,
+        ‘commit6, HEAD say ‘hello’’,
+        “{$t.our-nick}, ¦«HEAD»: hello”);
+
 $t.test(‘“commit” shortcut does not work’,
         ‘commit HEAD say ‘hello’’);
+
+$t.test(‘“commit6” shortcut does not work’,
+        ‘commit6 HEAD say ‘hello’’);
 
 $t.test(‘specific commit’,
         ‘commit: f583f22 say $*PERL.compiler.version’,

@@ -234,6 +234,6 @@ method process($message, $code is copy, $good, $bad) {
     }
 }
 
-Bisectable.new.selfrun(‘bisectable6’, [‘bisect’]);
+Bisectable.new.selfrun(‘bisectable6’, [‘bisect’, ‘bisect6’]);
 
 # vim: expandtab shiftwidth=4 ft=perl6
