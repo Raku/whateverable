@@ -210,6 +210,8 @@ multi method filter($text) {
 }
 
 method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
+    return ‘https://whatever.able/fakeupload’ if %*ENV<TESTABLE>;
+
     state $config = from-json slurp CONFIG;
     %files = %files.pairs.map: { .key => %( ‘content’ => .value ) }; # github format
 
@@ -224,7 +226,7 @@ method selfrun($nick is copy, @alias?) {
         :userreal($nick.tc)
         :username($nick.tc)
         :@alias
-        :host<irc.freenode.net>
+        :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! ‘irc.freenode.net’)
         :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable>)
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
