@@ -230,6 +230,7 @@ method process($message, $code is copy, $good, $bad) {
         unlink $output-file if defined $output-file and $output-file.chars > 0;
         unlink $filename    if defined $filename    and $filename.chars    > 0;
         rmtree $dir         if defined $dir         and $dir.chars         > 0;
+        sleep 0.02; # otherwise the output may be in the wrong order TODO is it a problem in IRC::Client?
     }
 }
 
