@@ -28,112 +28,111 @@ unit class Bisectable is Whateverable;
 constant LINK          = ‘https://github.com/rakudo/rakudo/commit’;
 constant BUILD-LOCK    = ‘./lock’.IO.absolute;
 
+enum RevisionType <Old New Skip>;
+
 method help($message) {
     ~ “Like this: {$message.server.current-nick}”
-    ~ ‘: good=2015.12 bad=HEAD exit 1 if (^∞).grep({ last })[5] // 0 == 4 # RT128181’
+    ~ ‘: old=2015.12 new=HEAD exit 1 if (^∞).grep({ last })[5] // 0 == 4 # RT128181’
 }
 
-method run-bisect($code-file, $compare-to?) {
-    my $bisect-log = '';
-    loop {
-        my ($log, $exit-code) = self.test-commit($code-file, $compare-to);
-        $bisect-log ~= $log;
+sub signal-to-text($signal) {
+    “$signal ({Signal($signal) // ‘None’})”
+}
 
-        if $exit-code < 0 or $exit-code >= 128 {
-            return ("bisect run failed: exit code $exit-code from '$code-file' is < 0 or >= 128", $exit-code);
-        }
-
-        given $exit-code {
-            my ($output, $status);
-            when 125  { run('git', 'bisect', 'skip') }
-            when 1..* {
-                ($output, $status) = self.get-output('git', 'bisect', 'bad');
-                if $output ~~ /^^ \S+ ' is the first bad commit' / {
-                    return ($bisect-log ~ $output, $status);
-                }
-            }
-            default   {
-                ($output, $status) = self.get-output('git', 'bisect', 'good');
-                if $output ~~ /^^ \S+ ' is the first bad commit' / {
-                    return ($bisect-log ~ $output, $status);
-                }
-            }
-        }
+method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-output) ) {
+    my ($output, $status);
+    my @bisect-log = gather loop {
+        my $revision-type = self.test-commit($code-file, |%_);
+        ($output, $status) = self.get-output(‘git’, ‘bisect’, $revision-type.lc);
+        last if $output ~~ /^^ \S+ ‘ is the first new commit’ /; # TODO just return this
+        LAST take $output;
     }
+    return @bisect-log.join(“\n”), $status
 }
 
-method test-commit($code-file, $compare-to?) {
+method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output) {
     my ($current-commit,) = self.get-output('git', 'rev-parse', 'HEAD');
-    my $log               = '';
 
-    $log ~= "»»»»» Testing $current-commit\n";
+    # looks a bit nicer this way
+    LEAVE take ‘»»»»» -------------------------------------------------------------------------’;
+
+    take “»»»»» Testing $current-commit”;
     if not self.build-exists($current-commit) {
-        $log ~= "»»»»» Build does not exist, skip this commit\n";
-        $log ~= "»»»»» Final exit code: 125\n";
-        return $log, 125 # skip non-existent builds
+        take ‘»»»»» Build does not exist, skip this commit’;
+        return Skip # skip non-existent builds
     }
 
-    my ($output, $exit-code, $signal) = self.run-snippet($current-commit, $code-file);
-    if $signal < 0 {
-        $log ~= “»»»»» Cannot test this commit. Reason: $output\n”;
-        $log ~= "»»»»» Final exit code: 125\n";
-        return $log, 125 # skip failed builds
+    my ($output, $exit-code, $exit-signal) = self.run-snippet($current-commit, $code-file);
+    if $exit-signal < 0 {
+        take “»»»»» Cannot test this commit. Reason: $output”;
+        take ‘»»»»» Therefore, skipping this revision’;
+        return Skip # skip failed builds
     }
 
-    $log ~= "»»»»» Script output:\n";
-    $log ~= $output;
-    $log ~= "\n»»»»» Script exit code: $exit-code\n";
+    take ‘»»»»» Script output:’;
+    take $output;
+    take “»»»»» Script exit code: $exit-code”;
+    take “»»»»» Script exit signal: {signal-to-text $exit-signal}” if $exit-signal;
 
-    # TODO bisect by signal (issue #14)
-
-    # plain bisect
-    unless $compare-to {
-        $log ~= "»»»»» Plain bisect, using the same exit code\n";
-        $log ~= "»»»»» Final exit code: $exit-code\n";
-        return ($log, $exit-code);
+    if $exit-code == 125 {
+        take ‘»»»»» Exit code 125 means “skip”’;
+        take ‘Therefore, skipping this revision as you requested’;
+        return Skip # somebody did “exit 125” in his code on purpose
     }
 
-    # inverted exit code
-    if $compare-to ~~ /^ \d+ $/ { # invert exit code
-        $log ~= "»»»»» Inverted logic, comparing $exit-code to $compare-to\n";
-        if $exit-code == $compare-to {
-            $log ~= "»»»»» Final exit code: 0\n";
-            return $log, 0;
-        } else {
-            my $final-exit-code = $exit-code == 0 ?? 1 !! $exit-code;
-            $log ~= "»»»»» Final exit code: $final-exit-code\n";
-            return $log, $final-exit-code;
+    # compare signals
+    if defined $old-exit-signal {
+        my $revision-type = $exit-signal == $old-exit-signal ?? Old !! New;
+        take ‘»»»»» Bisecting by exit signal’;
+        take “»»»»» Current exit signal is {signal-to-text $exit-signal}, exit signal on “old” revision is {signal-to-text $old-exit-signal}”;
+        if $old-exit-signal != 0 {
+            take “»»»»» Note that on “old” revision exit signal is normally {signal-to-text 0}, you are probably trying to find when something was fixed”;
         }
+        take ‘»»»»» If exit signal is not the same as on “old” revision, this revision will be marked as “new”’;
+        take “»»»»» Therefore, marking this revision as “{$revision-type.lc}””;
+        return $revision-type
+    }
+
+    # compare exit code (typically like a normal ｢git bisect run …｣)
+    if defined $old-exit-code {
+        my $revision-type = $exit-code == $old-exit-code ?? Old !! New;
+        take ‘»»»»» Bisecting by exit code’;
+        take “»»»»» Current exit code is $exit-code, exit code on “old” revision is $old-exit-code”;
+        if $old-exit-code != 0 {
+            take ‘»»»»» Note that on “old” revision exit code is normally 0, you are probably trying to find when something was fixed’;
+        }
+        take ‘»»»»» If exit code is not the same as on “old” revision, this revision will be marked as “new”’;
+        take “»»»»» Therefore, marking this revision as “{$revision-type.lc}””;
+        return $revision-type
     }
 
     # compare the output
-    $log ~= "»»»»» Bisecting by using the output\n";
-    my $output-good = slurp $compare-to;
-    $log ~= "»»»»» Comparing the output to:\n";
-    $log ~= $output-good;
-    if $output eq $output-good {
-        $log ~= "\n»»»»» The output is identical\n";
-        $log ~= "»»»»» Final exit code: 0\n";
-        return $log, 0;
-    } else {
-        $log ~= "\n»»»»» The output is different\n";
-        $log ~= "»»»»» Final exit code: 1\n";
-        return $log, 1;
+    if defined $old-output {
+        my $revision-type = $output eq $old-output ?? Old !! New;
+        take ‘»»»»» Bisecting by output’;
+        take ‘»»»»» Output on “old” revision is:’;
+        take $old-output;
+        take “»»»»» The output is {$revision-type == Old ?? ‘identical’ !! ‘different’}”;
+        take “»»»»» Therefore, marking this revision as “{$revision-type.lc}””;
+        return $revision-type
     }
 
-    # looks a bit nicer this way
-    LEAVE $log ~= "»»»»» -------------------------------------------------------------------------\n";
+    # This should not happen.
+    # TODO can we avoid this piece of code somehow?
+    take ‘»»»»» Internal bisectable error. This should not happen. Please contact the maintainers.’;
+    take ‘»»»»» Therefore, skipping this revision’;
+    return Skip
 }
 
 my regex spaceeq { \s* ‘=’ \s* | \s+ }
 my regex bisect-cmd {
     ^ \s*
     [
-        [ good <spaceeq> $<good>=\S+ \s* ]
-        [ bad  <spaceeq> $<bad> =\S+ \s* ]?
+        [ [old|good] <spaceeq> $<old>=\S+ \s* ]
+        [ [new|bad]  <spaceeq> $<new>=\S+ \s* ]?
         |
-        [ bad  <spaceeq> $<bad> =\S+ \s* ]?
-        [ good <spaceeq> $<good>=\S+ \s* ]?
+        [ [new|bad]  <spaceeq> $<new>=\S+ \s* ]?
+        [ [old|good] <spaceeq> $<old>=\S+ \s* ]?
     ]
     $<code>=.*
     $
@@ -143,53 +142,49 @@ multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?�
                                         # ↑ stupid, I know. See RT #123577
                                         and .text ~~ &bisect-cmd}) {
     my $value = self.process($message, ~$<code>,
-                             ~($<good> // ‘2015.12’), ~($<bad> // ‘HEAD’));
+                             ~($<old> // ‘2015.12’), ~($<new> // ‘HEAD’));
     return ResponseStr.new(:$value, :$message);
 }
 
-method process($message, $code is copy, $good, $bad) {
+method process($message, $code is copy, $old, $new) {
     my ($succeeded, $code-response) = self.process-code($code, $message);
     return $code-response unless $succeeded;
     $code = $code-response;
 
     # convert to real ids so we can look up the builds
-    my $full-good = self.to-full-commit($good);
-    return ‘Cannot find ‘good’ revision’ unless defined $full-good;
-    my $short-good = self.get-short-commit($good eq $full-good | 'HEAD' ?? $full-good !! $good);
-    return ‘No build for ‘good’ revision’ if not self.build-exists($full-good);
+    my $full-old = self.to-full-commit($old);
+    return “Cannot find revision “$old””  unless           defined($full-old);
+    return “No build for revision “$old”” unless self.build-exists($full-old);
+    my $short-old = self.get-short-commit($old eq $full-old | 'HEAD' ?? $full-old !! $old);
 
-    my $full-bad = self.to-full-commit($bad);
-    return ‘Cannot find ‘bad’ revision’ unless defined $full-bad;
-    my $short-bad = self.get-short-commit($bad eq ‘HEAD’ ?? $full-bad !! $bad);
-    return ‘No build for ‘bad’ revision’ if not self.build-exists($full-bad);
+    my $full-new = self.to-full-commit($new);
+    return “Cannot find revision “$new””  unless           defined($full-new);
+    return “No build for revision “$new”” unless self.build-exists($full-new);
+    my $short-new = self.get-short-commit($new eq ‘HEAD’ ?? $full-new !! $new);
 
     my $filename = self.write-code($code);
 
     my $old-dir = $*CWD;
     chdir RAKUDO;
-    my ($out-good, $exit-good, $signal-good, $time-good) = self.run-snippet($full-good, $filename);
-    my ($out-bad,  $exit-bad,  $signal-bad,  $time-bad)  = self.run-snippet($full-bad,  $filename);
+    my ($old-output, $old-exit-code, $old-exit-signal,) = self.run-snippet($full-old, $filename);
+    my ($new-output, $new-exit-code, $new-exit-signal,) = self.run-snippet($full-new, $filename);
     chdir $old-dir;
 
-    return “Problem with ‘good’ commit: $out-good” if $signal-good < 0;
-    return “Problem with ‘bad’ commit: $out-bad”   if $signal-bad  < 0;
+    return “Problem with $short-old commit: $old-output” if $old-exit-signal < 0;
+    return “Problem with $short-new commit: $new-output” if $new-exit-signal < 0;
 
-    $out-good //= ‘’;
-    $out-bad  //= ‘’;
+    $old-output //= ‘’;
+    $new-output //= ‘’;
 
-    if $exit-good == $exit-bad and $out-good eq $out-bad {
-        $message.reply: “On both starting points (good=$short-good bad=$short-bad) the exit code is $exit-bad and the output is identical as well”;
-        return “Output on both points: $out-good”; # will be gisted automatically if required
-    }
-    my $output-file = ‘’;
-    if $exit-good == $exit-bad {
-        $message.reply: “Exit code is $exit-bad on both starting points (good=$short-good bad=$short-bad), bisecting by using the output”;
-        ($output-file, my $fh) = tempfile :!unlink;
-        $fh.print: $out-good;
-        $fh.close;
-    }
-    if $exit-good != $exit-bad and $exit-good != 0 {
-        $message.reply: “For the given starting points (good=$short-good bad=$short-bad), exit code on a ‘good’ revision is $exit-good (which is bad), bisecting with inverted logic”;
+    if  $old-exit-code   == $new-exit-code
+    and $old-exit-signal == $new-exit-signal
+    and $old-output      eq $new-output      {
+        if $old-exit-signal != 0 {
+            $message.reply: “On both starting points (old=$short-old new=$short-new) the exit code is $old-exit-code, exit signal is {signal-to-text $old-exit-signal} and the output is identical as well”;
+        } else {
+            $message.reply: “On both starting points (old=$short-old new=$short-new) the exit code is $old-exit-code and the output is identical as well”;
+        }
+        return “Output on both points: $old-output”; # will be gisted automatically if required
     }
 
     my $dir = tempdir :!unlink;
@@ -197,8 +192,8 @@ method process($message, $code is copy, $good, $bad) {
     chdir $dir;
 
     self.get-output(‘git’, ‘bisect’, ‘start’);
-    self.get-output(‘git’, ‘bisect’, ‘good’, $full-good);
-    my ($init-output, $init-status) = self.get-output(‘git’, ‘bisect’, ‘bad’, $full-bad);
+    self.get-output(‘git’, ‘bisect’, ‘old’, $full-old);
+    my ($init-output, $init-status) = self.get-output(‘git’, ‘bisect’, ‘new’, $full-new);
     if $init-status != 0 {
         $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
                                                        ‘result’      => $init-output, },
@@ -206,14 +201,19 @@ method process($message, $code is copy, $good, $bad) {
         return ‘bisect init failure’;
     }
     my ($bisect-output, $bisect-status);
-    if $output-file {
-        ($bisect-output, $bisect-status)     = self.run-bisect($filename, $output-file);
+    if $old-exit-signal != $new-exit-signal {
+        $message.reply: “Bisecting by exit signal (old=$short-old new=$short-new). Old exit signal: {signal-to-text $old-exit-signal}”;
+        ($bisect-output, $bisect-status) = self.run-bisect($filename, :$old-exit-signal);
+    } elsif $old-exit-code != $new-exit-code {
+        $message.reply: “Bisecting by exit code (old=$short-old new=$short-new). Old exit code: $old-exit-code”;
+        ($bisect-output, $bisect-status) = self.run-bisect($filename, :$old-exit-code);
     } else {
-        if $exit-good == 0 {
-            ($bisect-output, $bisect-status) = self.run-bisect($filename);
+        if $old-exit-signal != 0 {
+            $message.reply: “Bisecting by output (old=$short-old new=$short-new) because on both starting points the exit code is $old-exit-code and exit signal is {signal-to-text $old-exit-signal}”;
         } else {
-            ($bisect-output, $bisect-status) = self.run-bisect($filename, $exit-good);
+            $message.reply: “Bisecting by output (old=$short-old new=$short-new) because on both starting points the exit code is $old-exit-code”;
         }
+        ($bisect-output, $bisect-status) = self.run-bisect($filename, :$old-output);
     }
     $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
                                                    ‘result’      => “$init-output\n$bisect-output”, },
@@ -222,14 +222,13 @@ method process($message, $code is copy, $good, $bad) {
     if $bisect-status != 0 {
         return “‘bisect run’ failure”;
     } else {
-        return self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%h”, ‘bisect/bad’).first;
+        return self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%h”, ‘bisect/new’).first;
     }
 
     LEAVE {
-        chdir  $old-dir     if defined $old-dir;
-        unlink $output-file if defined $output-file and $output-file.chars > 0;
-        unlink $filename    if defined $filename    and $filename.chars    > 0;
-        rmtree $dir         if defined $dir         and $dir.chars         > 0;
+        chdir  $old-dir  if defined $old-dir;
+        unlink $filename if defined $filename and $filename.chars > 0;
+        rmtree $dir      if defined $dir      and $dir.chars      > 0;
         sleep 0.02; # otherwise the output may be in the wrong order TODO is it a problem in IRC::Client?
     }
 }
