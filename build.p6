@@ -60,9 +60,11 @@ if RAKUDO-CURRENT.IO !~~ :d  {
 my $channel = Channel.new;
 
 my @git-latest = ‘git’, ‘--git-dir’, “{RAKUDO-LATEST}/.git”, ‘--work-tree’, RAKUDO-LATEST;
-for run(:out, |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, COMMIT-RANGE).out.split(0.chr, :skip-empty) {
-    $channel.send: $_
-}
+my @args-tags   = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’;
+my @args-latest = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, COMMIT-RANGE;
+
+$channel.send: $_ for run(:out, |@args-tags  ).out.split(0.chr, :skip-empty);
+$channel.send: $_ for run(:out, |@args-latest).out.split(0.chr, :skip-empty);
 
 await (for ^PARALLEL-COUNT { # TODO rewrite when .race starts working in rakudo
               start loop {
