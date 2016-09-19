@@ -229,7 +229,7 @@ method process($message, $code is copy, $old, $new) {
     if $bisect-status != 0 {
         return “‘bisect run’ failure”;
     } else {
-        return self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%h”, ‘bisect/new’).first;
+        return self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%H”, ‘bisect/new’).first;
     }
 
     LEAVE {
