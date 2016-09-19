@@ -103,6 +103,14 @@ $t.test(‘large output is uploaded’,
         /^ <{$t.our-nick}> ‘, On both starting points (old=2015.12 new=’ <.xdigit>**7 ‘) the exit code is 5 and the output is identical as well’ $/,
         “{$t.our-nick}, https://whatever.able/fakeupload”);
 
+$t.test(‘exit code on old revision is 125’,
+        ‘bisect: exit 125 if $*VM.gist eq ‘moar (2015.12)’’,
+        “{$t.our-nick}, Exit code on “old” revision is 125, which means skip this commit. Please try another old revision”);
+
+$t.test(‘exit code on new revision is 125’,
+        ‘bisect: exit 125 unless $*VM.gist eq ‘moar (2015.12)’’,
+        “{$t.our-nick}, Exit code on “new” revision is 125, which means skip this commit. Please try another new revision”);
+
 # Custom starting points
 
 $t.test(‘custom starting points’,

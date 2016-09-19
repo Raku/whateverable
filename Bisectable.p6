@@ -173,6 +173,13 @@ method process($message, $code is copy, $old, $new) {
     return “Problem with $short-old commit: $old-output” if $old-exit-signal < 0;
     return “Problem with $short-new commit: $new-output” if $new-exit-signal < 0;
 
+    if $old-exit-code == 125 {
+        return ‘Exit code on “old” revision is 125, which means skip this commit. Please try another old revision’;
+    }
+    if $new-exit-code == 125 {
+        return ‘Exit code on “new” revision is 125, which means skip this commit. Please try another new revision’;
+    }
+
     $old-output //= ‘’;
     $new-output //= ‘’;
 
