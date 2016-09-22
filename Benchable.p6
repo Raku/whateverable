@@ -62,14 +62,6 @@ multi method benchmark-code($full-commit-hash, @code) {
     my $code-to-compare = 'use Bench; my %subs = ' ~ @code.kv.map({ $^k => " => sub \{ $^v \} " }).join(',') ~ ';'
                         ~ ' my $b = Bench.new; $b.cmpthese(' ~ ITERATIONS*2 ~ ', %subs)';
 
-    # old builds # TODO remove after transition
-    if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash”.IO ~~ :e {
-        if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
-            return ‘commit exists, but a perl6 executable could not be built for it’;
-        }
-        return self.get-output(“{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”, '--setting=RESTRICTED', '-I', "{LIB-DIR}/perl6-bench/lib,{LIB-DIR}/Perl6-Text--Table--Simple/lib", '-e', $code-to-compare).head;
-    }
-
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
     while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/$full-commit-hash”).exitcode != 0 {

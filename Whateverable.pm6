@@ -105,20 +105,10 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
 }
 
 method build-exists($full-commit-hash) {
-    return True if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash”.IO ~~ :d; # old builds # TODO remove after transition
     “{ARCHIVES-LOCATION}/$full-commit-hash.zst”.IO ~~ :e
 }
 
 method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
-    # old builds # TODO remove after transition
-    if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash”.IO ~~ :e {
-        if “{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
-            return ‘commit exists, but a perl6 executable could not be built for it’, -1, -1;
-        }
-        return self.get-output(“{LEGACY-BUILDS-LOCATION}/$full-commit-hash/bin/perl6”,
-                               ‘--setting=RESTRICTED’, ‘--’, $file, :$!stdin, :$timeout);
-    }
-
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
     while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/$full-commit-hash”).exitcode != 0 {
