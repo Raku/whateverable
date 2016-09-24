@@ -215,6 +215,6 @@ Z:      loop (my int $x = 0; $x < @commits - 1; $x++) {
     }
 }
 
-Benchable.new.selfrun(‘benchable6’, [‘bench’, ‘bench6’]);
+Benchable.new.selfrun(‘benchable6’, [ /bench6?/, fuzzy-nick(‘benchable6’, 2) ]);
 
 # vim: expandtab shiftwidth=4 ft=perl6

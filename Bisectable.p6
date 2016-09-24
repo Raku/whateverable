@@ -240,6 +240,6 @@ method process($message, $code is copy, $old, $new) {
     }
 }
 
-Bisectable.new.selfrun(‘bisectable6’, [‘bisect’, ‘bisect6’]);
+Bisectable.new.selfrun(‘bisectable6’, [ /bisect6?/, fuzzy-nick(‘bisectable6’, 2) ]);
 
 # vim: expandtab shiftwidth=4 ft=perl6

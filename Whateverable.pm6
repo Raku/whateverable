@@ -22,6 +22,7 @@ use File::Temp;
 use JSON::Fast;
 use Pastebin::Gist;
 use HTTP::UserAgent;
+use Text::Diff::Sift4;
 
 constant RAKUDO = ‘./rakudo’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
@@ -222,6 +223,10 @@ method selfrun($nick is copy, @alias?) {
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )
     )
+}
+
+sub fuzzy-nick($nick, $distance) is export {
+    / \w+ <?{ sift4(~$/, $nick) ~~ 1..$distance }> /
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6
