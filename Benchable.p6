@@ -130,9 +130,9 @@ method process($message, $config, $code is copy) {
 
     my $filename = self.write-code($code);
 
-    $message.reply: "starting to benchmark the {+@commits} given commits";
     my %times;
     for @commits -> $commit {
+        FIRST my $once = 'Give me a ping, Vasili. One ping only, please.';
         # convert to real ids so we can look up the builds
         my $full-commit = self.to-full-commit($commit);
         my $short-commit = self.get-short-commit($commit);
@@ -141,6 +141,11 @@ method process($message, $config, $code is copy) {
         } elsif not self.build-exists($full-commit) {
             %times{$short-commit}<err> = ‘No build for this commit’;
         } else { # actually run the code
+            if $once.defined {
+                my $c = +@commits;
+                my $s = $c == 1 ?? '' !! 's';
+                $message.reply: "starting to benchmark the $c given commit$s";
+            }
             if $config ~~ /:i compare / {
                 %times{$short-commit} = self.benchmark-code($full-commit, $code.split('|||'));
             } else {
