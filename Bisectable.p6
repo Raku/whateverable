@@ -45,6 +45,7 @@ method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-out
         my $revision-type = self.test-commit($code-file, |%_);
         ($output, $status) = self.get-output(‘git’, ‘bisect’, $revision-type.lc);
         last if $output ~~ /^^ \S+ ‘ is the first new commit’ /; # TODO just return this
+        last if $status != 0;
         LAST take $output;
     }
     return @bisect-log.join(“\n”), $status
