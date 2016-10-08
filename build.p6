@@ -23,6 +23,7 @@ use File::Directory::Tree;
 
 constant PARALLEL-COUNT    = 7;
 constant COMMIT-RANGE      = ‘2015.10^..HEAD’;
+constant TAGS-SINCE        = ‘2014-01-01’;
 
 constant WORKING-DIRECTORY = ‘.’; # TODO not supported yet
 
@@ -60,7 +61,7 @@ if RAKUDO-CURRENT.IO !~~ :d  {
 my $channel = Channel.new;
 
 my @git-latest = ‘git’, ‘--git-dir’, “{RAKUDO-LATEST}/.git”, ‘--work-tree’, RAKUDO-LATEST;
-my @args-tags   = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’;
+my @args-tags   = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’, ‘--since’, TAGS-SINCE;
 my @args-latest = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, COMMIT-RANGE;
 
 $channel.send: $_ for run(:out, |@args-tags  ).out.split(0.chr, :skip-empty);
