@@ -21,7 +21,7 @@
 use File::Temp;
 use File::Directory::Tree;
 
-constant PARALLEL-COUNT    = 7;
+constant PARALLEL-COUNT    = 1;
 constant COMMIT-RANGE      = ‘2015.10^..HEAD’;
 constant TAGS-SINCE        = ‘2014-01-01’;
 
