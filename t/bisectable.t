@@ -74,7 +74,7 @@ $t.test(‘bisect by exit signal’,
         ‘bisect: old=2015.10 new=2015.12 Buf.new(0xFE).decode("utf8-c8") # RT 126756’,
         “{$t.our-nick}, Bisecting by exit signal (old=2015.10 new=2015.12). Old exit signal: 0 (None)”,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
-        “{$t.our-nick}, (2015-11-13) https://github.com/rakudo/rakudo/commit/3bbc922269799c170c6eb0ee00f5f5189766876c”);
+        “{$t.our-nick}, (2015-11-09) https://github.com/rakudo/rakudo/commit/3fddcb57f66a44d1a8adb7ecee1a3b403ab9f5d8”);
 
 $t.test(‘inverted exit signal’,
         ‘bisect: Buf.new(0xFE).decode("utf8-c8") # RT 126756’,
