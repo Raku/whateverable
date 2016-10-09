@@ -100,9 +100,14 @@ sub process-commit($commit) {
         chdir $temp-folder;
         say “»»»»» $commit: configure”;
         my $configure-log-fh = open :w, “$log-path/configure.log”;
-        run(:out($configure-log-fh), :err(Nil), ‘perl’, ‘--’, ‘Configure.pl’,
-            ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’, “--prefix=$build-path”);
+        my $config-ok = run(:out($configure-log-fh), :err(Nil), ‘perl’, ‘--’, ‘Configure.pl’,
+                            ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’, “--prefix=$build-path”);
         $configure-log-fh.close;
+        if not $config-ok {
+            say “»»»»» Cannot build $commit”;
+            rmtree $temp-folder;
+            return;
+        }
     }
 
     # ⚡ make
