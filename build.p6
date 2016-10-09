@@ -35,8 +35,6 @@ constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/rakudo-moar”.IO.abs
 constant BUILDS-LOCATION   = ‘/tmp/whateverable/rakudo-moar’;
 constant BUILD-LOCK        = ‘/tmp/whateverable/build-lock’;
 
-constant LEGACY-BUILDS-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
-
 mkdir BUILDS-LOCATION;
 mkdir ARCHIVES-LOCATION;
 
@@ -122,7 +120,4 @@ sub process-commit($commit) {
     say “»»»»» $commit: compressing”;
     my $proc = run(:out, :bin, ‘tar’, ‘cf’, ‘-’, ‘--absolute-names’, ‘--remove-files’, ‘--’, $build-path);
     run(:in($proc.out), :bin, ‘zstd’, ‘-c’, ‘-19’, ‘-q’, ‘-o’, $archive-path);
-
-    # delete old builds. TODO remove next line after transition
-    rmtree “{LEGACY-BUILDS-LOCATION}/$commit”
 }
