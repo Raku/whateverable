@@ -39,7 +39,7 @@ mkdir BUILDS-LOCATION;
 mkdir ARCHIVES-LOCATION;
 
 # TODO IO::Handle.lock ? run ‘flock’? P5 modules?
-exit 0 unless run ‘mkdir’, ‘--’, BUILD-LOCK; # only one instance running
+exit 0 unless run ‘mkdir’, :err(Nil), ‘--’, BUILD-LOCK; # only one instance running
 my $locked = True;
 END BUILD-LOCK.IO.rmdir if $locked;
 
