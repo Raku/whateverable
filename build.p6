@@ -35,6 +35,8 @@ constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/rakudo-moar”.IO.abs
 constant BUILDS-LOCATION   = ‘/tmp/whateverable/rakudo-moar’;
 constant BUILD-LOCK        = ‘/tmp/whateverable/build-lock’;
 
+constant GIT-REFERENCE     = WORKING-DIRECTORY.IO.absolute;
+
 mkdir BUILDS-LOCATION;
 mkdir ARCHIVES-LOCATION;
 
@@ -101,7 +103,8 @@ sub process-commit($commit) {
         say “»»»»» $commit: configure”;
         my $configure-log-fh = open :w, “$log-path/configure.log”;
         my $config-ok = run(:out($configure-log-fh), :err(Nil), ‘perl’, ‘--’, ‘Configure.pl’,
-                            ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’, “--prefix=$build-path”);
+                            ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’, “--prefix=$build-path”,
+                            “--git-reference={GIT-REFERENCE}”);
         $configure-log-fh.close;
         if not $config-ok {
             say “»»»»» Cannot build $commit”;
