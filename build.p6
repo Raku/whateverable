@@ -77,7 +77,7 @@ await (for ^PARALLEL-COUNT { # TODO rewrite when .race starts working in rakudo
 run ‘git’, ‘--git-dir’, “{RAKUDO-CURRENT}/.git”, ‘--work-tree’, RAKUDO-CURRENT, ‘pull’, RAKUDO-LATEST;
 
 sub process-commit($commit) {
-    return if “{ARCHIVES-LOCATION}/$commit.zstd”.IO ~~ :e; # already exists
+    return if “{ARCHIVES-LOCATION}/$commit.zst”.IO ~~ :e; # already exists
 
     my ($temp-folder, $fh-unlink-on-destroy) = tempdir :unlink;
     my $build-path   = “{BUILDS-LOCATION}/$commit”.IO.absolute;
