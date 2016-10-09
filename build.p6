@@ -120,4 +120,6 @@ sub process-commit($commit) {
     say “»»»»» $commit: compressing”;
     my $proc = run(:out, :bin, ‘tar’, ‘cf’, ‘-’, ‘--absolute-names’, ‘--remove-files’, ‘--’, $build-path);
     run(:in($proc.out), :bin, ‘zstd’, ‘-c’, ‘-19’, ‘-q’, ‘-o’, $archive-path);
+
+    rmtree $temp-folder;
 }
