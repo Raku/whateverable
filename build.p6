@@ -113,13 +113,16 @@ sub process-commit($commit) {
     # ⚡ make
     say “»»»»» $commit: make”;
     my $make-log-fh = open :w, “$log-path/make.log”;
-    run(:out($make-log-fh), :err(Nil), ‘make’, ‘-C’, $temp-folder);
+    my $make-ok = run(:out($make-log-fh), :err(Nil), ‘make’, ‘-C’, $temp-folder);
     $make-log-fh.close;
-    # ⚡ make install
-    say “»»»»» $commit: make install”;
-    my $install-log-fh = open :w, “$log-path/make-install.log”;
-    run(:out($install-log-fh), :err(Nil), ‘make’, ‘-C’, $temp-folder, ‘install’);
-    $install-log-fh.close;
+
+    if $make-ok {
+        # ⚡ make install
+        say “»»»»» $commit: make install”;
+        my $install-log-fh = open :w, “$log-path/make-install.log”;
+        run(:out($install-log-fh), :err(Nil), ‘make’, ‘-C’, $temp-folder, ‘install’);
+        $install-log-fh.close;
+    }
 
     # ⚡ compress
     say “»»»»» $commit: compressing”;
