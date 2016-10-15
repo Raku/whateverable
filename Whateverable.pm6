@@ -36,7 +36,7 @@ constant LEGACY-BUILDS-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
 
 unit class Whateverable does IRC::Client::Plugin;
 
-constant MESSAGE-LIMIT is export = 280;
+constant MESSAGE-LIMIT is export = 260;
 
 has $!timeout = 10;
 has $!stdin = slurp ‘stdin’;
@@ -136,7 +136,7 @@ method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
     return @out
 }
 
-method to-full-commit($commit) {
+method to-full-commit($commit, :$short = False) {
     my $old-dir = $*CWD;
     chdir RAKUDO;
     LEAVE chdir $old-dir;
@@ -144,7 +144,8 @@ method to-full-commit($commit) {
     return if run(‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode != 0; # make sure that $commit is valid
 
     my ($result, $exit-status, $exit-signal, $time)
-         = self.get-output(‘git’, ‘rev-list’, ‘-1’, $commit); # use rev-list to handle tags
+         = self.get-output( |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
+                              ($short ?? ‘--abbrev-commit’ !! Empty), $commit) );
 
     return if $exit-status != 0;
     return $result;
