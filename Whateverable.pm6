@@ -187,7 +187,7 @@ method process-code($code is copy, $message) {
     return (1, $code)
 }
 
-multi method filter($response where (.chars > MESSAGE-LIMIT or .?additional-files)) {
+multi method filter($response where (.encode.elems > MESSAGE-LIMIT or .?additional-files)) {
     if $response ~~ ResponseStr {
         self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.?additional-files},
                     description => $response.message.server.current-nick, :public);
