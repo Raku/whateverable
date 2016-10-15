@@ -172,9 +172,5 @@ $t.test(‘last working query’, # keep it last in this file
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-03-01) https://github.com/rakudo/rakudo/commit/1b6c901c10a0f9f65ac2d2cb8e7a362915fadc61”);
 
-END {
-    $t.end;
-    sleep 1;
-}
-
 done-testing;
+END $t.end;

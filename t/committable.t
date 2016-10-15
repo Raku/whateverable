@@ -171,9 +171,5 @@ $t.test(‘last basic query, just in case’, # keep it last in this file
         “{$t.bot-nick}: HEAD say ‘hello’”,
         “{$t.our-nick}, ¦«HEAD»: hello”);
 
-END {
-    $t.end;
-    sleep 1;
-}
-
 done-testing;
+END $t.end;

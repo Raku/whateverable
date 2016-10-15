@@ -62,6 +62,7 @@ class Testable {
     }
 
     method end {
+        sleep 1;
         $!bot-proc.kill;
         $!irc-client.quit;
     }
