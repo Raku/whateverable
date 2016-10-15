@@ -36,6 +36,8 @@ constant LEGACY-BUILDS-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
 
 unit class Whateverable does IRC::Client::Plugin;
 
+constant MESSAGE-LIMIT is export = 280;
+
 has $!timeout = 10;
 has $!stdin = slurp ‘stdin’;
 has $.releases = <2015.10 2015.11 2015.12 2016.02 2016.03 2016.04 2016.05 2016.06 2016.07.1 2016.08.1 HEAD>;
@@ -185,7 +187,7 @@ method process-code($code is copy, $message) {
     return (1, $code)
 }
 
-multi method filter($response where (.chars > 300 or .?additional-files)) {
+multi method filter($response where (.chars > MESSAGE-LIMIT or .?additional-files)) {
     if $response ~~ ResponseStr {
         self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.?additional-files},
                     description => $response.message.server.current-nick, :public);
