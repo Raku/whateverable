@@ -23,7 +23,6 @@ use IRC::Client;
 
 unit class Committable is Whateverable;
 
-constant LIMIT      = 1000;
 constant TOTAL-TIME = 60*3;
 
 method help($message) {
@@ -39,29 +38,9 @@ multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?�
 
 method process($message, $config, $code is copy) {
     my $start-time = now;
-    my @commits;
     my $old-dir = $*CWD;
-    if $config ~~ / ‘,’ / {
-        @commits = $config.split: ‘,’;
-    } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
-        chdir RAKUDO; # goes back in LEAVE
-        if run(‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0 {
-            return “Bad start, cannot find a commit for “$<start>””;
-        }
-        if run(‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0 {
-            return “Bad end, cannot find a commit for “$<end>””;
-        }
-        my ($result, $exit-status, $exit-signal, $time) =
-          self.get-output(‘git’, ‘rev-list’, “$<start>^..$<end>”); # TODO unfiltered input
-        return ‘Couldn't find anything in the range’ if $exit-status != 0;
-        @commits = $result.split: “\n”;
-        my $num-commits = @commits.elems;
-        return “Too many commits ($num-commits) in range, you're only allowed {LIMIT}” if $num-commits > LIMIT;
-    } elsif $config ~~ /:i releases / {
-        @commits = @.releases;
-    } else {
-        @commits = $config;
-    }
+    my ($commits-status, @commits) = self.get-commits($config);
+    return $commits-status unless @commits;
 
     my ($succeeded, $code-response) = self.process-code($code, $message);
     return $code-response unless $succeeded;

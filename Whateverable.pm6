@@ -37,10 +37,11 @@ constant LEGACY-BUILDS-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
 unit class Whateverable does IRC::Client::Plugin;
 
 constant MESSAGE-LIMIT is export = 260;
+constant COMMITS-LIMIT = 1000;
 
 has $!timeout = 10;
 has $!stdin = slurp ‘stdin’;
-has $.releases = <2015.10 2015.11 2015.12 2016.02 2016.03 2016.04 2016.05 2016.06 2016.07.1 2016.08.1 HEAD>;
+has %!bad-releases = '2016.01' => True, '2016.01.1' => True;
 
 class ResponseStr is Str is export {
     # I know it looks crazy, but we will subclass a Str and hope
@@ -134,6 +135,57 @@ method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
     }
     rmtree “{BUILDS-LOCATION}/$full-commit-hash”;
     return @out
+}
+
+method get-commits($config) {
+    my @commits;
+
+    if $config.contains(‘,’) {
+        @commits = $config.split: ‘,’;
+    } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
+        chdir RAKUDO; # goes back in LEAVE
+        if run(‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0 {
+            return “Bad start, cannot find a commit for “$<start>””;
+        }
+        if run(‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0 {
+            return “Bad end, cannot find a commit for “$<end>””;
+        }
+        my ($result, $exit-status, $exit-signal, $time) =
+          self.get-output(‘git’, ‘rev-list’, “$<start>^..$<end>”); # TODO unfiltered input
+        return ‘Couldn't find anything in the range’ if $exit-status != 0;
+        @commits = $result.lines;
+        my $num-commits = @commits.elems;
+        return “Too many commits ($num-commits) in range, you're only allowed {COMMITS-LIMIT}” if $num-commits > COMMITS-LIMIT;
+    } elsif $config ~~ /:i releases | v? 6 \.? c / {
+        @commits = self.get-tags('2015-12-25');
+    } elsif $config ~~ /:i all / {
+        @commits = self.get-tags('2014-01-01');
+    } elsif $config ~~ /:i compare \s $<commit>=\S+ / {
+        @commits = $<commit>;
+    } else {
+        @commits = $config;
+    }
+
+    return Nil, |@commits;
+}
+
+method get-tags($date) {
+    my $old-dir = $*CWD;
+    chdir RAKUDO;
+    LEAVE chdir $old-dir;
+
+    my @tags = <HEAD>;
+    my %seen;
+    for self.get-output('git', 'log', '--pretty="%d"', '--tags', '--no-walk', "--since=$date").lines -> $tag {
+        if $tag ~~ /:i "tag:" \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) / and
+           not %!bad-releases{$0}:exists and
+           not %seen{$0[0]}++
+        {
+             @tags.push($0)
+        }
+    }
+
+    return @tags.reverse;
 }
 
 method to-full-commit($commit, :$short = False) {

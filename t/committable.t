@@ -122,7 +122,20 @@ $t.test(‘stdin char count’,
 
 $t.test(‘“releases” query’,
         ‘commit: releases say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦«2015.10,2015.11»: Perl 6 (6.b)␤¦«2015.12,2016.02,2016.03,2016.04,2016.05,2016.06,2016.07.1,2016.08.1,’ <-[‘»’]>* ‘HEAD»: ’ .* $/);
+        /^ <{$t.our-nick}> ‘, ¦«2015.12,2016.02,2016.03,2016.04,2016.05,2016.06,2016.07.1,2016.08.1,2016.09,’ <-[‘»’]>* [‘HEAD»: Perl 6 (6.c)’ | ‘»: Perl 6 (6.c)␤¦«’ <-[‘»’]>* ‘HEAD»: Perl 6 (6.d)’] $/);
+
+$t.test(‘“v6c” query’,
+        ‘commit: v6c say $*PERL’,
+        /^ <{$t.our-nick}> ‘, ¦«2015.12,2016.02,2016.03,2016.04,2016.05,2016.06,2016.07.1,2016.08.1,2016.09,’ <-[‘»’]>* ‘HEAD»: Perl 6 (6.c)’ $/);
+
+$t.test(‘“6.c” query’,
+        ‘commit: 6.c say $*PERL’,
+        /^ <{$t.our-nick}> ‘, ¦«2015.12,2016.02,2016.03,2016.04,2016.05,2016.06,2016.07.1,2016.08.1,2016.09,’ <-[‘»’]>* ‘HEAD»: Perl 6 (6.c)’ $/);
+
+$t.test(‘“all” query’,
+        ‘commit: all say 'hi'’,
+        “{$t.our-nick}, https://whatever.able/fakeupload”,
+        :20timeout);
 
 $t.test(‘multiple commits separated by comma’,
         “commit: 2016.02,2016.03,9ccd848,HEAD say ‘hello’”,
@@ -137,8 +150,8 @@ $t.test(‘commit^^^ syntax’,
         “{$t.our-nick}, ¦«2016.03^^^,2016.03^^,2016.03^,2016.03»: 42”);
 
 $t.test(‘commit..commit range syntax’,
-        ‘commit: 2016.07~74..2016.07~72 say ‘a’ x 9999999999999999999’,
-        /^ <{$t.our-nick}> ‘, ¦«8ea2ae8,586f784»: ␤¦«87e8067,b31be7b,17e2679,2cc0f06,7242188,5d57154,6524d45,45c205a,d4b71b7,7799dbf,7e45d6b,abe034b,f772323,cbf1171,b11477f»: repeat count (-8446744073709551617) cannot be negative␤  in block <unit> at /tmp/’ \w+ ‘ line 1␤ «exit code = 1»’ $/);
+        ‘commit: 2016.07~73..2016.07~72 say ‘a’ x 9999999999999999999’,
+        /^ <{$t.our-nick}> ‘, ¦«8ea2ae8,586f784»: ␤¦«87e8067»: repeat count (-8446744073709551617) cannot be negative␤  in block <unit> at /tmp/’ \w+ ‘ line 1␤ «exit code = 1»’ $/);
 
 # Special characters
 
