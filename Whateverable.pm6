@@ -138,6 +138,8 @@ method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
 }
 
 method get-commits($config) {
+    my $old-dir = $*CWD;
+    LEAVE chdir $old-dir;
     my @commits;
 
     if $config.contains(‘,’) {
