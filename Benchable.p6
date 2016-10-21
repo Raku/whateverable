@@ -28,7 +28,7 @@ use Stats;
 
 unit class Benchable is Whateverable;
 
-constant TOTAL-TIME = 60*3;
+constant TOTAL-TIME = 60*4;
 constant ITERATIONS = 5;
 constant LIB-DIR    = '.'.IO.absolute;
 
@@ -134,10 +134,10 @@ method process($message, $config, $code is copy) {
         }
     }
 
-    # for these two config options, check if there are any large speed differences between two commits and if so, 
+    # for these config options, check if there are any large speed differences between two commits and if so, 
     # recursively find the commit in the middle until there are either no more large speed differences or no
     # more commits inbetween (i.e., the next commit is the exact one that caused the difference)
-    if $config ~~ /:i releases / or $config.contains(',') {
+    if $config ~~ /:i releases | v? 6 \.? c | all / or $config.contains(',') {
         $message.reply: 'benchmarked the given commits, now zooming in on performance differences';
         chdir RAKUDO;
 
