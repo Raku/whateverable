@@ -283,7 +283,7 @@ method selfrun($nick is copy, @alias?) {
 }
 
 sub fuzzy-nick($nick, $distance) is export {
-    / \w+ <?{ sift4(~$/, $nick) ~~ 1..$distance }> /
+    / \w+ <?{ sift4(~$/, $nick, 5) ~~ 1..$distance }> /
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6
