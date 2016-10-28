@@ -37,7 +37,7 @@ constant LEGACY-BUILDS-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
 unit class Whateverable does IRC::Client::Plugin;
 
 constant MESSAGE-LIMIT is export = 260;
-constant COMMITS-LIMIT = 1000;
+constant COMMITS-LIMIT = 500;
 
 has $!timeout = 10;
 has $!stdin = slurp ‘stdin’;
