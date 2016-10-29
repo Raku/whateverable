@@ -116,7 +116,8 @@ has %!temp-users;
 
 method irc-n353 ($e) {
     my $channel = $e.args[2];
-    my @nicks = $e.args[3].words;
+    # Try to filter out privileges ↓
+    my @nicks = $e.args[3].words.map: { m/ (<[\w \[ \] \ ^ { } | ` -]>+) $/[0].Str };
     %!temp-users{$channel} //= SetHash.new;
     %!temp-users{$channel}{@nicks} = True xx @nicks;
 }
