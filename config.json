@@ -1,4 +1,6 @@
 {
-    "login": "foo",
-    "access_token": "bar"
+    "login": "",
+    "access_token": "",
+    "irc-login": "",
+    "irc-password": ""
 }

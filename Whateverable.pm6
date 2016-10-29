@@ -273,6 +273,7 @@ method selfrun($nick is copy, @alias?) {
         :$nick
         :userreal($nick.tc)
         :username($nick.tc)
+        :password(?%*ENV<TESTABLE> ?? ‘’ !! from-json(slurp CONFIG)<irc-login irc-password>.join(‘:’))
         :@alias
         :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! ‘irc.freenode.net’)
         :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable>)
