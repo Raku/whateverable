@@ -75,6 +75,10 @@ multi method irc-to-me($msg where .text ~~ /:i^ help ‘?’? $/) {
     ResponseStr.new(value => self.help($msg), message => $msg)
 }
 
+multi method irc-notice-me($msg) {
+    ResponseStr.new(value => ‘Sorry, it is too private here’, message => $msg) # See GitHub issue #16
+}
+
 multi method irc-privmsg-me($msg) {
     ResponseStr.new(value => ‘Sorry, it is too private here’, message => $msg) # See GitHub issue #16
 }
