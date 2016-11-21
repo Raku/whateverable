@@ -101,10 +101,7 @@ method process($message, $query is copy) {
         if not self.build-exists($full-commit) {
             $output = ‘No build for the last commit. Oops!’;
         } else { # actually run the code
-            say ‘before running’;
             ($output, my $exit, my $signal, my $time) = self.run-snippet($full-commit, $filename);
-            sleep 1;
-            say ‘after running’;
             if $signal < 0 { # numbers less than zero indicate other weird failures
                 $output = “Something went wrong ($output)”;
                 return $output;
