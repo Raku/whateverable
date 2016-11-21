@@ -42,6 +42,7 @@ constant COMMITS-LIMIT = 500;
 has $!timeout = 10;
 has $!stdin = slurp ‘stdin’;
 has %!bad-releases = '2016.01' => True, '2016.01.1' => True;
+has $.always-upload is rw = False;
 
 class ResponseStr is Str is export {
     # I know it looks crazy, but we will subclass a Str and hope
@@ -246,7 +247,8 @@ method process-code($code is copy, $message) {
     return (1, $code)
 }
 
-multi method filter($response where (.encode.elems > MESSAGE-LIMIT or .?additional-files)) {
+multi method filter($response where ($!always-upload and $response.contains(“\n”)
+                                     or .encode.elems > MESSAGE-LIMIT or .?additional-files)) {
     if $response ~~ ResponseStr {
         self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.?additional-files},
                     description => $response.message.server.current-nick, :public);
