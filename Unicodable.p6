@@ -33,9 +33,7 @@ method help($message) {
     “Just type any unicode character or part of a character name. Alternatively, you can also provide a code snippet or a regex”
 };
 
-multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?’? $ | ^stdin /
-                                        # ↑ stupid, I know. See RT #123577
-                                      }) {
+multi method irc-to-me($message) {
     if $message.args[1] ~~ / ^ ‘.u’ \s / {
         my $update-promise = Promise.new;
         $!update-promise-channel.send: $update-promise;

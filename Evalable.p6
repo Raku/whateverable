@@ -29,9 +29,7 @@ method help($message) {
     “Like this: {$message.server.current-nick}: say ‘hello’; say ‘world’”
 };
 
-multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?’? $ | ^stdin /
-                                        # ↑ stupid, I know. See RT #123577
-                                      }) {
+multi method irc-to-me($message) {
     if $message.args[1] ~~ / ^ ‘m:’ / {
         my $update-promise = Promise.new;
         $!update-promise-channel.send: $update-promise;

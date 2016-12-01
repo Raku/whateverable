@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use IRC::Client;
+use IRC::Client::Message;
 
 use File::Directory::Tree;
 use File::Temp;
@@ -23,6 +24,8 @@ use JSON::Fast;
 use Pastebin::Gist;
 use HTTP::UserAgent;
 use Text::Diff::Sift4;
+
+constant Message = IRC::Client::Message;
 
 constant RAKUDO = ‘./rakudo’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
@@ -53,12 +56,12 @@ class ResponseStr is Str is export {
 }
 
 #↓ Matches only one space on purpose (for whitespace-only stdin)
-multi method irc-to-me($msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] [clear|delete|reset|unset] $/) {
+multi method irc-to-me(Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] [clear|delete|reset|unset] $/) {
     $!stdin = slurp ‘stdin’;
     ResponseStr.new(value => “STDIN is reset to the default value”, message => $msg)
 }
 
-multi method irc-to-me($msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdin>=.* $/) {
+multi method irc-to-me(Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdin>=.* $/) {
     my ($ok, $new-stdin) = self.process-code(~$<stdin>, $msg);
     if $ok {
         $!stdin = $new-stdin;
@@ -68,11 +71,11 @@ multi method irc-to-me($msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdi
     }
 }
 
-multi method irc-to-me($msg where .text ~~ /:i^ [source|url] ‘?’? $/) {
+multi method irc-to-me(Message $msg where .text ~~ /:i^ [source|url] ‘?’? $/) {
     ResponseStr.new(value => SOURCE, message => $msg)
 }
 
-multi method irc-to-me($msg where .text ~~ /:i^ help ‘?’? $/) {
+multi method irc-to-me(Message $msg where .text ~~ /:i^ help ‘?’? $/) {
     ResponseStr.new(value => self.help($msg), message => $msg)
 }
 

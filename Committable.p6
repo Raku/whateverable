@@ -29,9 +29,7 @@ method help($message) {
     “Like this: {$message.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 };
 
-multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?’? $ | ^stdin /
-                                        # ↑ stupid, I know. See RT #123577
-                                        and .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ / }) {
+multi method irc-to-me($message where { .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ / }) {
     my $value = self.process($message, ~$<config>, ~$<code>);
     return ResponseStr.new(:$value, :$message);
 }

@@ -84,9 +84,7 @@ multi method benchmark-code($full-commit-hash, @code) {
     return $timing;
 }
 
-multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?’? $ | ^stdin /
-                                        # ↑ stupid, I know. See RT #123577
-                                        and .text ~~ /^ \s* $<config>=([:i compare \s]? \S+) \s+ $<code>=.+ / }) {
+multi method irc-to-me($message where { .text ~~ /^ \s* $<config>=([:i compare \s]? \S+) \s+ $<code>=.+ / }) {
     my ($value, %additional-files) = self.process($message, ~$<config>, ~$<code>);
     return ResponseStr.new(:$value, :$message, :%additional-files);
 }

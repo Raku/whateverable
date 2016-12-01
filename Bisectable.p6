@@ -139,9 +139,7 @@ my regex bisect-cmd {
     $
 }
 
-multi method irc-to-me($message where { .text !~~ /:i ^ [help|source|url] ‘?’? $ | ^stdin /
-                                        # ↑ stupid, I know. See RT #123577
-                                        and .text ~~ &bisect-cmd}) {
+multi method irc-to-me($message where { .text ~~ &bisect-cmd }) {
     my $value = self.process($message, ~$<code>,
                              ~($<old> // ‘2015.12’), ~($<new> // ‘HEAD’));
     return ResponseStr.new(:$value, :$message);
