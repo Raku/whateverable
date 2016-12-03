@@ -112,6 +112,7 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
         $proc.kill; # TODO sends HUP, but should kill the process tree instead
         $out.send: “«timed out after $timeout seconds, output»: ”;
     }
+    await $promise; # wait until it is actually stopped
     $out.close;
     return $out.list.join.chomp, $promise.result.exitcode, $promise.result.signal, $s-end - $s-start
 }
