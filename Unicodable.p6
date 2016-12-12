@@ -84,8 +84,12 @@ method process($message, $query is copy) {
                 @words.push: .uc
             }
         }
-        for (0..0x1FFFF).grep({ (!@words or uniname($_).contains(@words.all))
-                                and (!@props or uniprop($_) eq @props.any) }) {
+        # ↓ do not touch these three lines
+        my $sieve = 0..0x1FFFF;
+        for @words -> $word { $sieve .= grep({uniname($_).contains($word)}) };
+        for @props -> $prop { $sieve .= grep({uniprop($_) eq $prop}) };
+
+        for @$sieve {
             my $char-desc = self.get-description($_);
             @all.push: $char-desc;
             $message.reply: $char-desc if @all < MESSAGE-LIMIT; # >;
