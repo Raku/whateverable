@@ -74,7 +74,15 @@ method process($message, $query is copy) {
 
     my @all;
 
-    if $query ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $/ {
+    if $query ~~ /^ \s* [ (.) <?{ $0[*-1].Str.NFD[0] == ‘u’.ord | ‘U’.ord   }>
+                          (.) <?{ $1[*-1].Str.uniname.match(/PLUS.*SIGN/) }>
+                          (<:HexDigit>+) ]+ %% \s+ $/ {
+        for $2 {
+            my $char-desc = self.get-description(parse-base(~$_, 16));
+            @all.push: $char-desc;
+            $message.reply: $char-desc if @all < MESSAGE-LIMIT; # >;
+        }
+    } elsif $query ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $/ {
         my @words;
         my @props;
         for $query.words {
