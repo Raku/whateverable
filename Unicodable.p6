@@ -74,7 +74,7 @@ method process($message, $query is copy) {
 
     my @all;
 
-    if $query ~~ /^ <+[a..z] +[A..Z] +space>+ $/ {
+    if $query ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $/ {
         my @words;
         my @props;
         for $query.words {
