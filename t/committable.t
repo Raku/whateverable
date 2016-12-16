@@ -154,7 +154,7 @@ $t.test(‘commit..commit range syntax’,
         /^ <{$t.our-nick}> ‘, ¦«8ea2ae8,586f784»: ␤¦«87e8067»: repeat count (-8446744073709551617) cannot be negative␤  in block <unit> at /tmp/’ \w+ ‘ line 1␤ «exit code = 1»’ $/);
 
 # Special characters
-
+#`{ What should we do with colors?
 $t.test(‘special characters’,
         ‘commit: HEAD say (.chr for ^128).join’,
         $t.our-nick ~ ‘, ¦«HEAD»: ␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡’);
@@ -162,6 +162,7 @@ $t.test(‘special characters’,
 $t.test(‘␤ works like an actual newline’,
         ‘commit: HEAD # This is a comment ␤ say ｢hello world!｣’,
         “{$t.our-nick}, ¦«HEAD»: hello world!”);
+}
 
 # URLs
 

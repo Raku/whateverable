@@ -131,11 +131,12 @@ $t.test(‘swapped old and new revisions’,
         “{$t.our-nick}, bisect init failure”);
 
 # Special characters
-
+#`{ What should we do with colors?
 $t.test(‘special characters’,
         ‘bisect: say (.chr for ^128).join’,
         /^ <{$t.our-nick}> ‘, On both starting points (old=2015.12 new=’ <.xdigit>**7 ‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: ” ~ ‘␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡’);
+}
 
 $t.test(‘␤ works like an actual newline’,
         ‘bisect: # newline test ␤ say ‘hello world’; exit 42’,

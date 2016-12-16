@@ -24,6 +24,8 @@ use JSON::Fast;
 use Pastebin::Gist;
 use HTTP::UserAgent;
 use Text::Diff::Sift4;
+use IRC::TextColor;
+use Terminal::ANSIColor;
 
 constant Message = IRC::Client::Message;
 
@@ -35,7 +37,7 @@ constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/rakudo-moar”.IO.abs
 constant BUILDS-LOCATION   = ‘/tmp/whateverable/rakudo-moar’;
 constant LEGACY-BUILDS-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
 
-%*ENV{‘RAKUDO_ERROR_COLOR’} = ‘’;
+# %*ENV{‘RAKUDO_ERROR_COLOR’} = ‘’;
 
 unit class Whateverable does IRC::Client::Plugin;
 
@@ -121,7 +123,7 @@ method build-exists($full-commit-hash) {
     “{ARCHIVES-LOCATION}/$full-commit-hash.zst”.IO ~~ :e
 }
 
-method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
+method run-smth($full-commit-hash, $code) {
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
     while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/$full-commit-hash”).exitcode != 0 {
@@ -135,15 +137,26 @@ method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
     }
     my $proc = run(:out, :bin, ‘zstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
     run(:in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’);
-    my @out;
-    if “{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
-        @out = ‘Commit exists, but a perl6 executable could not be built for it’, -1, -1;
-    } else {
-        @out = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”,
-                               ‘--setting=RESTRICTED’, ‘--’, $file, :$!stdin, :$timeout);
-    }
+
+    my $return = $code(“{BUILDS-LOCATION}/$full-commit-hash”);
+
     rmtree “{BUILDS-LOCATION}/$full-commit-hash”;
-    return @out
+
+    $return
+}
+
+method run-snippet($full-commit-hash, $file, :$timeout = $!timeout) {
+    self.run-smth: $full-commit-hash, {
+        my @out;
+        if “{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
+            @out = ‘Commit exists, but a perl6 executable could not be built for it’, -1, -1;
+        } else {
+            @out = self.get-output(“{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”,
+                                   ‘--setting=RESTRICTED’, ‘--’, $file, :$!stdin, :$timeout);
+        }
+        rmtree “{BUILDS-LOCATION}/$full-commit-hash”;
+        @out
+    }
 }
 
 method get-commits($config) {
@@ -254,17 +267,21 @@ method process-code($code is copy, $message) {
 multi method filter($response where ($!always-upload and $response.contains(“\n”)
                                      or .encode.elems > MESSAGE-LIMIT or .?additional-files)) {
     if $response ~~ ResponseStr {
-        self.upload({‘result’ => $response, ‘query’ => $response.message.text, $response.?additional-files},
+        self.upload({‘result’ => colorstrip($response),
+                     ‘query’ => $response.message.text, $response.?additional-files},
                     description => $response.message.server.current-nick, :public);
     } else {
-        self.upload({‘result’ => $response}, description => ‘Whateverable’, :public);
+        self.upload({‘result’ => colorstrip($response)},
+                     description => ‘Whateverable’, :public);
     }
 }
 
-multi method filter($text) {
-    $text.trans:
+multi method filter($text is copy) {
+    ansi-to-irc($text).trans:
+        “\n” => ‘␤’,
+        3.chr => 3.chr, 0xF.chr => 0xF.chr, # keep these for IRC colors
         |((^32)».chr Z=> (0x2400..*).map(*.chr)), # convert all unreadable ASCII crap
-        “\n” => ‘␤’, 127.chr => ‘␡’;
+        127.chr => ‘␡’, /<:Cc>/ => ‘␦’;
 }
 
 method upload(%files is copy, :$description = ‘’, Bool :$public = True) {

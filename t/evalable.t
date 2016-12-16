@@ -118,7 +118,7 @@ $t.test(‘stdin char count’,
         /^ <{$t.our-nick}> ‘, rakudo-moar ’ <.xdigit>**7 ‘: OUTPUT«500»’ $/);
 
 # Special characters
-
+#`{ What should we do with colors?
 $t.test(‘special characters’,
         ‘eval: say (.chr for ^128).join’,
         /^ <{$t.our-nick}> ‘, rakudo-moar ’ <.xdigit>**7 ‘: OUTPUT«␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡»’ $/);
@@ -126,6 +126,7 @@ $t.test(‘special characters’,
 $t.test(‘␤ works like an actual newline’,
         ‘eval: # This is a comment ␤ say ｢hello world!｣’,
         /^ <{$t.our-nick}> ‘, rakudo-moar ’ <.xdigit>**7 ‘: OUTPUT«hello world!»’ $/);
+}
 
 # URLs
 

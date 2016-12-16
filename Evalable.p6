@@ -20,6 +20,7 @@ use lib ‘.’;
 use Whateverable;
 
 use IRC::Client;
+use Terminal::ANSIColor;
 
 unit class Evalable is Whateverable;
 
@@ -81,7 +82,8 @@ method process($message, $code is copy) {
     my $reply-start = “rakudo-moar $short-commit: OUTPUT«$extra”;
     my $reply-end = ‘»’;
     if ($reply-start, $output, $reply-end).map(*.encode.elems).sum > MESSAGE-LIMIT {
-        my $link = self.upload({‘result’ => $output, ‘query’ => ($extra ?? “$extra\n” !! ‘’) ~ $message.text, },
+        my $link = self.upload({‘result’ => ($extra ?? “$extra\n” !! ‘’) ~ colorstrip($output),
+                                ‘query’  => $message.text, },
                                description => $message.server.current-nick, :public);
         $reply-end = ‘…’ ~ $reply-end;
         my $extra-size = ($reply-start, $reply-end).map(*.encode.elems).sum;

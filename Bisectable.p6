@@ -21,6 +21,7 @@ use Whateverable;
 
 use File::Temp;
 use File::Directory::Tree;
+use Terminal::ANSIColor;
 use IRC::Client;
 
 unit class Bisectable is Whateverable;
@@ -201,9 +202,9 @@ method process($message, $code is copy, $old, $new) {
     self.get-output(‘git’, ‘bisect’, ‘old’, $full-old);
     my ($init-output, $init-status) = self.get-output(‘git’, ‘bisect’, ‘new’, $full-new);
     if $init-status != 0 {
-        $message.reply: ‘bisect log: ’ ~ self.upload({ ‘query’       => $message.text,
-                                                       ‘result’      => $init-output, },
-                                                     description => $message.server.current-nick);
+        $message.reply: ‘bisect log: ’ ~ self.upload({ query  => $message.text,
+                                                       result => colorstrip($init-output), },
+                                                       description => $message.server.current-nick);
         return ‘bisect init failure’;
     }
     my ($bisect-output, $bisect-status);
