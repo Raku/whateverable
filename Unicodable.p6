@@ -61,6 +61,7 @@ method get-description($ord) {
         $char.encode;
         CATCH { default { $char = ‘unencodable character’ } }
     }
+    $char = ‘control character’ if uniprop($ord) eq ‘Cc’;
     sprintf("U+%04X %s [%s] (%s)", $ord, uniname($ord), uniprop($ord), $char)
 }
 
