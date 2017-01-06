@@ -35,25 +35,31 @@ has %stats;
 method TWEAK {
     mkdir STATS-LOCATION if STATS-LOCATION.IO !~~ :d;
     if “{STATS-LOCATION}/” {
-        %stats<core> = from-json slurp “{STATS-LOCATION}/core” if “{STATS-LOCATION}/core”.IO.e;
-        %stats<core> //= %();
+        %stats<core>    = from-json slurp “{STATS-LOCATION}/core” if “{STATS-LOCATION}/core”.IO.e;
+        %stats<core>    //= %();
+        %stats<install> = from-json slurp “{STATS-LOCATION}/install” if “{STATS-LOCATION}/install”.IO.e;
+        %stats<install> //= %();
     }
 }
 
 method help($message) {
-    “Available stats: core (CORE.setting size), …”
+    “Available stats: core (CORE.setting size), install (size of the whole installation), …”
 }
 
-multi method irc-to-me($message) {
+multi method irc-to-me($message where /:i [ core | install ] /) {
     my ($value, %additional-files) = self.process($message, $message.text);
     return ResponseStr.new(:$value, :$message, :%additional-files);
 }
 
-multi method process($message, $code where /:i core /) {
+multi method process($message, $query) {
+    $message.reply: ‘OK! Working on it…’;
+
+    my $type = $query ~~ /:i core / ?? ‘core’ !! ‘install’;
+    my $zero = $query ~~ / 0 / ?? 0 !! Nil;
+    my %data := %stats{$type};
+
     my @git = ‘git’, ‘--git-dir’, “{RAKUDO-CURRENT}/.git”, ‘--work-tree’, RAKUDO-CURRENT;
     my @command = |@git, ‘log’, ‘-z’, ‘--pretty=%H’, RANGE;
-
-    $message.reply: ‘OK! Working on it…’;
 
     my $let's-save = False;
     my @results;
@@ -63,33 +69,41 @@ multi method process($message, $code where /:i core /) {
         #my $short = self.to-full-commit($_, :short);
 
         my $size;
-        if %stats<core>{$full}:exists {
-            $size = %stats<core>{$full};
+        if %data{$full}:exists {
+            $size = %data{$full};
         } else {
             if self.build-exists($full) {
-                $size = self.run-smth: $full, {
-                    my $file = “$_/share/perl6/runtime/CORE.setting.moarvm”.IO;
-                    $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
+                if ($type eq ‘core’) { # core
+                    $size = self.run-smth: $full, {
+                        my $file = “$_/share/perl6/runtime/CORE.setting.moarvm”.IO;
+                        $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
+                    }
+                } else { # install
+                    $size = self.run-smth: $full, {
+                        # ↓ scary, but works
+                        Rakudo::Internals.DIR-RECURSE($_).map({ .IO.s }).sum ÷ 10⁶
+                    }
                 }
             }
-            %stats<core>{$full} = $size;
+            %data{$full} = $size;
             $let's-save = True;
         }
-        @results.push: ($full, $size) if $size;
+        @results.push: ($full, $size) if $size && ($type eq ‘core’ or $size > 10);
     }
 
-    spurt “{STATS-LOCATION}/core”, to-json %stats<core> if $let's-save;
+    spurt “{STATS-LOCATION}/$type”, to-json %data if $let's-save;
 
 
     my $pfilename = ‘plot.svg’;
-    my $title = ‘CORE.setting.moarvm file size (MB)’;
+    my $title = $type eq ‘core’ ?? ‘CORE.setting.moarvm file size (MB)’
+                                !! ‘Installation size (MB)’;
     my @values = @results.reverse.map({.[1]});
     my @labels = @results.reverse.map({.[0].substr(0,8)});
 
     my $plot = SVG::Plot.new(
         width      => 1000,
         height     => 800,
-        #min-y-axis => 0,
+        min-y-axis => $zero,
         :$title,
         values     => (@values,),
         :@labels,
@@ -102,7 +116,7 @@ multi method process($message, $code where /:i core /) {
     ($msg-response, %graph)
 }
 
-multi method process($msg) {
+multi method irc-to-me($msg) {
     ResponseStr.new(value => ‘Huh? ’ ~ self.help($msg), message => $msg)
 }
 
