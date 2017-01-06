@@ -29,6 +29,24 @@ method help($message) {
     “Like this: {$message.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 };
 
+multi method irc-to-me($message where { .args[1].starts-with(‘mc:’ | ‘ec:’ | ‘ech:’ | ‘mch:’ | ‘ma:’ | ‘what:’ | ‘6c:’)
+                                        and
+                                        .text ~~ /^ \s* $<code>=.+ / }) is default {
+    my $value;
+    if $message.args[1].starts-with(‘mc:’ | ‘ec:’) {
+        $value = self.process($message, ‘2015.12’,      ~$<code>);
+    } elsif $message.args[1].starts-with(‘mch:’ | ‘ech:’) {
+        $value = self.process($message, ‘2015.12,HEAD’, ~$<code>);
+    } elsif $message.args[1].starts-with(‘ma:’) {
+        $value = self.process($message, ‘all’,          ~$<code>);
+    } elsif $message.args[1].starts-with(‘what:’ | ‘6c:’) {
+        $value = self.process($message, ‘6c’,           ~$<code>);
+    } else {
+        return;
+    }
+    return ResponseStr.new(:$value, :$message);
+}
+
 multi method irc-to-me($message where { .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ / }) {
     my $value = self.process($message, ~$<config>, ~$<code>);
     return ResponseStr.new(:$value, :$message);
@@ -92,6 +110,6 @@ method process($message, $config, $code is copy) {
     }
 }
 
-Committable.new.selfrun(‘committable6’, [ /commit6?/, fuzzy-nick(‘committable6’, 3) ]);
+Committable.new.selfrun(‘committable6’, [ /commit6?/, fuzzy-nick(‘committable6’, 3), ‘what’, ‘c’, ‘ec’, ‘mc’, ‘mch’, ‘ech’, ‘ma’, ‘6c’ ]);
 
 # vim: expandtab shiftwidth=4 ft=perl6

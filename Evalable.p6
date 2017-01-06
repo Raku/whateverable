@@ -135,6 +135,6 @@ method irc-n366 ($e) {
     }
 }
 
-Evalable.new.selfrun(‘evalable6’, [‘m’, /eval6?/, fuzzy-nick(‘evalable6’, 2) ]);
+Evalable.new.selfrun(‘evalable6’, [‘m’, /eval6?/, fuzzy-nick(‘evalable6’, 2), ‘what’, ‘e’ ]);
 
 # vim: expandtab shiftwidth=4 ft=perl6
