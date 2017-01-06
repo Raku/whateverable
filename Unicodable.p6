@@ -27,6 +27,7 @@ constant MESSAGE-LIMIT = 4;
 
 submethod TWEAK() {
     self.always-upload = True;
+    self.timeout = 30;
 }
 
 method help($message) {
@@ -94,7 +95,7 @@ method process($message, $query is copy) {
             }
         }
         # ↓ do not touch these three lines
-        my $sieve = 0..0x1FFFF;
+        my $sieve = 0..0x10FFFF;
         for @words -> $word { $sieve .= grep({uniname($_).contains($word)}) };
         for @props -> $prop { $sieve .= grep({uniprop($_) eq $prop}) };
 
@@ -108,7 +109,7 @@ method process($message, $query is copy) {
     } elsif $query ~~ /^ ‘{’ / {
         my $full-commit = self.to-full-commit(‘HEAD’);
         my $output = ‘’;
-        $filename = self.write-code(“say join “\c[31]”, (0..0x1FFFF).grep:\n” ~ $query);
+        $filename = self.write-code(“say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query);
         if not self.build-exists($full-commit) {
             $output = ‘No build for the last commit. Oops!’;
         } else { # actually run the code
