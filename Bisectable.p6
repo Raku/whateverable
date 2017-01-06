@@ -28,6 +28,7 @@ unit class Bisectable is Whateverable;
 
 constant LINK          = ‘https://github.com/rakudo/rakudo/commit’;
 constant BUILD-LOCK    = ‘./lock’.IO.absolute;
+constant TRIM-CHARS = 2000;
 
 enum RevisionType <Old New Skip>;
 
@@ -72,7 +73,12 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output)
     }
 
     take ‘»»»»» Script output:’;
-    take $output;
+    if ($output.chars > TRIM-CHARS) {
+        take $output.substr(0, TRIM-CHARS ÷ 4) ~ ‘…’;
+        take “»»»»» (output was trimmed to {TRIM-CHARS ÷ 4} characters for this gist because it is too large)”;
+    } else {
+        take $output;
+    }
     take “»»»»» Script exit code: $exit-code”;
     take “»»»»» Script exit signal: {signal-to-text $exit-signal}” if $exit-signal;
 
