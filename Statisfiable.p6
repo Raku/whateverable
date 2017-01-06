@@ -27,7 +27,7 @@ use IRC::Client;
 unit class Statisfiable is Whateverable;
 
 constant RAKUDO-CURRENT = “{WORKING-DIRECTORY}/rakudo”.IO.absolute;
-constant RANGE          = ‘2014.01..HEAD’; #‘2014-01-01..HEAD’;
+constant RANGE          = ‘2014.01..HEAD’;
 constant STATS-LOCATION = ‘./stats’.IO.absolute;
 
 has %stats;
