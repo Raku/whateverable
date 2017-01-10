@@ -102,7 +102,7 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
     $proc.stderr.tap(-> $v { $out.send: $v });
 
     my $s-start = now;
-    my $promise = $proc.start;
+    my $promise = $proc.start(scheduler => BEGIN ThreadPoolScheduler.new);
     if defined $stdin {
         $proc.print: $stdin;
         $proc.close-stdin;
