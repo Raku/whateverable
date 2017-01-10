@@ -76,10 +76,14 @@ method process($message, $query is copy) {
 
     my @all;
 
-    if $query ~~ /^ \s* [ (.) <?{ $0[*-1].Str.NFD[0] == ‘u’.ord | ‘U’.ord   }>
-                          (.) <?{ $1[*-1].Str.uniname.match(/PLUS.*SIGN/) }>
-                          (<:HexDigit>+) ]+ %% \s+ $/ {
-        for $2 {
+    if $query ~~ /^ \s* [ [ (.) <?{ $0[*-1].Str.samemark(‘a’).fc eq ‘u’.fc  }>
+                            (.) <?{ $1[*-1].Str.uniname.match(/PLUS.*SIGN/) }>
+                            |
+                            [ <:Nd> & <:Numeric_Value(0)> ]
+                            (.) <?{ $0[*-1].Str.samemark(‘a’).fc eq ‘x’.fc  }>
+                          ]
+                          [$<digit>=<:HexDigit>+] ]+ %% \s+ $/ {
+        for $<digit> {
             my $char-desc = self.get-description(parse-base(~$_, 16));
             @all.push: $char-desc;
             $message.reply: $char-desc if @all < MESSAGE-LIMIT; # >;
