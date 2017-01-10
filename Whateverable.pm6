@@ -137,12 +137,12 @@ method get-similar($tag-or-hash, @other?) {
     my @commits = self.get-output(‘git’, ‘rev-list’, ‘--all’, ‘--since=2014-01-01’)[0]
                       .lines.map(*.substr: 0, $tag-or-hash.chars < 7 ?? 7 !! $tag-or-hash.chars);
 
-    # flat(@options, @tags, @commits).min: { sift4($_, $tag-or-hash, 5) }
+    # flat(@options, @tags, @commits).min: { sift4($_, $tag-or-hash, 5, 8) }
     my $ans = ‘HEAD’;
     my $ans_min = Inf;
 
     for flat(@options, @tags, @commits) {
-        my $dist = sift4($_, $tag-or-hash, 5, 5);
+        my $dist = sift4($_, $tag-or-hash, 5, 8);
         if $dist < $ans_min {
             $ans = $_;
             $ans_min = $dist;
