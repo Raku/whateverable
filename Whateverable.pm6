@@ -163,7 +163,7 @@ method run-smth($full-commit-hash, $code) {
         # we should be doing everything in separate isolated containers (soon),
         # so this problem will fade away.
     }
-    my $proc = run(:out, :bin, ‘zstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
+    my $proc = run(:out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
     run(:in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’);
 
     my $return = $code(“{BUILDS-LOCATION}/$full-commit-hash”);
