@@ -243,13 +243,14 @@ method to-full-commit($commit, :$short = False) {
     chdir RAKUDO;
     LEAVE chdir $old-dir;
 
-    return if run(‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode != 0; # make sure that $commit is valid
+    return if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode != 0; # make sure that $commit is valid
 
     my ($result, $exit-status, $exit-signal, $time)
          = self.get-output( |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
                               ($short ?? ‘--abbrev-commit’ !! Empty), $commit) );
 
     return if $exit-status != 0;
+    return unless $result;
     return $result;
 }
 
