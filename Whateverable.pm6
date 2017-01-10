@@ -208,11 +208,11 @@ method get-commits($config) {
         @commits = $result.lines;
         my $num-commits = @commits.elems;
         return “Too many commits ($num-commits) in range, you're only allowed {COMMITS-LIMIT}” if $num-commits > COMMITS-LIMIT;
-    } elsif $config ~~ /:i releases | « v? 6 \.? c » / {
-        @commits = self.get-tags('2015-12-25');
-    } elsif $config ~~ /:i all / {
+    } elsif $config ~~ /:i ^ [ releases | v? 6 \.? c ] $/ {
+        @commits = self.get-tags('2015-12-24');
+    } elsif $config ~~ /:i ^ all $/ {
         @commits = self.get-tags('2014-01-01');
-    } elsif $config ~~ /:i compare \s $<commit>=\S+ / {
+    } elsif $config ~~ /:i ^ compare \s $<commit>=\S+ $/ {
         @commits = $<commit>;
     } else {
         @commits = $config;
