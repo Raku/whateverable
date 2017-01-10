@@ -211,7 +211,7 @@ method process($message, $code is copy, $old, $new) {
         $message.reply: ‘bisect log: ’ ~ self.upload({ query  => $message.text,
                                                        result => colorstrip($init-output), },
                                                        description => $message.server.current-nick);
-        return ‘bisect init failure’;
+        return ‘bisect init failure. See log for more details’;
     }
     my ($bisect-output, $bisect-status);
     if $old-exit-signal != $new-exit-signal {
@@ -232,10 +232,14 @@ method process($message, $code is copy, $old, $new) {
                                                    ‘result’      => “$init-output\n$bisect-output”, },
                                                  description => $message.server.current-nick);
 
-    if $bisect-status != 0 {
-        return “‘bisect run’ failure”;
+    if $bisect-status == 2 {
+        my $good-revs = self.get-output(‘git’, ‘for-each-ref’, ‘--format=%(objectname)’, ‘refs/bisect/old-*’)[0];
+        my @possible-revs = self.get-output(‘git’, ‘rev-list’, ‘refs/bisect/new’, ‘--not’, |$good-revs.lines)[0].lines;
+        return “There are {+@possible-revs} candidates for the first “new” revision. See log for more details”;
+    } elsif $bisect-status != 0 {
+        return “‘bisect run’ failure. See log for more details”;
     } else {
-        return self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%H”, ‘bisect/new’).first;
+        return self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’, “--pretty=(%cd) {LINK}/%H”, ‘bisect/new’)[0];
     }
 
     LEAVE {
