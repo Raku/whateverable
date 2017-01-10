@@ -47,7 +47,7 @@ multi method irc-to-me($message) {
             my $value = self.process($message, $message.text);
             $message.reply: ResponseStr.new(:$value, :$message) if $value;
         }
-        return;
+        return
     } else {
         my $value = self.process($message, $message.text);
         return ResponseStr.new(:$value, :$message) if $value;
