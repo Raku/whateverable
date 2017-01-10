@@ -281,8 +281,8 @@ method process-url($url, $message) {
 }
 
 method process-code($code is copy, $message) {
-    if ($code ~~ m{^ ‘http’ s? ‘://’ } ) {
-        my ($succeeded, $response) = self.process-url($code, $message);
+    if ($code ~~ m{^ ( ‘http’ s? ‘://’ \S+ ) } ) {
+        my ($succeeded, $response) = self.process-url(~$0, $message);
         return (0, $response) unless $succeeded;
         $code = $response;
     } else {
