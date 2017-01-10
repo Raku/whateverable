@@ -52,9 +52,16 @@ multi method irc-to-me($message where { .text ~~ /^ \s* $<config>=\S+ \s+ $<code
     return ResponseStr.new(:$value, :$message);
 }
 
-method process($message, $config, $code is copy) {
+method process($message, $config is copy, $code is copy) {
     my $start-time = now;
     my $old-dir = $*CWD;
+
+    if $config ~~ /^ [say|sub] $/ {
+        $message.reply: “Seems like you forgot to specify a revision (will use “v6.c” unstead of “$config”)”;
+        $code = “$config $code”;
+        $config = ‘v6.c’;
+    }
+
     my ($commits-status, @commits) = self.get-commits($config);
     return $commits-status unless @commits;
 
@@ -72,6 +79,8 @@ method process($message, $config, $code is copy) {
         my $output = ‘’;
         if not defined $full-commit {
             $output = ‘Cannot find this revision’;
+            my @options = <HEAD v6.c all>;
+            $output ~= “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options}”?)”;
         } elsif not self.build-exists($full-commit) {
             $output = ‘No build for this commit’;
         } else { # actually run the code

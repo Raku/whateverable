@@ -123,6 +123,34 @@ method build-exists($full-commit-hash) {
     “{ARCHIVES-LOCATION}/$full-commit-hash.zst”.IO ~~ :e
 }
 
+method get-similar($tag-or-hash, @other?) {
+    my $old-dir = $*CWD;
+    LEAVE chdir $old-dir;
+    chdir RAKUDO;
+
+    my @options = @other;
+    my @tags = self.get-output(‘git’, ‘tag’, ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
+                               ‘--sort=-taggerdate’)[0].lines
+                               .map(*.split(‘/’))
+                               .grep({ self.build-exists(.[0] || .[1]) })
+                               .map(*[2]);
+    my @commits = self.get-output(‘git’, ‘rev-list’, ‘--all’, ‘--since=2014-01-01’)[0]
+                      .lines.map(*.substr: 0, $tag-or-hash.chars < 7 ?? 7 !! $tag-or-hash.chars);
+
+    # flat(@options, @tags, @commits).min: { sift4($_, $tag-or-hash, 5) }
+    my $ans = ‘HEAD’;
+    my $ans_min = Inf;
+
+    for flat(@options, @tags, @commits) {
+        my $dist = sift4($_, $tag-or-hash, 5, 5);
+        if $dist < $ans_min {
+            $ans = $_;
+            $ans_min = $dist;
+        }
+    }
+    $ans
+}
+
 method run-smth($full-commit-hash, $code) {
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
