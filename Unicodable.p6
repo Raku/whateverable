@@ -23,7 +23,7 @@ use IRC::Client;
 
 unit class Unicodable is Whateverable;
 
-constant MESSAGE-LIMIT = 4;
+constant MESSAGE-LIMIT = 3;
 
 submethod TWEAK() {
     self.always-upload = True;
