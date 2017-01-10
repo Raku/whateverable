@@ -73,7 +73,7 @@ multi method process($message, $query) {
             $size = %data{$full};
         } else {
             if self.build-exists($full) {
-                if ($type eq ‘core’) { # core
+                if $type eq ‘core’ { # core
                     $size = self.run-smth: $full, {
                         my $file = “$_/share/perl6/runtime/CORE.setting.moarvm”.IO;
                         $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
