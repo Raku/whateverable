@@ -228,13 +228,11 @@ method get-tags($date) {
 
     my @tags = <HEAD>;
     my %seen;
-    for self.get-output('git', 'log', '--pretty="%d"', '--tags', '--no-walk', "--since=$date").lines -> $tag {
-        if $tag ~~ /:i "tag:" \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) / and
-           not %!bad-releases{$0}:exists and
-           not %seen{$0[0]}++
-        {
-             @tags.push($0)
-        }
+    for self.get-output(‘git’, ‘log’, ‘--pretty="%d"’, ‘--tags’, ‘--no-walk’, “--since=$date”)[0].lines -> $tag {
+        next unless $tag ~~ /:i "tag:" \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) /; # TODO use tag -l
+        next if %!bad-releases{$0}:exists;
+        next if %seen{$0[0]}++;
+        @tags.push($0)
     }
 
     return @tags.reverse;
