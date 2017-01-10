@@ -44,7 +44,7 @@ unit class Whateverable does IRC::Client::Plugin;
 constant MESSAGE-LIMIT is export = 260;
 constant COMMITS-LIMIT = 500;
 
-has $!timeout = 10;
+has $.timeout is rw = 10;
 has $!stdin = slurp ‘stdin’;
 has %!bad-releases = '2016.01' => True, '2016.01.1' => True;
 has $.always-upload is rw = False;
