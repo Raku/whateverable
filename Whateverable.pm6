@@ -196,10 +196,10 @@ method get-commits($config) {
         @commits = $config.split: ‘,’;
     } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
         chdir RAKUDO; # goes back in LEAVE
-        if run(‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0 {
+        if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0 {
             return “Bad start, cannot find a commit for “$<start>””;
         }
-        if run(‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0 {
+        if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0 {
             return “Bad end, cannot find a commit for “$<end>””;
         }
         my ($result, $exit-status, $exit-signal, $time) =
