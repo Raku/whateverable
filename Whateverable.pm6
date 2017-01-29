@@ -326,7 +326,7 @@ method selfrun($nick is copy, @alias?) {
     .run with IRC::Client.new(
         :$nick
         :userreal($nick.tc)
-        :username($nick.tc)
+        :username($nick.substr(0, 3) ~ ‘-able’)
         :password(?%*ENV<TESTABLE> ?? ‘’ !! from-json(slurp CONFIG)<irc-login irc-password>.join(‘:’))
         :@alias
         :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! ‘irc.freenode.net’)
