@@ -147,6 +147,7 @@ my regex bisect-cmd {
 }
 
 multi method irc-to-me($message where { .text ~~ &bisect-cmd }) {
+    return if $message.args[1].starts-with(‘what,’);
     my $value = self.process($message, ~$<code>,
                              ~($<old> // ‘2015.12’), ~($<new> // ‘HEAD’));
     return ResponseStr.new(:$value, :$message);

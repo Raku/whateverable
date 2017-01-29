@@ -45,6 +45,7 @@ multi method irc-to-me($message) {
         }
         return;
     } else {
+        return if $message.args[1].starts-with(‘what,’);
         my $value = self.process($message, $message.text);
         return ResponseStr.new(:$value, :$message);
     }

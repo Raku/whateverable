@@ -29,7 +29,7 @@ method help($message) {
     “Like this: {$message.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 };
 
-multi method irc-to-me($message where { .args[1].starts-with(‘mc:’ | ‘ec:’ | ‘ech:’ | ‘mch:’ | ‘ma:’ | ‘what:’ | ‘6c:’)
+multi method irc-to-me($message where { .args[1].starts-with(‘mc’ | ‘ec’ | ‘ech’ | ‘mch’ | ‘ma’ | ‘what’ | ‘6c’)
                                         and
                                         .text ~~ /^ \s* $<code>=.+ / }) is default {
     my $value;
