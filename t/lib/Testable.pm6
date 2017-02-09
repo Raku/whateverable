@@ -1,6 +1,9 @@
 use IRC::Client;
 use Test;
 
+my regex sha    is export { <.xdigit>**7..10 }
+my regex me($t) is export { <{$t.our-nick}>  }
+
 class Testable {
     has $.our-nick;
     has $.bot-nick;
@@ -18,9 +21,15 @@ class Testable {
             :nick($!our-nick) :host<127.0.0.1> :channels<#whateverable>
             :plugins(
                 class {
-                    method irc-privmsg-channel($m) { $self.messages.send: $m.args[1] if $m.nick eq $self.bot-nick; Nil }
-                    method irc-join($m) { $ready.send: $m.nick if $++ == 1 }
-                } )
+                    method irc-privmsg-channel($m) {
+                        $self.messages.send: $m.args[1] if $m.nick eq $self.bot-nick;
+                        Nil
+                    }
+                    method irc-join($m) {
+                        $ready.send: $m.nick if $++ == 1
+                    }
+                }
+            )
         );
         start $!irc-client.run;
 
@@ -29,7 +38,7 @@ class Testable {
 
         start { sleep 20; $ready.send: False }
         $!bot-nick = $ready.receive;
-        ok ?$!bot-nick, ‘bot joined the channel’;
+        ok ?$!bot-nick, ‘bot joined the channel’
     }
 
     method test($description, $command, *@expected, :$timeout = 10, :$delay = 3) {
@@ -43,12 +52,12 @@ class Testable {
             if not defined $message {
                 if now - $start > $timeout {
                     diag “Failed to get expected result in $timeout seconds”;
-                    last;
+                    last
                 }
                 sleep 0.1;
-                redo;
+                redo
             }
-            @got.push: $message;
+            @got.push: $message
         }
         if @expected != @got or any(@got Z!~~ @expected) {
             diag “expected: {@expected.perl}”; # RT #129192
@@ -56,14 +65,14 @@ class Testable {
             my $frame = callframe(2);
             diag “This test ran at {$frame.file} line {$frame.line}”;
             flunk $description;
-            return;
+            return
         }
-        pass $description;
+        pass $description
     }
 
     method end {
         $!bot-proc.kill;
         $!irc-client.quit;
-        sleep 2;
+        sleep 2
     }
 }

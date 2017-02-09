@@ -2,8 +2,8 @@
 BEGIN %*ENV<PERL6_TEST_DIE_ON_FAIL> = 1;
 %*ENV<TESTABLE> = 1;
 
-use Test;
 use lib ‘t/lib’;
+use Test;
 use Testable;
 
 my $t = Testable.new(bot => ‘./Benchable.p6’);
@@ -12,11 +12,13 @@ my $t = Testable.new(bot => ‘./Benchable.p6’);
 
 $t.test(‘help message’,
         “{$t.bot-nick}, helP”,
-        “{$t.our-nick}, Like this: {$t.bot-nick}: f583f22,HEAD ” ~ q|my $a = "a" x 2**16;for ^1000 {my $b = $a.chop($_)}|);
+        “{$t.our-nick}, Like this: {$t.bot-nick}: f583f22,HEAD ” ~ ｢my $a = ‘a’ x 2¹⁶; for ^1000 {my $b = $a.chop($_)}｣
+            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Benchable’);
 
 $t.test(‘help message’,
         “{$t.bot-nick},   HElp?  ”,
-        “{$t.our-nick}, Like this: {$t.bot-nick}: f583f22,HEAD ” ~ q|my $a = "a" x 2**16;for ^1000 {my $b = $a.chop($_)}|);
+        “{$t.our-nick}, Like this: {$t.bot-nick}: f583f22,HEAD ” ~ ｢my $a = ‘a’ x 2¹⁶; for ^1000 {my $b = $a.chop($_)}｣
+            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Benchable’);
 
 $t.test(‘source link’,
         “{$t.bot-nick}: Source   ”,
@@ -33,6 +35,14 @@ $t.test(‘source link’,
 $t.test(‘source link’,
         “{$t.bot-nick}:  urL?   ”,
         “{$t.our-nick}, https://github.com/perl6/whateverable”);
+
+$t.test(‘source link’,
+        “{$t.bot-nick}: wIki”,
+        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Benchable”);
+
+$t.test(‘source link’,
+        “{$t.bot-nick}:   wiki? ”,
+        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Benchable”);
 
 # Basics
 

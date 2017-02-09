@@ -1,6 +1,7 @@
 #!/usr/bin/env perl6
-# Copyright © 2016
+# Copyright © 2016-2017
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
+# Copyright © 2016
 #     Daniel Green <ddgreen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,76 +18,77 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use lib ‘.’;
+use Misc;
 use Whateverable;
 
 use IRC::Client;
 
-unit class Unicodable is Whateverable;
+unit class Unicodable does Whateverable;
 
 constant MESSAGE-LIMIT = 3;
 
-submethod TWEAK() {
-    self.always-upload = True;
+method TWEAK {
     self.timeout = 30;
 }
 
-method help($message) {
-    “Just type any unicode character or part of a character name. Alternatively, you can also provide a code snippet or a regex”
-};
+method help($msg) {
+    ‘Just type any unicode character or part of a character name. Alternatively, you can also provide a code snippet.’
+}
 
-multi method irc-to-me($message) {
-    if $message.args[1] ~~ / ^ ‘.u’ \s / {
+multi method irc-to-me($msg) {
+    if $msg.args[1] ~~ / ^ ‘.u’ \s / {
         my $update-promise = Promise.new;
         $!update-promise-channel.send: $update-promise;
-        $message.irc.send-cmd: 'NAMES', $message.channel;
-        start { # if this crashes it's not my fault
-            await Promise.anyof($update-promise, Promise.in(4));
+        $msg.irc.send-cmd: ‘NAMES’, $msg.channel;
+        start {
+            await Promise.anyof: $update-promise, Promise.in(4);
             $!users-lock.protect: {
-                return if %!users{$message.channel}<yoleaux yoleaux2>;
+                return if %!users{$msg.channel}<yoleaux yoleaux2>
             }
-            my $value = self.process($message, $message.text);
-            $message.reply: ResponseStr.new(:$value, :$message) if $value;
+            my $value = self.process: $msg, $msg.text;
+            $msg.reply: $_ but Reply($msg) with $value
         }
         return
     } else {
-        my $value = self.process($message, $message.text);
-        return ResponseStr.new(:$value, :$message) if $value;
-        return
+        my $value = self.process: $msg, $msg.text;
+        return without $value;
+        return $value but Reply($msg)
     }
 }
 
 method get-description($ord) {
     my $char = $ord.chr;
-    $char = ‘◌’ ~ $ord.chr if $char.uniprop.starts-with(‘M’);
+    $char = ‘◌’ ~ $ord.chr if $char.uniprop.starts-with: ‘M’; # TODO ask samcv
     try {
         $char.encode;
         CATCH { default { $char = ‘unencodable character’ } }
     }
-    $char = ‘control character’ if uniprop($ord) eq ‘Cc’;
-    sprintf("U+%04X %s [%s] (%s)", $ord, uniname($ord), uniprop($ord), $char)
+    $char = ‘control character’ if $ord.uniprop eq ‘Cc’;
+    sprintf “U+%04X %s [%s] (%s)”, $ord, $ord.uniname, $ord.uniprop, $char
 }
 
-method process($message, $query is copy) {
+method process($msg, $query is copy) {
     my $old-dir = $*CWD;
 
-    my ($succeeded, $code-response) = self.process-code($query, $message);
+    my ($succeeded, $code-response) = self.process-code: $query, $msg;
     return $code-response unless $succeeded;
     $query = $code-response;
     my $filename;
 
     my @all;
 
-    if $query ~~ /^ \s* [ [ (.) <?{ $0[*-1].Str.samemark(‘a’).fc eq ‘u’.fc  }>
-                            (.) <?{ $1[*-1].Str.uniname.match(/PLUS.*SIGN/) }>
-                            |
-                            [ <:Nd> & <:Numeric_Value(0)> ]
-                            (.) <?{ $0[*-1].Str.samemark(‘a’).fc eq ‘x’.fc  }>
-                          ]
-                          [$<digit>=<:HexDigit>+] ]+ %% \s+ $/ {
+    if $query ~~ m:ignoremark/^ \s*
+                             [
+                                 [ | ‘u’ (.) <?{ $0[*-1].Str.uniname.match: /PLUS.*SIGN/ }>
+                                   | [ <:Nd> & <:Numeric_Value(0)> ] ‘x’ # TODO is it fixed now?
+                                 ]
+                                 $<digit>=<:HexDigit>+
+                             ]+ %% \s+
+                             $/ {
         for $<digit> {
-            my $char-desc = self.get-description(parse-base(~$_, 16));
+            my $char-desc = self.get-description: parse-base ~$_, 16;
             @all.push: $char-desc;
-            $message.reply: $char-desc if @all < MESSAGE-LIMIT; # >;
+            $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
         }
     } elsif $query ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $/ {
         my @words;
@@ -104,57 +106,66 @@ method process($message, $query is copy) {
         for @props -> $prop { $sieve .= grep({uniprop($_) eq $prop}) };
 
         for @$sieve {
-            my $char-desc = self.get-description($_);
+            my $char-desc = self.get-description: $_;
             @all.push: $char-desc;
-            $message.reply: $char-desc if @all < MESSAGE-LIMIT; # >;
+            $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
         }
     } elsif $query ~~ /^ ‘/’ / {
-        return ‘Regexes are not supported yet, sorry! Try code blocks instead’;
+        return ‘Regexes are not supported yet, sorry! Try code blocks instead’
     } elsif $query ~~ /^ ‘{’ / {
-        my $full-commit = self.to-full-commit(‘HEAD’);
+        my $full-commit = self.to-full-commit: ‘HEAD’;
         my $output = ‘’;
-        $filename = self.write-code(“say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query);
-        if not self.build-exists($full-commit) {
+        $filename = self.write-code: “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
+        if not self.build-exists: $full-commit {
             $output = ‘No build for the last commit. Oops!’;
+            self.beg-for-help: $msg
         } else { # actually run the code
-            ($output, my $exit, my $signal, my $time) = self.run-snippet($full-commit, $filename);
-            if $signal < 0 { # numbers less than zero indicate other weird failures
+            my $result = self.run-snippet: $full-commit, $filename;
+            $output = $result<output>;
+            if $result<signal> < 0 { # numbers less than zero indicate other weird failures
                 $output = “Something went wrong ($output)”;
-                return $output;
+                return $output
             } else {
-                $output ~= “ «exit code = $exit»” if $exit != 0;
-                $output ~= “ «exit signal = {Signal($signal)} ($signal)»” if $signal != 0;
-                return $output if $exit != 0 or $signal != 0;
+                $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> != 0;
+                $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> != 0;
+                return $output if $result<exit> != 0 or $result<signal> != 0
             }
         }
         if $output {
-            for $output.split(“\c[31]”) {
+            for $output.split: “\c[31]” {
                 try {
-                    my $char-desc = self.get-description(+$_);
+                    my $char-desc = self.get-description: +$_;
                     @all.push: $char-desc;
-                    $message.reply: $char-desc if @all < MESSAGE-LIMIT; # >;
+                    $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT;
                     CATCH {
                         .say;
-                        return ‘Oops, something went wrong!’;
+                        self.beg-for-help($msg);
+                        return ‘Oops, something went wrong!’
                     }
                 }
             }
         }
     } else {
         for $query.comb».ords.flat {
-            my $char-desc = self.get-description($_);
+            my $char-desc = self.get-description: $_;
             @all.push: $char-desc;
-            $message.reply: $char-desc if @all < MESSAGE-LIMIT; # >;
+            if @all [<] MESSAGE-LIMIT {
+                sleep 0.05 if @all > 1; # let's try to keep it in order
+                $msg.reply: $char-desc
+            }
         }
     }
     return @all[*-1] if @all == MESSAGE-LIMIT;
-    return @all.join: “\n” if @all > MESSAGE-LIMIT;
+    if @all > MESSAGE-LIMIT {
+        my $link-msg = { “{+@all} characters in total: $_” };
+        return (‘’ but ProperStr(@all.join: “\n”)) but PrettyLink($link-msg)
+    }
     return ‘Found nothing!’ if not @all;
-    return;
+    return
 
     LEAVE {
         chdir $old-dir;
-        unlink $filename if $filename.defined and $filename.chars > 0;
+        unlink $filename if defined $filename and $filename.chars > 0
     }
 }
 
@@ -166,27 +177,27 @@ has $!users-lock = Lock.new;
 has $!update-promise-channel = Channel.new;
 has %!temp-users;
 
-method irc-n353 ($e) {
+method irc-n353($e) {
     my $channel = $e.args[2];
     # Try to filter out privileges ↓
     my @nicks = $e.args[3].words.map: { m/ (<[\w \[ \] \ ^ { } | ` -]>+) $/[0].Str };
     %!temp-users{$channel} //= SetHash.new;
-    %!temp-users{$channel}{@nicks} = True xx @nicks;
+    %!temp-users{$channel}{@nicks} = True xx @nicks
 }
 
-method irc-n366 ($e) {
+method irc-n366($e) {
     my $channel = $e.args[1];
     $!users-lock.protect: {
         %!users{$channel} = %!temp-users{$channel};
-        %!temp-users{$channel}:delete;
+        %!temp-users{$channel}:delete
     };
     loop {
         my $promise = $!update-promise-channel.poll;
-        last if not defined $promise;
+        last without $promise;
         try { $promise.keep } # could be already kept
     }
 }
 
-Unicodable.new.selfrun(‘unicodable6’, [/u6?/, /uni6?/, fuzzy-nick(‘unicodable6’, 3) ]);
+Unicodable.new.selfrun: ‘unicodable6’, [/u6?/, /uni6?/, fuzzy-nick(‘unicodable6’, 3)];
 
 # vim: expandtab shiftwidth=4 ft=perl6

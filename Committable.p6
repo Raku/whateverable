@@ -1,6 +1,7 @@
 #!/usr/bin/env perl6
-# Copyright © 2016
+# Copyright © 2016-2017
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
+# Copyright © 2016
 #     Daniel Green <ddgreen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,82 +18,81 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use lib ‘.’;
+use Misc;
 use Whateverable;
 
 use IRC::Client;
 
-unit class Committable is Whateverable;
+unit class Committable does Whateverable;
 
-constant TOTAL-TIME = 60*3;
+constant TOTAL-TIME = 60 × 3;
+constant shortcuts = %(
+    mc  => ‘2015.12’,      ec  => ‘2015.12’,
+    mch => ‘2015.12,HEAD’, ech => ‘2015.12,HEAD’,
+    ma  => ‘all’, all => ‘all’,
+    what => ‘6c’, ‘6c’ => ‘6c’, ‘v6c’ => ‘6c’, ‘v6.c’ => ‘6c’, ‘6.c’ => ‘6c’,
+);
 
-method help($message) {
-    “Like this: {$message.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
-};
-
-multi method irc-to-me($message where { .args[1].starts-with(‘mc’ | ‘ec’ | ‘ech’ | ‘mch’ | ‘ma’ | ‘what’ | ‘6c’)
-                                        and
-                                        .text ~~ /^ \s* $<code>=.+ / }) is default {
-    my $value;
-    if $message.args[1].starts-with(‘mc:’ | ‘ec:’) {
-        $value = self.process($message, ‘2015.12’,      ~$<code>);
-    } elsif $message.args[1].starts-with(‘mch:’ | ‘ech:’) {
-        $value = self.process($message, ‘2015.12,HEAD’, ~$<code>);
-    } elsif $message.args[1].starts-with(‘ma:’) {
-        $value = self.process($message, ‘all’,          ~$<code>);
-    } elsif $message.args[1].starts-with(‘what:’ | ‘6c:’) {
-        $value = self.process($message, ‘6c’,           ~$<code>);
-    } else {
-        return;
-    }
-    return ResponseStr.new(:$value, :$message);
+method help($msg) {
+    “Like this: {$msg.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 }
 
-multi method irc-to-me($message where { .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ / }) {
-    my $value = self.process($message, ~$<config>, ~$<code>);
-    return ResponseStr.new(:$value, :$message);
+multi method irc-to-me($msg where { .args[1].starts-with(any shortcuts.keys X~ ‘:’)
+                                    and .text ~~ /^ \s* $<code>=.+ / }) is default {
+    my $value = self.process: $msg, shortcuts{$msg.args[1].split(‘:’, 2)[0]}, ~$<code>;
+    return without $value;
+    return $value but Reply($msg)
 }
 
-method process($message, $config is copy, $code is copy) {
-    my $start-time = now;
+multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ / }) {
+    my $value = self.process: $msg, ~$<config>, ~$<code>;
+    return without $value;
+    return $value but Reply($msg)
+}
+
+method process($msg, $config is copy, $code is copy) {
     my $old-dir = $*CWD;
+    my $start-time = now;
 
     if $config ~~ /^ [say|sub] $/ {
-        $message.reply: “Seems like you forgot to specify a revision (will use “v6.c” unstead of “$config”)”;
+        $msg.reply: “Seems like you forgot to specify a revision (will use “v6.c” unstead of “$config”)”;
         $code = “$config $code”;
-        $config = ‘v6.c’;
+        $config = ‘v6.c’
     }
 
-    my ($commits-status, @commits) = self.get-commits($config);
+    my ($commits-status, @commits) = self.get-commits: $config;
     return $commits-status unless @commits;
 
-    my ($succeeded, $code-response) = self.process-code($code, $message);
+    my ($succeeded, $code-response) = self.process-code: $code, $msg;
     return $code-response unless $succeeded;
     $code = $code-response;
 
-    my $filename = self.write-code($code);
+    my $filename = self.write-code: $code;
 
     my @result;
     my %lookup;
     for @commits -> $commit {
         # convert to real ids so we can look up the builds
-        my $full-commit = self.to-full-commit($commit);
+        my $full-commit = self.to-full-commit: $commit;
         my $output = ‘’;
         if not defined $full-commit {
             $output = ‘Cannot find this revision’;
-            my @options = <HEAD v6.c all>;
-            $output ~= “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options}”?)”;
-        } elsif not self.build-exists($full-commit) {
-            $output = ‘No build for this commit’;
+            my @options = <HEAD v6.c releases all>;
+            $output ~= “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options}”?)”
+        } elsif not self.build-exists: $full-commit {
+            $output = ‘No build for this commit’
         } else { # actually run the code
-            ($output, my $exit, my $signal, my $time) = self.run-snippet($full-commit, $filename);
-            if $signal < 0 { # numbers less than zero indicate other weird failures
-                $output = “Cannot test this commit ($output)”;
+            my $result = self.run-snippet: $full-commit, $filename;
+            $output = $result<output>;
+            if $result<signal> < 0 { # numbers less than zero indicate other weird failures
+                $output = “Cannot test this commit ($output)”
             } else {
-                $output ~= “ «exit code = $exit»” if $exit != 0;
-                $output ~= “ «exit signal = {Signal($signal)} ($signal)»” if $signal != 0;
+                $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> != 0;
+                $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> != 0
             }
         }
-        my $short-commit = self.get-short-commit($commit);
+        my $short-commit = self.get-short-commit: $commit;
+        $short-commit ~= “({self.get-short-commit: $full-commit})” if $commit eq ‘HEAD’;
 
         # Code below keeps results in order. Example state:
         # @result = [ { commits => [‘A’, ‘B’], output => ‘42‘ },
@@ -100,25 +100,30 @@ method process($message, $config is copy, $code is copy) {
         # %lookup = { ‘42’ => 0, ‘69’ => 1 }
         if not %lookup{$output}:exists {
             %lookup{$output} = +@result;
-            @result.push: { commits => [$short-commit], :$output };
+            @result.push: %( commits => [$short-commit], :$output )
         } else {
-            @result[%lookup{$output}]<commits>.push: $short-commit;
+            @result[%lookup{$output}]<commits>.push: $short-commit
         }
 
-        if (now - $start-time > TOTAL-TIME) {
-            return "«hit the total time limit of {TOTAL-TIME} seconds»";
+        if now - $start-time > TOTAL-TIME {
+            return “«hit the total time limit of {TOTAL-TIME} seconds»”
         }
     }
 
-    my $msg-response = ‘¦’ ~ @result.map({ “«{.<commits>.join(‘,’)}»: {.<output>}” }).join(“\n¦”);
-    return $msg-response;
+    my $short-str = @result == 1 && @result[0]<commits> > 3 && $config.chars < 20
+    ⁇ “¦«{$config} ({+@result[0]<commits>} commits)»: {@result[0]<output>}”
+    ‼ ‘¦’ ~ @result.map({ “«{.<commits>.join(‘,’)}»: {.<output>}” }).join: ‘ ¦’;
+
+    my $long-str  = ‘¦’ ~ @result.map({ “«{.<commits>.join(‘,’)}»: {.<output>}” }).join: “\n¦”;
+    return $short-str but ProperStr($long-str);
 
     LEAVE {
         chdir $old-dir;
-        unlink $filename if $filename.defined and $filename.chars > 0;
+        unlink $filename if defined $filename and $filename.chars > 0
     }
 }
 
-Committable.new.selfrun(‘committable6’, [ /commit6?/, fuzzy-nick(‘committable6’, 3), ‘what’, ‘c’, ‘ec’, ‘mc’, ‘mch’, ‘ech’, ‘ma’, ‘6c’ ]);
+Committable.new.selfrun: ‘committable6’, [ /commit6?/, fuzzy-nick(‘committable6’, 3),
+                                           ‘c’, |shortcuts.keys ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

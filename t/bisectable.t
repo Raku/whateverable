@@ -2,8 +2,8 @@
 BEGIN %*ENV<PERL6_TEST_DIE_ON_FAIL> = 1;
 %*ENV<TESTABLE> = 1;
 
-use Test;
 use lib ‘t/lib’;
+use Test;
 use Testable;
 
 my $t = Testable.new(bot => ‘./Bisectable.p6’);
@@ -12,11 +12,14 @@ my $t = Testable.new(bot => ‘./Bisectable.p6’);
 
 $t.test(‘help message’,
         “{$t.bot-nick}, helP”,
-        “{$t.our-nick}, Like this: bisectable6: old=2015.12 new=HEAD exit 1 if (^∞).grep(\{ last })[5] // 0 == 4 # RT128181”);
+        “{$t.our-nick}, Like this: bisectable6: old=2015.12 new=HEAD exit 1 if (^∞).grep(\{ last })[5] // 0 == 4”
+            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Bisectable’);
+
 
 $t.test(‘help message’,
         “{$t.bot-nick},   HElp?  ”,
-        “{$t.our-nick}, Like this: bisectable6: old=2015.12 new=HEAD exit 1 if (^∞).grep(\{ last })[5] // 0 == 4 # RT128181”);
+        “{$t.our-nick}, Like this: bisectable6: old=2015.12 new=HEAD exit 1 if (^∞).grep(\{ last })[5] // 0 == 4”
+            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Bisectable’);
 
 $t.test(‘source link’,
         “{$t.bot-nick}: Source   ”,
@@ -56,19 +59,33 @@ $t.test(‘“bisect” shortcut does not work’,
 $t.test(‘“bisect6” shortcut does not work’,
         ‘bisect6 url’);
 
+$t.test(‘source link’,
+        “{$t.bot-nick}: wIki”,
+        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Bisectable”);
+
+$t.test(‘source link’,
+        “{$t.bot-nick}:   wiki? ”,
+        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Bisectable”);
+
 # Basics
 
 $t.test(‘bisect by exit code’,
-        ‘bisect: exit 1 if (^∞).grep({ last })[5] // 0 == 4 # RT 128181’,
-        /^ <{$t.our-nick}> ‘, Bisecting by exit code (old=2015.12 new=’ <.xdigit>**7 ‘). Old exit code: 0’ $/,
+        ‘bisect: exit 1 unless $*VM.version.Str.starts-with(‘2015’)’,
+        /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
-        “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
+        “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
 
 $t.test(‘inverted exit code’,
-        ‘bisect: class A { has $.wut = [] }; my $a = A.new; $a.wut = [1,2,3]’,
-        /^ <{$t.our-nick}> ‘, Bisecting by exit code (old=2015.12 new=’ <.xdigit>**7 ‘). Old exit code: 1’ $/,
+        ‘bisect: exit 1 if     $*VM.version.Str.starts-with(‘2015’)’,
+        /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 1’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
-        “{$t.our-nick}, (2016-03-02) https://github.com/rakudo/rakudo/commit/fdd37a9e0bef16eb3e4bb24ddd59247e379b5038”);
+        “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
+
+$t.test(‘bisect by output’,
+        ‘bisect: say $*VM.version.Str.split(‘.’).first # same but without proper exit codes’,
+        /^ <me($t)>‘, Bisecting by output (old=2015.12 new=’<sha>‘) because on both starting points the exit code is 0’ $/,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
 
 $t.test(‘bisect by exit signal’,
         ‘bisect: old=2015.10 new=2015.12 Buf.new(0xFE).decode("utf8-c8") # RT 126756’,
@@ -78,19 +95,13 @@ $t.test(‘bisect by exit signal’,
 
 $t.test(‘inverted exit signal’,
         ‘bisect: Buf.new(0xFE).decode("utf8-c8") # RT 126756’,
-        /^ <{$t.our-nick}> ‘, Bisecting by exit signal (old=2015.12 new=’ <.xdigit>**7 ‘). Old exit signal: 11 (SIGSEGV)’ $/,
+        /^ <me($t)>‘, Bisecting by exit signal (old=2015.12 new=’<sha>‘). Old exit signal: 11 (SIGSEGV)’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-04-01) https://github.com/rakudo/rakudo/commit/a87fb43b6c85a496ef0358197625b5b417a0d372”);
 
-$t.test(‘bisect by output’,
-        ‘bisect: say (^∞).grep({ last })[5] # same but without proper exit codes’,
-        /^ <{$t.our-nick}> ‘, Bisecting by output (old=2015.12 new=’ <.xdigit>**7  ‘) because on both starting points the exit code is 0’ $/,
-        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
-        “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
-
 $t.test(‘nothing to bisect’,
         ‘bisect: say ‘hello world’; exit 42’,
-        /^ <{$t.our-nick}> ‘, On both starting points (old=2015.12 new=’ <.xdigit>**7 ‘) the exit code is 42 and the output is identical as well’ $/,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 42 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: hello world”);
 
 $t.test(‘nothing to bisect, segmentation fault everywhere’,
@@ -100,7 +111,7 @@ $t.test(‘nothing to bisect, segmentation fault everywhere’,
 
 $t.test(‘large output is uploaded’,
         ‘bisect: .say for ^1000; exit 5’,
-        /^ <{$t.our-nick}> ‘, On both starting points (old=2015.12 new=’ <.xdigit>**7 ‘) the exit code is 5 and the output is identical as well’ $/,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 5 and the output is identical as well’ $/,
         “{$t.our-nick}, https://whatever.able/fakeupload”);
 
 $t.test(‘exit code on old revision is 125’,
@@ -126,21 +137,21 @@ $t.test(‘custom starting points using “bad” and “good” terms’,
         “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
 
 $t.test(‘swapped old and new revisions’,
-        ‘bisect: old=2016.03 new 2016.02 say (^∞).grep({ last })[5]’,
+        ‘bisect: old 2016.03 new 2016.02 say (^∞).grep({ last })[5]’,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
-        “{$t.our-nick}, bisect init failure”);
+        “{$t.our-nick}, bisect init failure. See the log for more details”);
 
 # Special characters
 #`{ What should we do with colors?
 $t.test(‘special characters’,
         ‘bisect: say (.chr for ^128).join’,
-        /^ <{$t.our-nick}> ‘, On both starting points (old=2015.12 new=’ <.xdigit>**7 ‘) the exit code is 0 and the output is identical as well’ $/,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: ” ~ ‘␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡’);
 }
 
 $t.test(‘␤ works like an actual newline’,
         ‘bisect: # newline test ␤ say ‘hello world’; exit 42’,
-        /^ <{$t.our-nick}> ‘, On both starting points (old=2015.12 new=’ <.xdigit>**7 ‘) the exit code is 42 and the output is identical as well’ $/,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 42 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: hello world”);
 
 # URLs
@@ -148,7 +159,7 @@ $t.test(‘␤ works like an actual newline’,
 $t.test(‘fetching code from urls’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
-        /^ <{$t.our-nick}> ‘, On both starting points (old=2015.12 new=’ <.xdigit>**7 ‘) the exit code is 0 and the output is identical as well’ $/,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: url test”);
 
 $t.test(‘wrong url’,
@@ -169,7 +180,7 @@ $t.test(‘another working query’,
 
 $t.test(‘last working query’, # keep it last in this file
         ‘bisect: for ‘q b c d’.words -> $a, $b { }; CATCH { exit 0 }; exit 1’,
-        /^ <{$t.our-nick}> ‘, Bisecting by exit code (old=2015.12 new=’ <.xdigit>**7 ‘). Old exit code: 0’ $/,
+        /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-03-01) https://github.com/rakudo/rakudo/commit/1b6c901c10a0f9f65ac2d2cb8e7a362915fadc61”);
 
