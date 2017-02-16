@@ -72,7 +72,7 @@ multi method benchmark-code($full-commit-hash, @code) {
         # we should be doing everything in separate isolated containers (soon),
         # so this problem will fade away.
     }
-    my $proc = run(:out, :bin, ‘zstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
+    my $proc = run(:out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/$full-commit-hash.zst”);
     run(:in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’);
     my $timing;
     if “{BUILDS-LOCATION}/$full-commit-hash/bin/perl6”.IO !~~ :e {
