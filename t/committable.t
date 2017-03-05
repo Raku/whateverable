@@ -48,27 +48,27 @@ $t.test(‘source link’,
 
 $t.test(‘basic “nick:” query’,
         “{$t.bot-nick}: HEAD say ‘hello’”,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: hello’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
 $t.test(‘basic “nick,” query’,
         “{$t.bot-nick}, HEAD say ‘hello’”,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: hello’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
 $t.test(‘“commit:” shortcut’,
         ‘commit: HEAD say ‘hello’’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: hello’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
 $t.test(‘“commit,” shortcut’,
         ‘commit, HEAD say ‘hello’’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: hello’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
 $t.test(‘“commit6:” shortcut’,
         ‘commit6: HEAD say ‘hello’’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: hello’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
 $t.test(‘“commit6,” shortcut’,
         ‘commit6, HEAD say ‘hello’’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: hello’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
 $t.test(‘“commit” shortcut does not work’,
         ‘commit HEAD say ‘hello’’);
@@ -78,7 +78,7 @@ $t.test(‘“commit6” shortcut does not work’,
 
 $t.test(‘specific commit’,
         ‘commit: f583f22 say $*PERL.compiler.version’,
-        “{$t.our-nick}, ¦«f583f22»: v2016.06.183.gf.583.f.22”);
+        “{$t.our-nick}, ¦f583f22: «v2016.06.183.gf.583.f.22»”);
 
 $t.test(‘too long output is uploaded’,
         ‘commit: HEAD .say for ^1000’,
@@ -88,17 +88,17 @@ $t.test(‘too long output is uploaded’,
 
 $t.test(‘exit code’,
         ‘commit: 2015.12 say ‘foo’; exit 42’,
-        “{$t.our-nick}, ¦«2015.12»: foo «exit code = 42»”);
+        “{$t.our-nick}, ¦2015.12: «foo «exit code = 42»»”);
 
 $t.test(‘exit signal’,
         ‘commit: 2016.03 say ^1000 .grep: -> $n {([+] ^$n .grep: -> $m {$m and $n %% $m}) == $n }’,
-        “{$t.our-nick}, ¦«2016.03»:  «exit signal = SIGSEGV (11)»”);
+        “{$t.our-nick}, ¦2016.03: « «exit signal = SIGSEGV (11)»»”);
 
 # STDIN
 
 $t.test(‘stdin’,
         ‘commit: HEAD say lines[0]’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: ♥🦋 ꒛㎲₊⼦🂴⧿⌟ⓜ≹℻ 😦⦀🌵 🖰㌲⎢➸ 🐍💔 🗭𐅹⮟⿁ ⡍㍷⽐’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «♥🦋 ꒛㎲₊⼦🂴⧿⌟ⓜ≹℻ 😦⦀🌵 🖰㌲⎢➸ 🐍💔 🗭𐅹⮟⿁ ⡍㍷⽐»’ $/);
 
 $t.test(‘set custom stdin’,
         ‘commit: stdIN custom string␤another line’,
@@ -106,7 +106,7 @@ $t.test(‘set custom stdin’,
 
 $t.test(‘test custom stdin’,
         ‘committable6: HEAD dd lines’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: ("custom string", "another line").Seq’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «("custom string", "another line").Seq»’ $/);
 
 $t.test(‘reset stdin’,
         ‘commit: stdIN rESet’,
@@ -114,41 +114,41 @@ $t.test(‘reset stdin’,
 
 $t.test(‘test stdin after reset’,
         ‘commit: HEAD say lines[0]’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: ♥🦋 ꒛㎲₊⼦🂴⧿⌟ⓜ≹℻ 😦⦀🌵 🖰㌲⎢➸ 🐍💔 🗭𐅹⮟⿁ ⡍㍷⽐’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «♥🦋 ꒛㎲₊⼦🂴⧿⌟ⓜ≹℻ 😦⦀🌵 🖰㌲⎢➸ 🐍💔 🗭𐅹⮟⿁ ⡍㍷⽐»’ $/);
 
 $t.test(‘stdin line count’,
         ‘commit: HEAD say +lines’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: 10’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «10»’ $/);
 
 $t.test(‘stdin word count’,
         ‘commit: HEAD say +$*IN.words’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: 100’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «100»’ $/);
 
 $t.test(‘stdin char count’,
         ‘commit: HEAD say +slurp.chars’,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: 500’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «500»’ $/);
 
 # Ranges and multiple commits
 
 $t.test(‘“releases” query’,
         ‘commit: releases say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦«releases (’\d+‘ commits)»: Perl 6 (6.c)’ $/);
+        /^ <{$t.our-nick}> ‘, ¦releases (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
 
 $t.test(‘“v6c” query’,
         ‘commit: v6c say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦«v6c (’\d+‘ commits)»: Perl 6 (6.c)’ $/);
+        /^ <{$t.our-nick}> ‘, ¦v6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
 
 $t.test(‘“6.c” query’,
         ‘commit: 6.c say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦«6.c (’\d+‘ commits)»: Perl 6 (6.c)’ $/);
+        /^ <{$t.our-nick}> ‘, ¦6.c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
 
 $t.test(‘“6c” query’,
         ‘commit: 6c say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦«6c (’\d+‘ commits)»: Perl 6 (6.c)’ $/);
+        /^ <{$t.our-nick}> ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
 
 $t.test(‘“all” query (same output everywhere)’,
         ‘commit: all say 'hi'’, # ASCII quotes because they are supported everywhere
-        /^ <{$t.our-nick}> ‘, ¦«all (’\d+‘ commits)»: hi’ $/,
+        /^ <{$t.our-nick}> ‘, ¦all (’\d+‘ commits): «hi»’ $/,
         :20timeout);
 
 $t.test(‘“all” query (different output everywhere)’,
@@ -158,29 +158,29 @@ $t.test(‘“all” query (different output everywhere)’,
 
 $t.test(‘multiple commits separated by comma’,
         “commit: 2016.02,2016.03,9ccd848,HEAD say ‘hello’”,
-        /^ <me($t)>‘, ¦«2016.02,2016.03,9ccd848,HEAD(’<sha>‘)»: hello’ $/);
+        /^ <me($t)>‘, ¦2016.02,2016.03,9ccd848,HEAD(’<sha>‘): «hello»’ $/);
 
 $t.test(‘commit~num syntax’,
         ‘commit: 2016.04~100,2016.04 say $*PERL.compiler.version’,
-        “{$t.our-nick}, ¦«2016.04~100»: v2016.03.1.g.7.cc.37.b.3 ¦«2016.04»: v2016.04”);
+        “{$t.our-nick}, ¦2016.04~100: «v2016.03.1.g.7.cc.37.b.3» ¦2016.04: «v2016.04»”);
 
 $t.test(‘commit^^^ syntax’,
         ‘commit: 2016.03^^^,2016.03^^,2016.03^,2016.03 say 42’,
-        “{$t.our-nick}, ¦«2016.03^^^,2016.03^^,2016.03^,2016.03»: 42”);
+        “{$t.our-nick}, ¦2016.03^^^,2016.03^^,2016.03^,2016.03: «42»”);
 
 $t.test(‘commit..commit range syntax’,
         ‘commit: 2016.07~73..2016.07~72 say ‘a’ x 9999999999999999999’,
-        /^ <{$t.our-nick}> ‘, ¦«8ea2ae8,586f784»:  ¦«87e8067»: repeat count (-8446744073709551617) cannot be negative␤  in block <unit> at /tmp/’ \w+ ‘ line 1␤ «exit code = 1»’ $/);
+        /^ <{$t.our-nick}> ‘, ¦8ea2ae8,586f784: «» ¦87e8067: «repeat count (-8446744073709551617) cannot be negative␤  in block <unit> at /tmp/’ \w+ ‘ line 1␤ «exit code = 1»»’ $/);
 
 # Special characters
 #`{ What should we do with colors?
 $t.test(‘special characters’,
         ‘commit: HEAD say (.chr for ^128).join’,
-        $t.our-nick ~ ‘, ¦«HEAD(’<sha>‘)»: ␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡’);
+        $t.our-nick ~ ‘, ¦HEAD(’<sha>‘): «␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡»’);
 
 $t.test(‘␤ works like an actual newline’,
         ‘commit: HEAD # This is a comment ␤ say ｢hello world!｣’,
-        “{$t.our-nick}, ¦«HEAD(’<sha>‘)»: hello world!”);
+        “{$t.our-nick}, ¦HEAD(’<sha>‘): «hello world!»”);
 }
 
 # URLs
@@ -188,7 +188,7 @@ $t.test(‘␤ works like an actual newline’,
 $t.test(‘fetching code from urls’,
         ‘commit: HEAD https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: url test’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «url test»’ $/);
 
 $t.test(‘wrong url’,
         ‘commit: HEAD http://github.org/sntoheausnteoahuseoau’,
@@ -202,7 +202,7 @@ $t.test(‘wrong mime type’,
 
 $t.test(‘last basic query, just in case’, # keep it last in this file
         “{$t.bot-nick}: HEAD say ‘hello’”,
-        /^ <me($t)>‘, ¦«HEAD(’<sha>‘)»: hello’ $/);
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
 done-testing;
 END $t.end;

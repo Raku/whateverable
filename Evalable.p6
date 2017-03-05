@@ -84,7 +84,7 @@ method process($message, $code is copy) {
         }
     }
 
-    my $reply-start = “rakudo-moar $short-commit: OUTPUT«$extra”;
+    my $reply-start = “rakudo-moar $short-commit: OUTPUT: «$extra”;
     my $reply-end = ‘»’;
     if MESSAGE-LIMIT >= ($reply-start, $output, $reply-end).map(*.encode.elems).sum {
         return $reply-start ~ $output ~ $reply-end

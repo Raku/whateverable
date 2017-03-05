@@ -199,7 +199,7 @@ method process($msg, $code is copy, $old, $new) {
         } else {
             $msg.reply: “On both starting points (old=$short-old new=$short-new) the exit code is $old-result<exit-code> and the output is identical as well”
         }
-        return “Output on both points: $old-result<output>” # will be gisted automatically if required
+        return “Output on both points: «$old-result<output>»” # will be gisted automatically if required
     }
 
     my $dir = tempdir :!unlink;
