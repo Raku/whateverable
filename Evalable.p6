@@ -79,14 +79,14 @@ method process($message, $code is copy) {
         if $result<signal> < 0 { # numbers less than zero indicate other weird failures
             $output = “Cannot test $full-commit ($result<output>)”
         } else {
-            $extra ~= “(exit code $result<exit-code>) ”     if $result<exit-code> != 0;
-            $extra ~= “(signal {Signal($result<signal>)}) ” if $result<signal>    != 0
+            $extra ~= “(exit code $result<exit-code>) ”     if $result<exit-code> ≠ 0;
+            $extra ~= “(signal {Signal($result<signal>)}) ” if $result<signal>    ≠ 0
         }
     }
 
     my $reply-start = “rakudo-moar $short-commit: OUTPUT: «$extra”;
     my $reply-end = ‘»’;
-    if MESSAGE-LIMIT >= ($reply-start, $output, $reply-end).map(*.encode.elems).sum {
+    if MESSAGE-LIMIT ≥ ($reply-start, $output, $reply-end).map(*.encode.elems).sum {
         return $reply-start ~ $output ~ $reply-end
     }
     my $link = self.upload: {‘result’ => ($extra ⁇ “$extra\n” ‼ ‘’) ~ colorstrip($output),

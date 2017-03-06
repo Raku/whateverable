@@ -59,7 +59,7 @@ class Testable {
             }
             @got.push: $message
         }
-        if @expected != @got or any(@got Z!~~ @expected) {
+        if @expected ≠ @got or any(@got Z!~~ @expected) {
             diag “expected: {@expected.perl}”; # RT #129192
             diag “     got: {@got.perl}”;
             my $frame = callframe(2);

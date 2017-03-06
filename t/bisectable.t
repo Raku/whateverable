@@ -88,13 +88,13 @@ $t.test(‘bisect by output’,
         “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
 
 $t.test(‘bisect by exit signal’,
-        ‘bisect: old=2015.10 new=2015.12 Buf.new(0xFE).decode("utf8-c8") # RT 126756’,
+        ‘bisect: old=2015.10 new=2015.12 Buf.new(0xFE).decode(‘utf8-c8’) # RT 126756’,
         “{$t.our-nick}, Bisecting by exit signal (old=2015.10 new=2015.12). Old exit signal: 0 (None)”,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2015-11-09) https://github.com/rakudo/rakudo/commit/3fddcb57f66a44d1a8adb7ecee1a3b403ab9f5d8”);
 
 $t.test(‘inverted exit signal’,
-        ‘bisect: Buf.new(0xFE).decode("utf8-c8") # RT 126756’,
+        ‘bisect: Buf.new(0xFE).decode(‘utf8-c8’) # RT 126756’,
         /^ <me($t)>‘, Bisecting by exit signal (old=2015.12 new=’<sha>‘). Old exit signal: 11 (SIGSEGV)’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-04-01) https://github.com/rakudo/rakudo/commit/a87fb43b6c85a496ef0358197625b5b417a0d372”);
@@ -105,7 +105,7 @@ $t.test(‘nothing to bisect’,
         “{$t.our-nick}, Output on both points: «hello world»”);
 
 $t.test(‘nothing to bisect, segmentation fault everywhere’,
-        ‘bisect: old=2016.02 new=2016.03 Buf.new(0xFE).decode("utf8-c8")’,
+        ‘bisect: old=2016.02 new=2016.03 Buf.new(0xFE).decode(‘utf8-c8’)’,
         “{$t.our-nick}, On both starting points (old=2016.02 new=2016.03) the exit code is 0, exit signal is 11 (SIGSEGV) and the output is identical as well”,
         “{$t.our-nick}, Output on both points: «»”);
 

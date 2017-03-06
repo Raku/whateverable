@@ -143,7 +143,7 @@ method get-similar($tag-or-hash, @other?) {
 
     # flat(@options, @tags, @commits).min: { sift4($_, $tag-or-hash, 5, 8) }
     my $ans = ‘HEAD’;
-    my $ans_min = Inf;
+    my $ans_min = ∞;
 
     for flat @options, @tags, @commits {
         my $dist = sift4 $_, $tag-or-hash, $cutoff;
@@ -160,7 +160,7 @@ method run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) {
     my $archive-path = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”;
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
-    while run(‘mkdir’, ‘--’, $build-path).exitcode != 0 {
+    while run(‘mkdir’, ‘--’, $build-path).exitcode ≠ 0 {
         sleep 0.5;
         # Uh, wait! Does it mean that at the same time we can use only one
         # specific build? Yes, and you will have to wait until another bot
@@ -203,14 +203,14 @@ method get-commits($config) {
         @commits = $config.split: ‘,’;
     } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
         chdir RAKUDO; # goes back in LEAVE
-        if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode != 0 {
+        if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode ≠ 0 {
             return “Bad start, cannot find a commit for “$<start>””;
         }
-        if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   != 0 {
+        if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   ≠ 0 {
             return “Bad end, cannot find a commit for “$<end>””;
         }
         my $result = self.get-output: ‘git’, ‘rev-list’, “$<start>^..$<end>”; # TODO unfiltered input
-        return ‘Couldn't find anything in the range’ if $result<exit-code> != 0;
+        return ‘Couldn't find anything in the range’ if $result<exit-code> ≠ 0;
         @commits = $result<output>.lines;
         my $num-commits = @commits.elems;
         return “Too many commits ($num-commits) in range, you're only allowed {COMMITS-LIMIT}” if $num-commits > COMMITS-LIMIT
@@ -250,12 +250,12 @@ method to-full-commit($commit, :$short = False) {
     chdir RAKUDO;
     LEAVE chdir $old-dir;
 
-    return if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode != 0; # make sure that $commit is valid
+    return if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
 
     my $result = self.get-output: |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
                                   ($short ⁇ ‘--abbrev-commit’ ‼ Empty), $commit);
 
-    return if     $result<exit-code> != 0;
+    return if     $result<exit-code> ≠ 0;
     return unless $result<output>;
     $result<output>
 }

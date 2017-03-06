@@ -87,8 +87,8 @@ method process($msg, $config is copy, $code is copy) {
             if $result<signal> < 0 { # numbers less than zero indicate other weird failures
                 $output = “Cannot test this commit ($output)”
             } else {
-                $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> != 0;
-                $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> != 0
+                $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
+                $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0
             }
         }
         my $short-commit = self.get-short-commit: $commit;

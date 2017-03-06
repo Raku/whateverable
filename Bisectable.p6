@@ -46,7 +46,7 @@ method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-out
         my $result = self.get-output: ‘git’, ‘bisect’, $revision-type.lc;
         $status = $result<exit-code>;
         last if $result<output> ~~ /^^ \S+ ‘ is the first new commit’ /; # TODO just return this
-        last if $result<exit-code> != 0;
+        last if $result<exit-code> ≠ 0;
         LAST take $result<output>
     }
     return @bisect-log.join(“\n”), $status
@@ -89,7 +89,7 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output)
     with $old-exit-signal {
         take ‘»»»»» Bisecting by exit signal’;
         take “»»»»» Current exit signal is {signal-to-text $result<signal>}, exit signal on “old” revision is {signal-to-text $old-exit-signal}”;
-        if $old-exit-signal != 0 {
+        if $old-exit-signal ≠ 0 {
             take “»»»»» Note that on “old” revision exit signal is normally {signal-to-text 0}, you are probably trying to find when something was fixed”
         }
         take ‘»»»»» If exit signal is not the same as on “old” revision, this revision will be marked as “new”’;
@@ -102,7 +102,7 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output)
     with $old-exit-code {
         take ‘»»»»» Bisecting by exit code’;
         take “»»»»» Current exit code is $result<exit-code>, exit code on “old” revision is $old-exit-code”;
-        if $old-exit-code != 0 {
+        if $old-exit-code ≠ 0 {
             take ‘»»»»» Note that on “old” revision exit code is normally 0, you are probably trying to find when something was fixed’
         }
         take ‘»»»»» If exit code is not the same as on “old” revision, this revision will be marked as “new”’;
@@ -201,7 +201,7 @@ method process($msg, $code is copy, $old, $new) {
     if  $old-result<exit-code>   == $new-result<exit-code>
     and $old-result<signal>      == $new-result<signal>
     and $old-result<output>      eq $new-result<output>      {
-        if $old-result<signal> != 0 {
+        if $old-result<signal> ≠ 0 {
             $msg.reply: “On both starting points (old=$short-old new=$short-new) the exit code is $old-result<exit-code>, exit signal is {signal-to-text $old-result<signal>} and the output is identical as well”
         } else {
             $msg.reply: “On both starting points (old=$short-old new=$short-new) the exit code is $old-result<exit-code> and the output is identical as well”
@@ -215,14 +215,14 @@ method process($msg, $code is copy, $old, $new) {
 
     my $bisect-start = self.get-output: ‘git’, ‘bisect’, ‘start’;
     my $bisect-old   = self.get-output: ‘git’, ‘bisect’, ‘old’, $full-old;
-    if $bisect-start<exit-code> != 0 and $bisect-old<exit-code> != 0 {
+    if $bisect-start<exit-code> ≠ 0 and $bisect-old<exit-code> ≠ 0 {
         self.beg-for-help: $msg;
-        return ‘Failed to run ｢bisect start｣’  if $bisect-start<exit-code> != 0;
-        return ‘Failed to run ｢bisect old …”｣’ if $bisect-old<exit-code>   != 0
+        return ‘Failed to run ｢bisect start｣’  if $bisect-start<exit-code> ≠ 0;
+        return ‘Failed to run ｢bisect old …”｣’ if $bisect-old<exit-code>   ≠ 0
     }
 
     my $init-result = self.get-output: ‘git’, ‘bisect’, ‘new’, $full-new;
-    if $init-result<exit-code> != 0 {
+    if $init-result<exit-code> ≠ 0 {
         $msg.reply: ‘bisect log: ’ ~ self.upload: { query  => $msg.text,
                                                     result => colorstrip($init-result<output>), },
                                                   description => $msg.server.current-nick,
@@ -230,14 +230,14 @@ method process($msg, $code is copy, $old, $new) {
         return ‘bisect init failure. See the log for more details’
     }
     my ($bisect-output, $bisect-status);
-    if $old-result<signal> != $new-result<signal> {
+    if $old-result<signal> ≠ $new-result<signal> {
         $msg.reply: “Bisecting by exit signal (old=$short-old new=$short-new). Old exit signal: {signal-to-text $old-result<signal>}”;
         ($bisect-output, $bisect-status) = self.run-bisect: $filename, :old-exit-signal($old-result<signal>)
-    } elsif $old-result<exit-code> != $new-result<exit-code> {
+    } elsif $old-result<exit-code> ≠ $new-result<exit-code> {
         $msg.reply: “Bisecting by exit code (old=$short-old new=$short-new). Old exit code: $old-result<exit-code>”;
         ($bisect-output, $bisect-status) = self.run-bisect: $filename, :old-exit-code($old-result<exit-code>)
     } else {
-        if $old-result<signal> != 0 {
+        if $old-result<signal> ≠ 0 {
             $msg.reply: “Bisecting by output (old=$short-old new=$short-new) because on both starting points the exit code is $old-result<exit-code> and exit signal is {signal-to-text $old-result<signal>}”
         } else {
             $msg.reply: “Bisecting by output (old=$short-old new=$short-new) because on both starting points the exit code is $old-result<exit-code>”
@@ -253,7 +253,7 @@ method process($msg, $code is copy, $old, $new) {
         my $good-revs = self.get-output(‘git’, ‘for-each-ref’, ‘--format=%(objectname)’, ‘refs/bisect/old-*’)<output>;
         my @possible-revs = self.get-output(‘git’, ‘rev-list’, ‘refs/bisect/new’, ‘--not’, |$good-revs.lines)<output>.lines;
         return “There are {+@possible-revs} candidates for the first “new” revision. See the log for more details”
-    } elsif $bisect-status != 0 {
+    } elsif $bisect-status ≠ 0 {
         return ｢‘bisect run’ failure. See the log for more details｣
     } else {
         my $link-msg = self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’,

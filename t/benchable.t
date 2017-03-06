@@ -90,11 +90,11 @@ $t.test(‘specific commit’,
 $t.test(‘the benchmark time makes sense’,
         ‘bench: HEAD sleep 2’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
-        /^ <me($t)>‘, ¦HEAD: «’ (\d+)\.\d+ <?{ $0 >= 2 }> ‘»’ $/,
+        /^ <me($t)>‘, ¦HEAD: «’ (\d+)\.\d+ <?{ $0 ≥ 2 }> ‘»’ $/,
         :30timeout);
 
 $t.test(‘“compare” query’,
-        ‘bench: compare HEAD say "hi" ||| say "bye"’,
+        ‘bench: compare HEAD say ‘hi’ ||| say ‘bye’’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
         “{$t.our-nick}, https://whatever.able/fakeupload”);
 

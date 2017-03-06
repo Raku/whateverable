@@ -43,7 +43,7 @@ multi method benchmark-code($full-commit, $filename) {
     my %stats;
     for ^ITERATIONS {
         my $result = self.run-snippet: $full-commit, $filename;
-        if $result<exit-code> != 0 {
+        if $result<exit-code> ≠ 0 {
             %stats<err> = “«run failed, exit code = $result<exit-code>, exit signal = $result<signal>»”;
             return %stats
         }
@@ -65,7 +65,7 @@ multi method benchmark-code($full-commit-hash, @code) {
 
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
-    while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/rakudo-moar/$full-commit-hash”).exitcode != 0 {
+    while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/rakudo-moar/$full-commit-hash”).exitcode ≠ 0 {
         sleep 0.5;
         # Uh, wait! Does it mean that at the same time we can use only one
         # specific build? Yes, and you will have to wait until another bot
@@ -159,7 +159,7 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
 
             next unless %times{@commits[$x]}:exists and %times{@commits[$x + 1]}:exists;          # the commits have to have been run at all
             next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists;     # and without error
-            if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) >= %times{@commits[$x]}<min> × 0.1 {
+            if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) ≥ %times{@commits[$x]}<min> × 0.1 {
                 my $result = self.get-output: ‘git’, ‘rev-list’, ‘--bisect’, ‘--no-merges’, @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];
                 my $new-commit = $result<output>;
                 if $result<exit-code> == 0 and defined $new-commit and $new-commit ne ‘’ {
@@ -178,7 +178,7 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
 
     @commits .= map: { self.get-short-commit: $_ };
 
-    if @commits >= ITERATIONS {
+    if @commits ≥ ITERATIONS {
         my $pfilename = ‘plot.svg’;
         my $title = “$config $code”.trans: ｢"｣ => ｢\"｣;
         my @valid-commits = @commits.grep: { %times{$_}<err>:!exists };
