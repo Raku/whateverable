@@ -107,7 +107,6 @@ method process($msg, $config, $code is copy) {
 
     my $filename = self.write-code: $code;
 
-    my $msg-response = ‘’;
     my %graph;
 
     my %times;
@@ -147,9 +146,10 @@ method process($msg, $config, $code is copy) {
     # for these config options, check if there are any large speed differences between two commits and if so,
     # recursively find the commit in the middle until there are either no more large speed differences or no
     # more commits inbetween (i.e., the next commit is the exact one that caused the difference)
-    if $actually-tested and
-       $config ~~ /:i ^ [ releases | v? 6 \.? c | all ] $ / or $config.contains: ‘,’ {
+    if $actually-tested > 1 and
+       ($config ~~ /:i ^ [ releases | v? 6 \.? c | all ] $ / or $config.contains: ‘,’) {
         $msg.reply: ‘benchmarked the given commits, now zooming in on performance differences’;
+        sleep 0.05; # to prevent messages from being reordered
         chdir RAKUDO;
 
 Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
@@ -198,9 +198,10 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
         %graph{$pfilename} = SVG.serialize: $plot
     }
 
-    $msg-response ~= ‘¦’ ~ @commits.map({ “«$_»:” ~(%times{$_}<err> // %times{$_}<min> // %times{$_}) }).join: “\n¦”;
+    my $short-str = ‘¦’ ~ @commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join:  ‘ ¦’;
+    my $long-str  = ‘¦’ ~ @commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join: “\n¦”;
 
-    return $msg-response, %graph;
+    return $short-str but ProperStr($long-str), %graph;
 
     LEAVE {
         chdir $old-dir;

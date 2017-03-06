@@ -170,6 +170,27 @@ $t.test(‘wrong mime type’,
         ‘bisect: https://www.wikipedia.org/’,
         “{$t.our-nick}, It looks like a URL, but mime type is ‘text/html’ while I was expecting something with ‘text/plain’ or ‘perl’ in it. I can only understand raw links, sorry.”);
 
+# Did you mean … ?
+
+$t.test(‘Did you mean “HEAD” (new)?’,
+        ‘bisect: new=DEAD say 42’,
+        “{$t.our-nick}, Cannot find revision “DEAD” (did you mean “HEAD”?)”);
+$t.test(‘Did you mean “HEAD” (old)?’,
+        ‘bisect: old=DEAD say 42’,
+        “{$t.our-nick}, Cannot find revision “DEAD” (did you mean “HEAD”?)”);
+$t.test(‘Did you mean some tag? (new)’,
+        ‘bisect: new=2015.21 say 42’,
+        “{$t.our-nick}, Cannot find revision “2015.21” (did you mean “2015.12”?)”);
+$t.test(‘Did you mean some tag? (old)’,
+        ‘bisect: old=2015.21 say 42’,
+        “{$t.our-nick}, Cannot find revision “2015.21” (did you mean “2015.12”?)”);
+$t.test(‘Did you mean some commit? (new)’,
+        ‘bisect: new=a7L479b49dbd1 say 42’,
+        “{$t.our-nick}, Cannot find revision “a7L479b49dbd1” (did you mean “a71479b”?)”);
+$t.test(‘Did you mean some commit? (old)’,
+        ‘bisect: old=a7L479b49dbd1 say 42’,
+        “{$t.our-nick}, Cannot find revision “a7L479b49dbd1” (did you mean “a71479b”?)”);
+
 # Extra tests
 
 $t.test(‘another working query’,

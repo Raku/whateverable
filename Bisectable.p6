@@ -160,13 +160,20 @@ method process($msg, $code is copy, $old, $new) {
     $code = $code-response;
 
     # convert to real ids so we can look up the builds
+    my @options = <HEAD>;
     my $full-old = self.to-full-commit: $old;
-    return “Cannot find revision “$old””  unless            defined $full-old;
+    without $full-old {
+        return “Cannot find revision “$old””
+        ~ “ (did you mean “{self.get-short-commit: self.get-similar: $old, @options}”?)”
+    }
     return “No build for revision “$old”” unless self.build-exists: $full-old;
     my $short-old = self.get-short-commit: $old eq $full-old | ‘HEAD’ ⁇ $full-old ‼ $old;
 
     my $full-new = self.to-full-commit: $new;
-    return “Cannot find revision “$new””  unless            defined $full-new;
+    without $full-new {
+        return “Cannot find revision “$new””
+        ~ “ (did you mean “{self.get-short-commit: self.get-similar: $new, @options}”?)”
+    }
     return “No build for revision “$new”” unless self.build-exists: $full-new;
     my $short-new = self.get-short-commit: $new eq ‘HEAD’ ⁇ $full-new ‼ $new;
 

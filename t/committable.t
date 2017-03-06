@@ -198,6 +198,28 @@ $t.test(‘wrong mime type’,
         ‘commit: HEAD https://www.wikipedia.org/’,
         “{$t.our-nick}, It looks like a URL, but mime type is ‘text/html’ while I was expecting something with ‘text/plain’ or ‘perl’ in it. I can only understand raw links, sorry.”);
 
+# Did you mean … ?
+
+$t.test(‘Did you mean “all”?’,
+        ‘commit: balls say 42’,
+        “{$t.our-nick}, ¦balls: «Cannot find this revision (did you mean “all”?)»”);
+$t.test(‘Did you mean “HEAD”?’,
+        ‘commit: DEAD say 42’,
+        “{$t.our-nick}, ¦DEAD: «Cannot find this revision (did you mean “HEAD”?)»”);
+$t.test(‘Did you mean some release?’,
+        ‘commit: 2016.55 say 42’,
+        “{$t.our-nick}, ¦2016.55: «Cannot find this revision (did you mean “2016.05”?)»”);
+$t.test(‘Did you mean some commit?’,
+        ‘commit: d2c5694e50 say 42’,
+        “{$t.our-nick}, ¦d2c5694: «Cannot find this revision (did you mean “d2c5684”?)»”);
+$t.test(‘Only one commit is wrong (did you mean … ?)’,
+        ‘commit: 2015.13,2015.12^ say 42’,
+        “{$t.our-nick}, ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦2015.12^: «42»”);
+$t.test(‘Both commits are wrong (did you mean … ?)’,
+        ‘commit: 2015.12^,2015.13,69fecb52eb2 say 42’,
+        “{$t.our-nick}, ¦2015.12^: «42» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “07fecb5”?)»”);
+
+
 # Extra tests
 
 $t.test(‘last basic query, just in case’, # keep it last in this file
