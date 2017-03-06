@@ -47,7 +47,7 @@ unit role Whateverable does IRC::Client::Plugin does Helpful;
 
 has $.timeout is rw = 10;
 has $!stdin = slurp ‘stdin’;
-has $!bad-releases = set '2016.01', '2016.01.1';
+has $!bad-releases = set ‘2016.01’, ‘2016.01.1’;
 
 multi method irc-to-me(Message $msg where .text ~~
                        #↓ Matches only one space on purpose (for whitespace-only stdin)
@@ -81,7 +81,7 @@ method get-wiki-link { WIKI ~ self.^name }
 
 method beg-for-help($msg) {
     warn ‘Please help me!’;
-    $msg.irc.send-cmd: 'PRIVMSG', $msg.channel, ‘Hey folks. What's up with me?’,
+    $msg.irc.send-cmd: ‘PRIVMSG’, $msg.channel, ‘Hey folks. What's up with me?’,
                        :server($msg.server), :prefix(PARENTS.join(‘, ’) ~ ‘: ’)
 }
 
@@ -215,9 +215,9 @@ method get-commits($config) {
         my $num-commits = @commits.elems;
         return “Too many commits ($num-commits) in range, you're only allowed {COMMITS-LIMIT}” if $num-commits > COMMITS-LIMIT
     } elsif $config ~~ /:i ^ [ releases | v? 6 \.? c ] $/ {
-        @commits = self.get-tags: '2015-12-24'
+        @commits = self.get-tags: ‘2015-12-24’
     } elsif $config ~~ /:i ^ all $/ {
-        @commits = self.get-tags: '2014-01-01'
+        @commits = self.get-tags: ‘2014-01-01’
     } elsif $config ~~ /:i ^ compare \s $<commit>=\S+ $/ {
         @commits = $<commit>
     } else {
@@ -236,7 +236,7 @@ method get-tags($date) {
     my %seen;
     for self.get-output(‘git’, ‘log’, ‘--pretty="%d"’,
                         ‘--tags’, ‘--no-walk’, “--since=$date”)<output>.lines -> $tag {
-        next unless $tag ~~ /:i "tag:" \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) /; # TODO use tag -l
+        next unless $tag ~~ /:i ‘tag:’ \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) /; # TODO use tag -l
         next if $!bad-releases{$0}:exists;
         next if %seen{$0[0]}++;
         @tags.push($0)
