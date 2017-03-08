@@ -80,7 +80,7 @@ $t.test(‘“commit6” shortcut does not work’,
 $t.test(‘too long output is uploaded’,
         ‘eval: .say for ^1000’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «0␤1␤2␤3␤4’ <-[…]>+ ‘…»’ $/,
-        ‘testable, Full output: https://whatever.able/fakeupload’
+        “{$t.our-nick}, Full output: https://whatever.able/fakeupload”
        );
 
 # Exit code & exit signal
