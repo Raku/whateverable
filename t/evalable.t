@@ -158,22 +158,22 @@ $t.test(‘wrong mime type’,
 # Camelia replacement
 
 $t.test(‘Answers on ‘m:’ when camelia is not around’,
-        “{$t.bot-nick}: say ‘hello’”,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
+        ‘m: say ‘42’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42»’ $/);
 
 my $camelia = IRC::Client.new(:nick(‘camelia’) :host<127.0.0.1> :channels<#whateverable>);
 start $camelia.run;
 sleep 1;
 
 $t.test(‘Camelia is back, be silent’,
-        “{$t.bot-nick}: say ‘hello’”);
+        ‘m: say ‘43’’);
 
 $camelia.quit;
 sleep 1;
 
 $t.test(‘Answers on ‘m:’ when camelia is not around again’,
-        “{$t.bot-nick}: say ‘hello’”,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
+        ‘m: say ‘44’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «44»’ $/);
 
 # Extra tests
 
