@@ -219,6 +219,13 @@ $t.test(‘Both commits are wrong (did you mean … ?)’,
         ‘commit: 2015.12^,2015.13,69fecb52eb2 say 42’,
         “{$t.our-nick}, ¦2015.12^: «42» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “07fecb5”?)»”);
 
+# Timeouts
+
+$t.test(:21timeout, ‘timeout’,
+        ‘commit: 2015.12,HEAD say ‘Zzzz…’; sleep ∞’,
+        /^ <me($t)>‘, ¦2015.12,HEAD(’<sha>‘): «Zzzz…␤«timed out after 10 seconds» «exit signal = SIGHUP (1)»»’ $/);
+
+# TODO test total timeout
 
 # Extra tests
 

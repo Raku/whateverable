@@ -109,7 +109,7 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
 
     if not $promise.status ~~ Kept { # timed out
         $proc.kill; # TODO sends HUP, but should kill the process tree instead
-        $out.send: “«timed out after $timeout seconds, output»: ”;
+        $out.send: “«timed out after $timeout seconds»”;
     }
     try sink await $promise; # wait until it is actually stopped
     $out.close;

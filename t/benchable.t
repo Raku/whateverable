@@ -175,6 +175,10 @@ $t.test(‘Both commits are wrong (did you mean … ?)’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
         /^ <me($t)>‘, ¦2015.12^: «’ \d+\.\d+ ‘» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “07fecb5”?)»’ $/);
 
+# Timeouts
+
+# TODO See issue #99
+
 # Extra tests
 
 $t.test(‘last basic query, just in case’, # keep it last in this file

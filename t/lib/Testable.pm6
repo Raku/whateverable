@@ -41,7 +41,7 @@ class Testable {
         ok ?$!bot-nick, ‘bot joined the channel’
     }
 
-    method test($description, $command, *@expected, :$timeout = 10, :$delay = 3) {
+    method test($description, $command, *@expected, :$timeout = 11, :$delay = 3) {
         my @got;
         my $start = now;
 

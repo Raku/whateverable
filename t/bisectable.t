@@ -191,6 +191,15 @@ $t.test(‘Did you mean some commit? (old)’,
         ‘bisect: old=a7L479b49dbd1 say 42’,
         “{$t.our-nick}, Cannot find revision “a7L479b49dbd1” (did you mean “a71479b”?)”);
 
+# Timeouts
+
+$t.test(:21timeout, ‘timeout’,
+        ‘bisect: say ‘Zzzz…’; sleep ∞’,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=9d7c0ab) the exit code is 0, exit signal is 1 (SIGHUP) and the output is identical as well’ $/,
+        “{$t.our-nick}, Output on both points: «Zzzz…␤«timed out after 10 seconds»»”);
+
+# TODO test timeouts during bisection
+
 # Extra tests
 
 $t.test(‘another working query’,

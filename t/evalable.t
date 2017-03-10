@@ -175,6 +175,12 @@ $t.test(‘Answers on ‘m:’ when camelia is not around again’,
         ‘m: say ‘44’’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «44»’ $/);
 
+# Timeouts
+
+$t.test(‘timeout’,
+        ‘eval: say ‘Zzzz…’; sleep ∞’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(signal SIGHUP) Zzzz…␤«timed out after 10 seconds»»’ $/);
+
 # Extra tests
 
 $t.test(‘last basic query, just in case’, # keep it last in this file

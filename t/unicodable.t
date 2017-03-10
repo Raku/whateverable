@@ -168,6 +168,12 @@ $t.test(‘Answers on ‘.u’ when yoleaux is not around again’,
         ‘.u ㊹’,
         /^ <me($t)>‘, U+32B9 CIRCLED NUMBER FORTY FOUR [No] (㊹)’ $/);
 
+# Timeouts
+
+$t.test(:31timeout, ‘timeout’,
+        ‘u: { sleep 1 }’,
+        “{$t.our-nick}, «timed out after 30 seconds» «exit signal = SIGHUP (1)»”);
+
 # Extra tests
 
 $t.test(‘last basic query, just in case’, # keep it last in this file
