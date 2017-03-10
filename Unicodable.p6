@@ -43,7 +43,7 @@ multi method irc-to-me($msg) {
         start {
             await Promise.anyof: $update-promise, Promise.in(4);
             $!users-lock.protect: {
-                return if %!users{$msg.channel}<yoleaux yoleaux2>
+                return if any %!users{$msg.channel}<yoleaux yoleaux2>:exists
             }
             my $value = self.process: $msg, $msg.text;
             $msg.reply: $_ but Reply($msg) with $value
@@ -54,6 +54,11 @@ multi method irc-to-me($msg) {
         return without $value;
         return $value but Reply($msg)
     }
+}
+
+multi method irc-privmsg-channel($msg where .args[1] ~~ / ^ ‘.u’ \s* (.*)/) {
+    $msg.text = ~$0;
+    self.irc-to-me($msg)
 }
 
 method get-description($ord) {
