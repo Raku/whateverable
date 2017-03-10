@@ -91,7 +91,7 @@ method process($msg, $query is copy) {
 
     my @all;
 
-    if $query ~~ m:ignoremark/^ \s*
+    if $query ~~ m:ignoremark/^ :i \s*
                              [
                                  [ | ‘u’ (.) <?{ $0[*-1].Str.uniname.match: /PLUS.*SIGN/ }>
                                    | [ <:Nd> & <:Numeric_Value(0)> ] ‘x’ # TODO is it fixed now?
