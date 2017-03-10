@@ -116,7 +116,7 @@ $t.test(‘Some control characters’,
 
 $t.test(‘Some interesting ASCII characters’,
         ｢u: \"<｣,
-        “{$t.our-nick}, U+005C REVERSE SOLIDUS [Po] (\)”,
+        $t.our-nick ~｢, U+005C REVERSE SOLIDUS [Po] (\)｣,
         “{$t.our-nick}, U+0022 QUOTATION MARK [Po] (")”,
         “{$t.our-nick}, U+003C LESS-THAN SIGN [Sm] (<)”);
 
