@@ -186,10 +186,11 @@ method process($msg, $query is copy) {
 method propdump($msg, $query) {
     my $answer = ‘’;
     my @query = $query.comb>>.ords.flat;
+    my &escape = *.trans: (‘|’,) => (‘&#124;’,);
     for @prop-table -> $category {
         $answer ~= sprintf “\n### %s\n”, $category.key;
         $answer ~= sprintf “| %-55s |”, ‘Property names’;
-        $answer ~= .fmt: “ %-25s |” for @query.map: -> $char {“Value: {chr $char}”};
+        $answer ~= .fmt: “ %-25s |” for @query.map: -> $char {“Value: {&escape($char.chr)}”};
         $answer ~= “\n”;
         $answer ~= “|{‘-’ x 57}|”;
         $answer ~= “{‘-’ x 27}|” x @query;
@@ -198,7 +199,7 @@ method propdump($msg, $query) {
             my @props = @query.map: *.uniprop($cat[0]);
             my $bold = ([eq] @props) ⁇ ｢｣ ‼ ｢**｣;
             $answer ~= ($bold ~ $cat.join(‘, ’) ~ $bold).fmt: “| %-55s |”;
-            $answer ~= .fmt: “ %-25s |” for @props;
+            $answer ~= &escape($_).fmt: “ %-25s |” for @props;
             $answer ~= “\n”;
         }
     }
