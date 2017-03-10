@@ -305,12 +305,13 @@ method process-code($code is copy, $message) {
 }
 
 multi method filter($response where (.encode.elems > MESSAGE-LIMIT
-                                     or (!~$_ and $_ ~~ ProperStr)
-                                     or .?additional-files)) {
+                                     or defined .?additional-files
+                                     or (!~$_ and $_ ~~ ProperStr))) {
     # Here $response is a Str with a lot of stuff mixed in (possibly)
     my $description = ‘Whateverable’;
     my $text = colorstrip $response.?long-str // ~$response;
-    my %files = ‘result’ => $text;
+    my %files;
+    %files<result> = $text if $text;
     %files.push: $_ with $response.?additional-files;
 
     if $response ~~ Reply {

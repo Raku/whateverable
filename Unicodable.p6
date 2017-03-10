@@ -19,6 +19,7 @@
 
 use lib ‘.’;
 use Misc;
+use Uniprops;
 use Whateverable;
 
 use IRC::Client;
@@ -49,6 +50,10 @@ multi method irc-to-me($msg) {
             $msg.reply: $_ but Reply($msg) with $value
         }
         return
+    } elsif $msg.args[1].starts-with: ‘propdump:’ | ‘unidump:’ {
+        my $value = self.propdump: $msg, $msg.text;
+        return without $value;
+        return $value but Reply($msg)
     } else {
         my $value = self.process: $msg, $msg.text;
         return without $value;
@@ -174,6 +179,24 @@ method process($msg, $query is copy) {
     }
 }
 
+method propdump($msg, $query) {
+    my $answer = ‘’;
+    for $query.comb».ords.flat -> $char {
+        my $heading = “\n## ``{self.get-description($char)}``\n”;
+        $answer ~= $heading;
+        for @prop-table -> $category {
+            $answer ~= sprintf “\n### %s\n”, $category.key;
+            $answer ~= sprintf “| %-55s | %-25s |\n”, ‘Property names’, ‘Value’;
+            $answer ~= “|{‘-’ x 57}|{‘-’ x 27}|\n”;
+            for $category.value {
+                $answer ~= sprintf “| %-55s | %-25s |\n”, .join(‘, ’), $char.uniprop(.[0]);
+            }
+        }
+        $answer ~= “\n \n\n\ \n\n \n”
+    }
+    ‘’ but FileStore({ ‘result.md’ => $answer })
+}
+
 # ↓ Here we will try to keep track of users on the channel.
 #   This is a temporary solution. See this bug report:
 #   * https://github.com/zoffixznet/perl6-IRC-Client/issues/29
@@ -203,6 +226,6 @@ method irc-n366($e) {
     }
 }
 
-Unicodable.new.selfrun: ‘unicodable6’, [/u6?/, /uni6?/, fuzzy-nick(‘unicodable6’, 3)];
+Unicodable.new.selfrun: ‘unicodable6’, [/u6?/, /uni6?/, fuzzy-nick(‘unicodable6’, 3), ‘propdump’, ‘unidump’];
 
 # vim: expandtab shiftwidth=4 ft=perl6
