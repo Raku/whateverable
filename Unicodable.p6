@@ -67,8 +67,12 @@ multi method irc-privmsg-channel($msg where .args[1] ~~ / ^ ‘.u’ \s* (.*)/) 
 }
 
 method get-description($ord) {
-    my $char = $ord.chr;
-    $char = ‘◌’ ~ $ord.chr if $char.uniprop.starts-with: ‘M’; # TODO ask samcv
+    my $char;
+    try {
+        $char = $ord.chr;
+        CATCH { default { return sprintf “U+%04X (invalid codepoint)”, $ord } }
+    }
+    $char = ‘◌’ ~ $ord.chr if $ord.uniprop.starts-with: ‘M’; # TODO ask samcv
     try {
         $char.encode;
         CATCH { default { $char = ‘unencodable character’ } }
