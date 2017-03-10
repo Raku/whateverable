@@ -185,18 +185,22 @@ method process($msg, $query is copy) {
 
 method propdump($msg, $query) {
     my $answer = ‘’;
-    for $query.comb».ords.flat -> $char {
-        my $heading = “\n## ``{self.get-description($char)}``\n”;
-        $answer ~= $heading;
-        for @prop-table -> $category {
-            $answer ~= sprintf “\n### %s\n”, $category.key;
-            $answer ~= sprintf “| %-55s | %-25s |\n”, ‘Property names’, ‘Value’;
-            $answer ~= “|{‘-’ x 57}|{‘-’ x 27}|\n”;
-            for $category.value {
-                $answer ~= sprintf “| %-55s | %-25s |\n”, .join(‘, ’), $char.uniprop(.[0]);
-            }
+    my @query = $query.comb>>.ords.flat;
+    for @prop-table -> $category {
+        $answer ~= sprintf “\n### %s\n”, $category.key;
+        $answer ~= sprintf “| %-55s |”, ‘Property names’;
+        $answer ~= .fmt: “ %-25s |” for @query.map: -> $char {“Value: {chr $char}”};
+        $answer ~= “\n”;
+        $answer ~= “|{‘-’ x 57}|”;
+        $answer ~= “{‘-’ x 27}|” x @query;
+        $answer ~= “\n”;
+        for $category.value -> $cat {
+            my @props = @query.map: *.uniprop($cat[0]);
+            my $bold = ([eq] @props) ⁇ ｢｣ ‼ ｢**｣;
+            $answer ~= sprintf(｢| %1$s%2$s%1$s |｣, $bold, $cat.join(‘, ’)).fmt: “%-55s”;
+            $answer ~= .fmt: “ %-25s |” for @props;
+            $answer ~= “\n”;
         }
-        $answer ~= “\n \n\n\ \n\n \n”
     }
     ‘’ but FileStore({ ‘result.md’ => $answer })
 }
