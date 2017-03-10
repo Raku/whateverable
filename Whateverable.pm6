@@ -305,7 +305,7 @@ method process-code($code is copy, $message) {
 }
 
 multi method filter($response where (.encode.elems > MESSAGE-LIMIT
-                                     or defined .?additional-files
+                                     or .?additional-files
                                      or (!~$_ and $_ ~~ ProperStr))) {
     # Here $response is a Str with a lot of stuff mixed in (possibly)
     my $description = ‘Whateverable’;
