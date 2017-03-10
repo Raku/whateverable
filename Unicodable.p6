@@ -142,7 +142,7 @@ method process($msg, $query is copy) {
             } else {
                 $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
                 $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
-                return $output if $result<exit> ≠ 0 or $result<signal> ≠ 0
+                return $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0
             }
         }
         if $output {
