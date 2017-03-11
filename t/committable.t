@@ -219,6 +219,11 @@ $t.test(‘Both commits are wrong (did you mean … ?)’,
         ‘commit: 2015.12^,2015.13,69fecb52eb2 say 42’,
         “{$t.our-nick}, ¦2015.12^: «42» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “07fecb5”?)»”);
 
+$t.test(‘Did you forget to specify a revision?’,
+        ‘commit: say ‘hello world’’,
+        “{$t.our-nick}, Seems like you forgot to specify a revision (will use “v6.c” unstead of “say”)”,
+        /^ <{$t.our-nick}> ‘, ¦v6.c (’\d+‘ commits): «hello world»’ $/);
+
 # Timeouts
 
 $t.test(:21timeout, ‘timeout’,
