@@ -230,6 +230,10 @@ $t.test(:21timeout, ‘timeout’,
         ‘commit: 2015.12,HEAD say ‘Zzzz…’; sleep ∞’,
         /^ <me($t)>‘, ¦2015.12,HEAD(’<sha>‘): «Zzzz…␤«timed out after 10 seconds» «exit signal = SIGHUP (1)»»’ $/);
 
+$t.test(‘committable does not crash’, # Issue #65
+        ‘commit: 2015.07 say 1.0000001 ** (10 ** 8)’,
+        “{$t.our-nick}, ¦2015.07: ««timed out after 10 seconds» «exit signal = SIGHUP (1)»»”);
+
 # TODO test total timeout
 
 # Extra tests
