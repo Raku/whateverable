@@ -125,21 +125,45 @@ $t.test(‘exit code on new revision is 125’,
 # Custom starting points
 
 $t.test(‘custom starting points’,
-        ‘bisect: old=2016.02 new 2016.03 say (^∞).grep({ last })[5]’,
+        ‘bisect: old=2016.02 new 2016.03       say (^∞).grep({ last })[5]’,
         “{$t.our-nick}, Bisecting by output (old=2016.02 new=2016.03) because on both starting points the exit code is 0”,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
 
 $t.test(‘custom starting points using “bad” and “good” terms’,
-        ‘bisect: good 2016.02 bad=2016.03 say (^∞).grep({ last })[5]’,
+        ‘bisect: good 2016.02 bad=2016.03      say (^∞).grep({ last })[5]’,
         “{$t.our-nick}, Bisecting by output (old=2016.02 new=2016.03) because on both starting points the exit code is 0”,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
 
 $t.test(‘swapped old and new revisions’,
-        ‘bisect: old 2016.03 new 2016.02 say (^∞).grep({ last })[5]’,
+        ‘bisect: old 2016.03 new 2016.02       say (^∞).grep({ last })[5]’,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, bisect init failure. See the log for more details”);
+
+$t.test(‘mixed case “old”/“new”’,
+        ‘bisect: oLD 2016.02 NeW = 2016.03     say (^∞).grep({ last })[5]’,
+        “{$t.our-nick}, Bisecting by output (old=2016.02 new=2016.03) because on both starting points the exit code is 0”,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
+
+$t.test(‘comma to separate old=/new=’,
+        ‘bisect: old 2016.02, new= 2016.03     say (^∞).grep({ last })[5]’,
+        “{$t.our-nick}, Bisecting by output (old=2016.02 new=2016.03) because on both starting points the exit code is 0”,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
+
+$t.test(‘mixed term styles’,
+        ‘bisect: old =2016.02  ,  bad= 2016.03 say (^∞).grep({ last })[5]’,
+        “{$t.our-nick}, Bisecting by output (old=2016.02 new=2016.03) because on both starting points the exit code is 0”,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
+
+$t.test(‘mixed term styles’,
+        ‘bisect: good   2016.02,new  2016.03   say (^∞).grep({ last })[5]’,
+        “{$t.our-nick}, Bisecting by output (old=2016.02 new=2016.03) because on both starting points the exit code is 0”,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
 
 # Special characters
 #`{ What should we do with colors?
@@ -195,7 +219,7 @@ $t.test(‘Did you mean some commit? (old)’,
 
 $t.test(:21timeout, ‘timeout’,
         ‘bisect: say ‘Zzzz…’; sleep ∞’,
-        /^ <me($t)>‘, On both starting points (old=2015.12 new=9d7c0ab) the exit code is 0, exit signal is 1 (SIGHUP) and the output is identical as well’ $/,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0, exit signal is 1 (SIGHUP) and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «Zzzz…␤«timed out after 10 seconds»»”);
 
 # TODO test timeouts during bisection

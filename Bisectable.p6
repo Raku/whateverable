@@ -131,15 +131,15 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output)
 }
 
 my regex spaceeq { \s* ‘=’ \s* | \s+ }
-my regex delim   { \s* | ‘,’ }
+my regex delim   { \s* [ ‘,’ \s* ]?  }
 my regex bisect-cmd { :i
     ^ \s*
     [
-        [ [old|good] <&spaceeq> $<old>=\S+ <&delim> ]
-        [ [new|bad]  <&spaceeq> $<new>=\S+ \s*      ]?
+        [ [old|good] <&spaceeq> $<old>=<-[\s,]>+ <&delim> ]
+        [ [new|bad]  <&spaceeq> $<new>=\S+       \s*      ]?
         |
-        [ [new|bad]  <&spaceeq> $<new>=\S+ <&delim> ]?
-        [ [old|good] <&spaceeq> $<old>=\S+ \s*      ]?
+        [ [new|bad]  <&spaceeq> $<new>=<-[\s,]>+ <&delim> ]?
+        [ [old|good] <&spaceeq> $<old>=\S+       \s*      ]?
     ]
     $<code>=.*
     $
