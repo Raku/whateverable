@@ -207,6 +207,14 @@ $t.test(‘wrong mime type’,
         ‘commit: HEAD https://www.wikipedia.org/’,
         “{$t.our-nick}, It looks like a URL, but mime type is ‘text/html’ while I was expecting something with ‘text/plain’ or ‘perl’ in it. I can only understand raw links, sorry.”);
 
+$t.test(‘malformed link (failed to resolve)’,
+        ‘commit: HEAD https://perl6.or’,
+        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name)”);
+
+$t.test(‘malformed link (could not parse)’,
+        ‘commit: HEAD https://:P’,
+        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Could not parse URI: https://:P)”);
+
 # Did you mean … ?
 
 $t.test(‘Did you mean “all”?’,

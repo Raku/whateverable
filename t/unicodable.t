@@ -147,6 +147,13 @@ $t.test(‘wrong mime type’,
         ‘u: https://www.wikipedia.org/’,
         “{$t.our-nick}, It looks like a URL, but mime type is ‘text/html’ while I was expecting something with ‘text/plain’ or ‘perl’ in it. I can only understand raw links, sorry.”);
 
+$t.test(‘malformed link (failed to resolve)’,
+        ‘u: https://perl6.or’,
+        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name)”);
+
+$t.test(‘malformed link (could not parse)’,
+        ‘u: https://:P’,
+        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Could not parse URI: https://:P)”);
 
 # Yoleaux replacement
 
