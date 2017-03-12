@@ -67,6 +67,10 @@ $t.test(‘source link’,
         “{$t.bot-nick}:   wiki? ”,
         “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Bisectable”);
 
+$t.test(‘typo-ed name’,
+        ‘bsicetable6: source’,
+        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+
 # Basics
 
 $t.test(‘bisect by exit code’,

@@ -44,6 +44,10 @@ $t.test(‘source link’,
         “{$t.bot-nick}:   wiki? ”,
         “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Benchable”);
 
+$t.test(‘typo-ed name’,
+        ‘clenchable: source’,
+        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+
 # Basics
 
 $t.test(‘basic “nick:” query’,
