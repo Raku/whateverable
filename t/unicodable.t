@@ -139,6 +139,18 @@ $t.test(‘fetching code from urls’,
         “{$t.our-nick}, U+1F4A9 PILE OF POO [So] (💩)”,
         “{$t.our-nick}, U+0021 EXCLAMATION MARK [Po] (!)”);
 
+$t.test(‘comment after a url’,
+        ‘u: https://gist.githubusercontent.com/AlexDaniel/1892f93da146cb6057e6f3ca38fb1e56/raw/3d007a9ec3782f756054a322e8710656e2e4e7c6/test # this is a comment’,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, U+1F4A9 PILE OF POO [So] (💩)”,
+        “{$t.our-nick}, U+0021 EXCLAMATION MARK [Po] (!)”);
+
+$t.test(‘comment after a url (without #)’,
+        ‘u: https://gist.githubusercontent.com/AlexDaniel/1892f93da146cb6057e6f3ca38fb1e56/raw/3d007a9ec3782f756054a322e8710656e2e4e7c6/test ← like this!’,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, U+1F4A9 PILE OF POO [So] (💩)”,
+        “{$t.our-nick}, U+0021 EXCLAMATION MARK [Po] (!)”);
+
 $t.test(‘wrong url’,
         ‘u: http://github.org/sntoheausnteoahuseoau’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found).”);

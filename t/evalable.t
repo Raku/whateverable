@@ -167,6 +167,16 @@ $t.test(‘fetching code from urls’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test»’ $/);
 
+$t.test(‘comment after a url’,
+        ‘eval: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 # this is a comment’,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test»’ $/);
+
+$t.test(‘comment after a url (without #)’,
+        ‘eval: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 ← like this!’,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test»’ $/);
+
 $t.test(‘wrong url’,
         ‘eval: http://github.org/sntoheausnteoahuseoau’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found).”);
