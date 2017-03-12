@@ -128,6 +128,11 @@ $t.test(‘stdin char count’,
         ‘commit: HEAD say +slurp.chars’,
         /^ <me($t)>‘, ¦HEAD(’<sha>‘): «500»’ $/);
 
+$t.test(‘huge stdin is not replied back fully’,
+        ‘commit: stdin https://raw.githubusercontent.com/perl6/mu/master/misc/camelia.txt’,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, STDIN is set to «Camelia␤␤The Camelia image is copyright 2009 by Larry Wall.  Permission to use␤is granted under the…»”);
+
 # Ranges and multiple commits
 
 $t.test(‘“releases” query’,
