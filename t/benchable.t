@@ -48,6 +48,10 @@ $t.test(‘typo-ed name’,
         ‘clenchable: source’,
         “{$t.our-nick}, https://github.com/perl6/whateverable”);
 
+$t.test(‘fallback’,
+        “{$t.bot-nick}: wazzup?”,
+        “{$t.our-nick}, I cannot recognize this command. See wiki for some examples: https://github.com/perl6/whateverable/wiki/Benchable”);
+
 # Basics
 
 $t.test(‘basic “nick:” query’,
