@@ -191,6 +191,9 @@ $t.test(‘Answers on ‘.u’ when yoleaux is not around again’,
         ‘.u ㊹’,
         /^ <me($t)>‘, U+32B9 CIRCLED NUMBER FORTY FOUR [No] (㊹)’ $/);
 
+$t.test(‘Space character required after ‘.u’’,
+        ‘.unau ululation’);
+
 # Timeouts
 
 $t.test(:31timeout, ‘timeout’,

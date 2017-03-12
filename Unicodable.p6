@@ -61,7 +61,7 @@ multi method irc-to-me($msg) {
     }
 }
 
-multi method irc-privmsg-channel($msg where .args[1] ~~ / ^ ‘.u’ \s* (.*)/) {
+multi method irc-privmsg-channel($msg where .args[1] ~~ / ^ ‘.u’ \s (.*)/) {
     $msg.text = ~$0;
     self.irc-to-me($msg)
 }
