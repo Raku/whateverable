@@ -172,6 +172,10 @@ $t.test(‘commit..commit range syntax’,
         ‘commit: 2016.07~73..2016.07~72 say ‘a’ x 9999999999999999999’,
         /^ <{$t.our-nick}> ‘, ¦8ea2ae8,586f784: «» ¦87e8067: «repeat count (-8446744073709551617) cannot be negative␤  in block <unit> at /tmp/’ \w+ ‘ line 1␤ «exit code = 1»»’ $/);
 
+$t.test(‘very old tags’,
+        ‘commit: 2014.01,2014.02,2014.03 say 42’,
+        “{$t.our-nick}, ¦2014.01,2014.02,2014.03: «42»”);
+
 # Special characters
 #`{ What should we do with colors?
 $t.test(‘special characters’,
