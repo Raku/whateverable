@@ -44,6 +44,10 @@ $t.test(‘source link’,
         “{$t.bot-nick}:   wiki? ”,
         “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Committable”);
 
+$t.test(‘fallback’,
+        “{$t.bot-nick}: wazzup?”,
+        “{$t.our-nick}, I cannot recognize this command. See wiki for some examples: https://github.com/perl6/whateverable/wiki/Committable”);
+
 # Basics
 
 $t.test(‘basic “nick:” query’,
