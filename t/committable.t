@@ -128,6 +128,22 @@ $t.test(‘stdin char count’,
         ‘commit: HEAD say +slurp.chars’,
         /^ <me($t)>‘, ¦HEAD(’<sha>‘): «500»’ $/);
 
+$t.test(‘stdin numbers’,
+        ‘commit: HEAD say slurp().comb(/\d+/)’,
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «(4𝟮)»’/);
+
+$t.test(‘stdin words’,
+        ‘commit: HEAD say slurp().comb(/\w+/)’,
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «(hello world 4𝟮)»’/);
+
+$t.test(‘stdin No’,
+        ‘commit: HEAD say slurp().comb(/<:No>+/)’,
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «(½)»’/);
+
+$t.test(‘stdin Nl’,
+        ‘commit: HEAD say slurp().comb(/<:Nl>+/)’,
+        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «(Ⅵ)»’/);
+
 $t.test(‘huge stdin is not replied back fully’,
         ‘commit: stdin https://raw.githubusercontent.com/perl6/mu/master/misc/camelia.txt’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,

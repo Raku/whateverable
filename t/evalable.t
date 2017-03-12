@@ -128,6 +128,22 @@ $t.test(‘stdin char count’,
         ‘eval: say +slurp.chars’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «500»’ $/);
 
+$t.test(‘stdin numbers’,
+        ‘eval: say slurp().comb(/\d+/)’,
+        /^ <me($t)>‘, rakudo-moar 7bebec08e: OUTPUT: «(4𝟮)»’/);
+
+$t.test(‘stdin words’,
+        ‘eval: say slurp().comb(/\w+/)’,
+        /^ <me($t)>‘, rakudo-moar 7bebec08e: OUTPUT: «(hello world 4𝟮)»’/);
+
+$t.test(‘stdin No’,
+        ‘eval: say slurp().comb(/<:No>+/)’,
+        /^ <me($t)>‘, rakudo-moar 7bebec08e: OUTPUT: «(½)»’/);
+
+$t.test(‘stdin Nl’,
+        ‘eval: say slurp().comb(/<:Nl>+/)’,
+        /^ <me($t)>‘, rakudo-moar 7bebec08e: OUTPUT: «(Ⅵ)»’/);
+
 $t.test(‘huge stdin is not replied back fully’,
         ‘eval: stdin https://raw.githubusercontent.com/perl6/mu/master/misc/camelia.txt’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
