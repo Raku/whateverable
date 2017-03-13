@@ -31,81 +31,106 @@ unit class Statisfiable does Whateverable;
 constant RANGE          = ‘2014.01..HEAD’;
 constant STATS-LOCATION = ‘./stats’.IO.absolute;
 
+constant OPTIONS = %(
+    core         => ‘CORE.setting.moarvm file size (MB)’,
+#   ‘core.lines’ => ‘Lines in CORE.setting.moarvm file (count)’,
+    install      => ‘Space taken by a full installation (MB)’,
+    libmoar      => ‘libmoar.so file size (MB)’,
+);
+
 has %stats;
+has %stat-locks;
 
 method TWEAK {
     mkdir STATS-LOCATION if STATS-LOCATION.IO !~~ :d;
-    if “{STATS-LOCATION}/” {
-        %stats<core>    = from-json slurp “{STATS-LOCATION}/core”    if “{STATS-LOCATION}/core”.IO.e;
-        %stats<core>    //= %();
-        %stats<install> = from-json slurp “{STATS-LOCATION}/install” if “{STATS-LOCATION}/install”.IO.e;
-        %stats<install> //= %()
+    for OPTIONS.keys {
+        %stat-locks{$_} = Lock.new;
+        %stats{$_} = “{STATS-LOCATION}/$_”.IO.e
+          ⁇ from-json slurp “{STATS-LOCATION}/$_”
+          ‼ %()
     }
 }
 
 method help($) {
-    ‘Available stats: core (CORE.setting size), install (size of the whole installation).’
+    ‘Available stats: ’ ~ (
+        ‘core (CORE.setting size)’,
+#        ‘core.lines (lines in CORE.setting)’,
+        ‘install (size of the installation)’,
+        ‘libmoar (libmoar.so size)’,
+    ).join: ‘, ’
 }
 
-multi method irc-to-me($msg where /:i [ core | install ] /) {
-    my ($value, %additional-files) = self.process: $msg, $msg.text;
-    return without $value;
-    return ($value but $msg) but FileStore(%additional-files)
+multi method stat-for-commit(‘core’, $full-hash) {
+    self.run-smth: $full-hash, {
+        my $file = “$_/share/perl6/runtime/CORE.setting.moarvm”.IO;
+        $file.IO.e ⁇ $file.IO.s ÷ 10⁶ ‼ Nil
+    }
 }
 
-multi method process($msg, $query) {
+#multi method stat-for-commit(‘core.lines’, $full-hash) {
+#    # TODO
+#}
+
+multi method stat-for-commit(‘install’, $full-hash) {
+    self.run-smth: $full-hash, {
+        # ↓ scary, but works
+        my $result = Rakudo::Internals.DIR-RECURSE($_).map(*.IO.s).sum ÷ 10⁶;
+        $result > 10 ⁇ $result ‼ Nil
+    }
+}
+
+multi method stat-for-commit(‘libmoar’, $full-hash) {
+    self.run-smth: $full-hash, {
+        my $file = “$_/lib/libmoar.so”.IO;
+        $file.IO.e ⁇ $file.IO.s ÷ 10⁶ ‼ Nil
+    }
+}
+
+multi method irc-to-me($msg where /:i ( <{OPTIONS.keys}> ) (‘0’)? /) {
+    my $type   = ~$0;
+    my $zeroed = ?$1;
+    start {
+        my ($value, %additional-files) = self.process: $msg, $type, $zeroed;
+        $value.defined
+        ⁇ ($value but $msg) but FileStore(%additional-files)
+        ‼ Nil
+    }
+}
+
+multi method process($msg, $type, $zeroed) {
     $msg.reply: ‘OK! Working on it…’;
 
-    my $type = $query ~~ /:i core / ⁇ ‘core’ ‼ ‘install’;
-    my $zero = $query ~~ / 0 / ⁇ 0 ‼ Nil;
-    my %data := %stats{$type};
-
-    my @git = ‘git’, ‘--git-dir’, “{RAKUDO}/.git”, ‘--work-tree’, RAKUDO;
-    my @command = |@git, ‘log’, ‘-z’, ‘--pretty=%H’, RANGE;
-
-    my $let's-save = False;
     my @results;
-    for run(:out, |@command).out.split: 0.chr, :skip-empty {
-        next unless $_;
-        my $full  = $_;
-        #my $short = self.to-full-commit($_, :short);
+    %stat-locks{$type}.protect: {
+        my %data := %stats{$type};
 
-        my $size;
-        if %data{$full}:exists {
-            $size = %data{$full}
-        } else {
-            if self.build-exists: $full {
-                if $type eq ‘core’ { # core
-                    $size = self.run-smth: $full, {
-                        my $file = “$_/share/perl6/runtime/CORE.setting.moarvm”.IO;
-                        $file.IO.e ⁇ $file.IO.s ÷ 10⁶ ‼ Nil
-                    }
-                } else { # install
-                    $size = self.run-smth: $full, {
-                        # ↓ scary, but works
-                        Rakudo::Internals.DIR-RECURSE($_).map(*.IO.s).sum ÷ 10⁶
-                    }
-                }
+        my $let's-save = False;
+
+        my @git = ‘git’, ‘--git-dir’, “{RAKUDO}/.git”, ‘--work-tree’, RAKUDO;
+        my @command = |@git, ‘log’, ‘-z’, ‘--pretty=%H’, RANGE;
+        for run(:out, |@command).out.split: 0.chr, :skip-empty -> $full {
+            next unless $full;
+            #my $short = self.to-full-commit($_, :short);
+
+            if %data{$full}:!exists and self.build-exists: $full {
+                %data{$full} = self.stat-for-commit($type, $full);
+                $let's-save = True
             }
-            %data{$full} = $size;
-            $let's-save = True
+            @results.push: ($full, $_) with %data{$full}
         }
-        @results.push: ($full, $size) if $size and ($type eq ‘core’ or $size > 10)
+
+        spurt “{STATS-LOCATION}/$type”, to-json %data if $let's-save;
     }
 
-    spurt “{STATS-LOCATION}/$type”, to-json %data if $let's-save;
-
-
     my $pfilename = ‘plot.svg’;
-    my $title = $type eq ‘core’ ⁇ ‘CORE.setting.moarvm file size (MB)’
-                                ‼ ‘Installation size (MB)’;
+    my $title = OPTIONS{$type};
     my @values = @results.reverse»[1];
     my @labels = @results.reverse»[0]».substr: 0, 8;
 
     my $plot = SVG::Plot.new(
-        width      => 1000,
-        height     => 800,
-        min-y-axis => $zero,
+        :1000width,
+        :800height,
+        min-y-axis => $zeroed ⁇ 0 ‼ Nil,
         :$title,
         values     => (@values,),
         :@labels,
@@ -115,7 +140,7 @@ multi method process($msg, $query) {
 
     my $msg-response = @results.reverse.map(*.join: ‘ ’).join: “\n”;
 
-    ($msg-response, %graph)
+    $msg-response, %graph
 }
 
 Statisfiable.new.selfrun: ‘statisfiable6’, [/stat6?/, fuzzy-nick(‘statisfiable6’, 3) ]
