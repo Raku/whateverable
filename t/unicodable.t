@@ -194,6 +194,44 @@ $t.test(‘Answers on ‘.u’ when yoleaux is not around again’,
 $t.test(‘Space character required after ‘.u’’,
         ‘.unau ululation’);
 
+# Make sure queries starting with no-break space (or other spaces) are working correctly
+
+$t.test(‘just one no-break space’,
+        ‘u:  ’,
+        “{$t.our-nick}, U+00A0 NO-BREAK SPACE [Zs] ( )”);
+
+$t.test(‘just one no-break space (yoleaux-like query)’,
+        ‘.u  ’,
+        “{$t.our-nick}, U+00A0 NO-BREAK SPACE [Zs] ( )”);
+
+#`〈 TODO our testing server seems to trim trailing spaces
+$t.test(‘just one space’,
+        ‘u:  ’,
+        “{$t.our-nick}, U+0020 SPACE [Zs] ( )”);
+
+$t.test(‘just one space (yoleaux-like query)’,
+        ‘.u  ’,
+        “{$t.our-nick}, U+0020 SPACE [Zs] ( )”);
+〉
+
+$t.test(‘no-break space and a word’,
+        ‘u:  ab’,
+        “{$t.our-nick}, U+00A0 NO-BREAK SPACE [Zs] ( )”,
+        “{$t.our-nick}, U+0061 LATIN SMALL LETTER A [Ll] (a)”,
+        “{$t.our-nick}, U+0062 LATIN SMALL LETTER B [Ll] (b)”);
+
+$t.test(‘no-break space and a word (yoleaux-like query)’,
+        ‘.u  ab’,
+        “{$t.our-nick}, U+00A0 NO-BREAK SPACE [Zs] ( )”,
+        “{$t.our-nick}, U+0061 LATIN SMALL LETTER A [Ll] (a)”,
+        “{$t.our-nick}, U+0062 LATIN SMALL LETTER B [Ll] (b)”);
+
+$t.test(‘spaces before urls are still spaces ignored’,
+        ‘u:    https://gist.githubusercontent.com/AlexDaniel/1892f93da146cb6057e6f3ca38fb1e56/raw/3d007a9ec3782f756054a322e8710656e2e4e7c6/test’,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, U+1F4A9 PILE OF POO [So] (💩)”,
+        “{$t.our-nick}, U+0021 EXCLAMATION MARK [Po] (!)”);
+
 # Timeouts
 
 $t.test(:31timeout, ‘timeout’,

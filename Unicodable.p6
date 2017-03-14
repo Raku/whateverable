@@ -86,7 +86,11 @@ method process($msg, $query is copy) {
 
     my ($succeeded, $code-response) = self.process-code: $query, $msg;
     return $code-response unless $succeeded;
-    $query = $code-response;
+    if $code-response ne $query {
+        $query = $code-response
+    } elsif not $msg.args[1].match: /^ ‘.u’ \s / {
+        $query = ~$0 if $msg.args[1] ~~ / <[,:]> \s (.*) / # preserve leading spaces
+    }
     my $filename;
 
     my @all;
@@ -104,7 +108,7 @@ method process($msg, $query is copy) {
             @all.push: $char-desc;
             $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
         }
-    } elsif $query ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $/ {
+    } elsif $query ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $ && .*? \S / {
         my @words;
         my @props;
         for $query.words {
