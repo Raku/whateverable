@@ -226,7 +226,7 @@ $t.test(‘no-break space and a word (yoleaux-like query)’,
         “{$t.our-nick}, U+0061 LATIN SMALL LETTER A [Ll] (a)”,
         “{$t.our-nick}, U+0062 LATIN SMALL LETTER B [Ll] (b)”);
 
-$t.test(‘spaces before urls are still spaces ignored’,
+$t.test(‘spaces before urls are still ignored’,
         ‘u:    https://gist.githubusercontent.com/AlexDaniel/1892f93da146cb6057e6f3ca38fb1e56/raw/3d007a9ec3782f756054a322e8710656e2e4e7c6/test’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
         “{$t.our-nick}, U+1F4A9 PILE OF POO [So] (💩)”,
