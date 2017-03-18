@@ -272,7 +272,7 @@ $t.test(‘Both commits are wrong (did you mean … ?)’,
 
 $t.test(‘Did you forget to specify a revision?’,
         ‘commit: say ‘hello world’’,
-        “{$t.our-nick}, Seems like you forgot to specify a revision (will use “v6.c” unstead of “say”)”,
+        “{$t.our-nick}, Seems like you forgot to specify a revision (will use “v6.c” instead of “say”)”,
         /^ <{$t.our-nick}> ‘, ¦v6.c (’\d+‘ commits): «hello world»’ $/);
 
 # Timeouts

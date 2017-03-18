@@ -55,7 +55,7 @@ method process($msg, $config is copy, $code is copy) {
     my $start-time = now;
 
     if $config ~~ /^ [say|sub] $/ {
-        $msg.reply: “Seems like you forgot to specify a revision (will use “v6.c” unstead of “$config”)”;
+        $msg.reply: “Seems like you forgot to specify a revision (will use “v6.c” instead of “$config”)”;
         $code = “$config $code”;
         $config = ‘v6.c’
     }
