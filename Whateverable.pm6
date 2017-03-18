@@ -87,8 +87,8 @@ method beg-for-help($msg) {
 
 method get-short-commit($original-commit) { # TODO not an actual solution tbh
     $original-commit ~~ /^ <xdigit> ** 7..40 $/
-    ⁇ $original-commit.substr(0, 7)
-    ‼ $original-commit
+    ?? $original-commit.substr(0, 7)
+    !! $original-commit
 }
 
 method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
@@ -253,7 +253,7 @@ method to-full-commit($commit, :$short = False) {
     return if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
 
     my $result = self.get-output: |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
-                                  ($short ⁇ ‘--abbrev-commit’ ‼ Empty), $commit);
+                                  ($short ?? ‘--abbrev-commit’ !! Empty), $commit);
 
     return if     $result<exit-code> ≠ 0;
     return unless $result<output>;
@@ -347,10 +347,10 @@ method selfrun($nick is copy, @alias?) {
         :$nick
         :userreal($nick.tc)
         :username($nick.substr(0, 3) ~ ‘-able’)
-        :password(?%*ENV<TESTABLE> ⁇ ‘’ ‼ from-json(slurp CONFIG)<irc-login irc-password>.join(‘:’))
+        :password(?%*ENV<TESTABLE> ?? ‘’ !! from-json(slurp CONFIG)<irc-login irc-password>.join(‘:’))
         :@alias
-        :host(%*ENV<TESTABLE> ⁇ ‘127.0.0.1’ ‼ ‘wilhelm.freenode.net’)
-        :channels(%*ENV<DEBUGGABLE> ⁇ <#whateverable> ‼ <#perl6 #perl6-dev #whateverable #zofbot>)
+        :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! ‘wilhelm.freenode.net’)
+        :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable #zofbot>)
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )

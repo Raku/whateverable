@@ -89,7 +89,7 @@ method process($message, $code is copy) {
     if MESSAGE-LIMIT ≥ ($reply-start, $output, $reply-end).map(*.encode.elems).sum {
         return $reply-start ~ $output ~ $reply-end
     }
-    my $link = self.upload: {‘result’ => ($extra ⁇ “$extra\n” ‼ ‘’) ~ colorstrip($output),
+    my $link = self.upload: {‘result’ => ($extra ?? “$extra\n” !! ‘’) ~ colorstrip($output),
                              ‘query’  => $message.text, },
                             description => $message.server.current-nick, :public;
     $reply-end = ‘…’ ~ $reply-end;

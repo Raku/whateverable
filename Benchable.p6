@@ -127,7 +127,7 @@ method process($msg, $config, $code is copy) {
         } else { # actually run the code
             with $once {
                 my $c = +@commits;
-                my $s = $c == 1 ⁇ ‘’ ‼ ‘s’;
+                my $s = $c == 1 ?? ‘’ !! ‘s’;
                 $msg.reply: “starting to benchmark the $c given commit$s”
             }
             if $config ~~ /:i compare / {

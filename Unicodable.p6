@@ -201,7 +201,7 @@ method propdump($msg, $query) {
         $answer ~= “\n”;
         for $category.value -> $cat {
             my @props = @query.map: *.uniprop($cat[0]);
-            my $bold = ([eq] @props) ⁇ ｢｣ ‼ ｢**｣;
+            my $bold = ([eq] @props) ?? ｢｣ !! ｢**｣;
             $answer ~= ($bold ~ $cat.join(‘, ’) ~ $bold).fmt: “| %-55s |”;
             $answer ~= &escape($_).fmt: “ %-25s |” for @props;
             $answer ~= “\n”;

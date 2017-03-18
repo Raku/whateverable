@@ -26,7 +26,7 @@ role PrettyLink { has &.link-msg         }
 role FileStore  { has %.additional-files }
 
 sub shorten($str, $max, $cutoff=$max ÷ 2) is export {
-    $max ≥ $str.chars ⁇ $str ‼ $str.substr(0, $cutoff - 1) ~ ‘…’
+    $max ≥ $str.chars ?? $str !! $str.substr(0, $cutoff - 1) ~ ‘…’
 }
 
 sub fuzzy-nick($nick, $distance) is export {

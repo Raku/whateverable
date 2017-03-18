@@ -111,8 +111,8 @@ method process($msg, $config is copy, $code is copy) {
     }
 
     my $short-str = @result == 1 && @result[0]<commits> > 3 && $config.chars < 20
-    ⁇ “¦{$config} ({+@result[0]<commits>} commits): «{@result[0]<output>}»”
-    ‼ ‘¦’ ~ @result.map({ “{.<commits>.join(‘,’)}: «{.<output>}»” }).join: ‘ ¦’;
+    ?? “¦{$config} ({+@result[0]<commits>} commits): «{@result[0]<output>}»”
+    !! ‘¦’ ~ @result.map({ “{.<commits>.join(‘,’)}: «{.<output>}»” }).join: ‘ ¦’;
 
     my $long-str  = ‘¦’ ~ @result.map({ “«{.<commits>.join(‘,’)}»: {.<output>}” }).join: “\n¦”;
     return $short-str but ProperStr($long-str);

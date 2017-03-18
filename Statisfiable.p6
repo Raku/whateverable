@@ -46,8 +46,8 @@ method TWEAK {
     for OPTIONS.keys {
         %stat-locks{$_} = Lock.new;
         %stats{$_} = “{STATS-LOCATION}/$_”.IO.e
-          ⁇ from-json slurp “{STATS-LOCATION}/$_”
-          ‼ %()
+          ?? from-json slurp “{STATS-LOCATION}/$_”
+          !! %()
     }
 }
 
@@ -63,7 +63,7 @@ method help($) {
 multi method stat-for-commit(‘core’, $full-hash) {
     self.run-smth: $full-hash, {
         my $file = “$_/share/perl6/runtime/CORE.setting.moarvm”.IO;
-        $file.IO.e ⁇ $file.IO.s ÷ 10⁶ ‼ Nil
+        $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
     }
 }
 
@@ -75,14 +75,14 @@ multi method stat-for-commit(‘install’, $full-hash) {
     self.run-smth: $full-hash, {
         # ↓ scary, but works
         my $result = Rakudo::Internals.DIR-RECURSE($_).map(*.IO.s).sum ÷ 10⁶;
-        $result > 10 ⁇ $result ‼ Nil
+        $result > 10 ?? $result !! Nil
     }
 }
 
 multi method stat-for-commit(‘libmoar’, $full-hash) {
     self.run-smth: $full-hash, {
         my $file = “$_/lib/libmoar.so”.IO;
-        $file.IO.e ⁇ $file.IO.s ÷ 10⁶ ‼ Nil
+        $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
     }
 }
 
@@ -92,8 +92,8 @@ multi method irc-to-me($msg where /:i ( <{OPTIONS.keys}> ) (‘0’)? /) {
     start {
         my ($value, %additional-files) = self.process: $msg, $type, $zeroed;
         $value.defined
-        ⁇ ($value but $msg) but FileStore(%additional-files)
-        ‼ Nil
+        ?? ($value but $msg) but FileStore(%additional-files)
+        !! Nil
     }
 }
 
@@ -130,7 +130,7 @@ multi method process($msg, $type, $zeroed) {
     my $plot = SVG::Plot.new(
         :1000width,
         :800height,
-        min-y-axis => $zeroed ⁇ 0 ‼ Nil,
+        min-y-axis => $zeroed ?? 0 !! Nil,
         :$title,
         values     => (@values,),
         :@labels,

@@ -93,7 +93,7 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output)
             take “»»»»» Note that on “old” revision exit signal is normally {signal-to-text 0}, you are probably trying to find when something was fixed”
         }
         take ‘»»»»» If exit signal is not the same as on “old” revision, this revision will be marked as “new”’;
-        my $revision-type = $result<signal> == $old-exit-signal ⁇ Old ‼ New;
+        my $revision-type = $result<signal> == $old-exit-signal ?? Old !! New;
         take “»»»»» Therefore, marking this revision as “{$revision-type.lc}””;
         return $revision-type
     }
@@ -106,7 +106,7 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output)
             take ‘»»»»» Note that on “old” revision exit code is normally 0, you are probably trying to find when something was fixed’
         }
         take ‘»»»»» If exit code is not the same as on “old” revision, this revision will be marked as “new”’;
-        my $revision-type = $result<exit-code> == $old-exit-code ⁇ Old ‼ New;
+        my $revision-type = $result<exit-code> == $old-exit-code ?? Old !! New;
         take “»»»»» Therefore, marking this revision as “{$revision-type.lc}””;
         return $revision-type
     }
@@ -116,8 +116,8 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output)
         take ‘»»»»» Bisecting by output’;
         take ‘»»»»» Output on “old” revision is:’;
         take $old-output;
-        my $revision-type = $result<output> eq $old-output ⁇ Old ‼ New;
-        take “»»»»» The output is {$revision-type == Old ⁇ ‘identical’ ‼ ‘different’}”;
+        my $revision-type = $result<output> eq $old-output ?? Old !! New;
+        take “»»»»» The output is {$revision-type == Old ?? ‘identical’ !! ‘different’}”;
         take “»»»»» Therefore, marking this revision as “{$revision-type.lc}””;
         return $revision-type
     }
@@ -167,7 +167,7 @@ method process($msg, $code is copy, $old, $new) {
         ~ “ (did you mean “{self.get-short-commit: self.get-similar: $old, @options}”?)”
     }
     return “No build for revision “$old”” unless self.build-exists: $full-old;
-    my $short-old = self.get-short-commit: $old eq $full-old | ‘HEAD’ ⁇ $full-old ‼ $old;
+    my $short-old = self.get-short-commit: $old eq $full-old | ‘HEAD’ ?? $full-old !! $old;
 
     my $full-new = self.to-full-commit: $new;
     without $full-new {
@@ -175,7 +175,7 @@ method process($msg, $code is copy, $old, $new) {
         ~ “ (did you mean “{self.get-short-commit: self.get-similar: $new, @options}”?)”
     }
     return “No build for revision “$new”” unless self.build-exists: $full-new;
-    my $short-new = self.get-short-commit: $new eq ‘HEAD’ ⁇ $full-new ‼ $new;
+    my $short-new = self.get-short-commit: $new eq ‘HEAD’ ?? $full-new !! $new;
 
     my $filename = self.write-code: $code;
 
