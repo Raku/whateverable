@@ -45,6 +45,7 @@ exit 0 unless run ‘mkdir’, :err(Nil), ‘--’, BUILD-LOCK; # only one insta
 my $locked = True;
 END BUILD-LOCK.IO.rmdir if $locked;
 
+# TODO should we also pull nqp/ and MoarVM/ ?
 if RAKUDO-LATEST.IO ~~ :d  {
     my $old-dir = $*CWD;
     LEAVE chdir $old-dir;
@@ -64,24 +65,27 @@ my @git-latest = ‘git’, ‘--git-dir’, “{RAKUDO-LATEST}/.git”, ‘--wo
 my @args-tags   = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’, ‘--since’, TAGS-SINCE;
 my @args-latest = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, COMMIT-RANGE;
 
-$channel.send: $_ for run(:out, |@args-tags  ).out.split(0.chr, :skip-empty);
+#$channel.send: $_ for run(:out, |@args-tags  ).out.split(0.chr, :skip-empty);
+# ↑ TODO this ends with Nil or an empty string for some reason? It makes
+# this check: ｢last unless $commit｣ exit from the loop, so it never reaches
+# actual commits.
 $channel.send: $_ for run(:out, |@args-latest).out.split(0.chr, :skip-empty);
 
 await (for ^PARALLEL-COUNT { # TODO rewrite when .race starts working in rakudo
               start loop {
                   my $commit = $channel.poll;
                   last unless $commit;
-                  process-commit($commit);
+                  try { process-commit($commit) }
               }
           });
 
 # update rakudo repo so that bots know about latest commits
-run ‘git’, ‘--git-dir’, “{RAKUDO-CURRENT}/.git”, ‘--work-tree’, RAKUDO-CURRENT, ‘pull’, RAKUDO-LATEST;
+run ‘git’, ‘--git-dir’, “{RAKUDO-CURRENT}/.git”, ‘--work-tree’, RAKUDO-CURRENT, ‘pull’, ‘--tags’, RAKUDO-LATEST;
 
 sub process-commit($commit) {
     return if “{ARCHIVES-LOCATION}/$commit.zst”.IO ~~ :e; # already exists
 
-    my ($temp-folder, $fh-unlink-on-destroy) = tempdir :unlink;
+    my ($temp-folder,) = tempdir, :!unlink;
     my $build-path   = “{BUILDS-LOCATION}/$commit”.IO.absolute;
     my $log-path     = $build-path;
     my $archive-path = “{ARCHIVES-LOCATION}/$commit.zst”.IO.absolute;
@@ -94,6 +98,7 @@ sub process-commit($commit) {
 
     # No :merge for log files because RT #125756 RT #128594
 
+    my $config-ok;
     mkdir $build-path;
     {
         # ⚡ configure
@@ -102,32 +107,42 @@ sub process-commit($commit) {
         chdir $temp-folder;
         say “»»»»» $commit: configure”;
         my $configure-log-fh = open :w, “$log-path/configure.log”;
-        my $config-ok = run(:out($configure-log-fh), :err(Nil), ‘perl’, ‘--’, ‘Configure.pl’,
-                            ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’, “--prefix=$build-path”,
-                            “--git-reference={GIT-REFERENCE}”);
+        my $configure-err-fh = open :w, “$log-path/configure.err”;
+        $config-ok = run(:out($configure-log-fh), :err($configure-err-fh),
+                         ‘perl’, ‘--’, ‘Configure.pl’,
+                         ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’, “--prefix=$build-path”,
+                         “--git-reference={GIT-REFERENCE}” );
         $configure-log-fh.close;
-        if not $config-ok {
-            say “»»»»» Cannot build $commit”;
-            rmtree $temp-folder;
-            return;
-        }
+        $configure-err-fh.close;
+        say “»»»»» Cannot configure $commit” unless $config-ok;
     }
 
-    # ⚡ make
-    say “»»»»» $commit: make”;
-    my $make-log-fh = open :w, “$log-path/make.log”;
-    my $make-ok = run(:out($make-log-fh), :err(Nil), ‘make’, ‘-C’, $temp-folder);
-    $make-log-fh.close;
-
+    my $make-ok;
+    if $config-ok {
+        # ⚡ make
+        say “»»»»» $commit: make”;
+        my $make-log-fh = open :w, “$log-path/make.log”;
+        my $make-err-fh = open :w, “$log-path/make.err”;
+        $make-ok = run(:out($make-log-fh), :err($make-err-fh),
+                       ‘make’, ‘-C’, $temp-folder);
+        $make-log-fh.close;
+        $make-err-fh.close;
+        say “»»»»» Cannot make $commit” unless $make-ok;
+    }
     if $make-ok {
         # ⚡ make install
         say “»»»»» $commit: make install”;
         my $install-log-fh = open :w, “$log-path/make-install.log”;
-        run(:out($install-log-fh), :err(Nil), ‘make’, ‘-C’, $temp-folder, ‘install’);
+        my $install-err-fh = open :w, “$log-path/make-install.err”;
+        my $install-ok = run(:out($install-log-fh), :err($install-err-fh),
+                             ‘make’, ‘-C’, $temp-folder, ‘install’);
         $install-log-fh.close;
+        $install-err-fh.close;
+        say “»»»»» Cannot install $commit” unless $install-ok;
     }
 
     # ⚡ compress
+    # No matter what we got, compress it
     say “»»»»» $commit: compressing”;
     my $proc = run(:out, :bin, ‘tar’, ‘cf’, ‘-’, ‘--absolute-names’, ‘--remove-files’, ‘--’, $build-path);
     run(:in($proc.out), :bin, ‘zstd’, ‘-c’, ‘-19’, ‘-q’, ‘-o’, $archive-path);
