@@ -22,7 +22,7 @@ use File::Temp;
 use File::Directory::Tree;
 
 constant PARALLEL-COUNT    = 1;
-constant COMMIT-RANGE      = ‘2015.10^..HEAD’;
+constant COMMIT-RANGE      = ‘2015.07^..HEAD’;
 constant TAGS-SINCE        = ‘2014-01-01’;
 
 constant WORKING-DIRECTORY = ‘.’; # TODO not supported yet
