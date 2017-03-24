@@ -134,19 +134,19 @@ $t.test(‘stdin char count’,
 
 $t.test(‘stdin numbers’,
         ‘eval: say slurp().comb(/\d+/)’,
-        /^ <me($t)>‘, rakudo-moar 7bebec08e: OUTPUT: «(4𝟮)»’/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(4𝟮)»’/);
 
 $t.test(‘stdin words’,
         ‘eval: say slurp().comb(/\w+/)’,
-        /^ <me($t)>‘, rakudo-moar 7bebec08e: OUTPUT: «(hello world 4𝟮)»’/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(hello world 4𝟮)»’/);
 
 $t.test(‘stdin No’,
         ‘eval: say slurp().comb(/<:No>+/)’,
-        /^ <me($t)>‘, rakudo-moar 7bebec08e: OUTPUT: «(½)»’/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(½)»’/);
 
 $t.test(‘stdin Nl’,
         ‘eval: say slurp().comb(/<:Nl>+/)’,
-        /^ <me($t)>‘, rakudo-moar 7bebec08e: OUTPUT: «(Ⅵ)»’/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(Ⅵ)»’/);
 
 $t.test(‘huge stdin is not replied back fully’,
         ‘eval: stdin https://raw.githubusercontent.com/perl6/mu/master/misc/camelia.txt’,
