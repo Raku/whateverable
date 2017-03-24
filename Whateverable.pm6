@@ -351,7 +351,7 @@ method selfrun($nick is copy, @alias?) {
         :password(?%*ENV<TESTABLE> ?? ‘’ !! from-json(slurp CONFIG)<irc-login irc-password>.join(‘:’))
         :@alias
         :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! ‘wilhelm.freenode.net’)
-        :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable #zofbot>)
+        :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable #zofbot #moarvm>)
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )
