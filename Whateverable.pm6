@@ -30,6 +30,7 @@ use Text::Diff::Sift4;
 use Misc;
 
 constant RAKUDO = ‘./rakudo’.IO.absolute;
+constant MOARVM = ‘./moarvm’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
 constant SOURCE = ‘https://github.com/perl6/whateverable’;
 constant WIKI   = ‘https://github.com/perl6/whateverable/wiki/’;
@@ -125,10 +126,10 @@ method build-exists($full-commit-hash, :$backend=‘rakudo-moar’) {
     “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”.IO ~~ :e
 }
 
-method get-similar($tag-or-hash, @other?) {
+method get-similar($tag-or-hash, @other?, :$repo=RAKUDO) {
     my $old-dir = $*CWD;
     LEAVE chdir $old-dir;
-    chdir RAKUDO;
+    chdir $repo;
 
     my @options = @other;
     my @tags = self.get-output(‘git’, ‘tag’, ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
@@ -194,7 +195,7 @@ method run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$time
     }
 }
 
-method get-commits($config) {
+method get-commits($config, :$repo=RAKUDO) {
     my $old-dir = $*CWD;
     LEAVE chdir $old-dir;
     my @commits;
@@ -202,7 +203,7 @@ method get-commits($config) {
     if $config.contains: ‘,’ {
         @commits = $config.split: ‘,’;
     } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
-        chdir RAKUDO; # goes back in LEAVE
+        chdir $repo; # goes back in LEAVE
         if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode ≠ 0 {
             return “Bad start, cannot find a commit for “$<start>””;
         }
@@ -215,9 +216,9 @@ method get-commits($config) {
         my $num-commits = @commits.elems;
         return “Too many commits ($num-commits) in range, you're only allowed {COMMITS-LIMIT}” if $num-commits > COMMITS-LIMIT
     } elsif $config ~~ /:i ^ [ releases | v? 6 \.? c ] $/ {
-        @commits = self.get-tags: ‘2015-12-24’
+        @commits = self.get-tags: ‘2015-12-24’, repo => $repo
     } elsif $config ~~ /:i ^ all $/ {
-        @commits = self.get-tags: ‘2014-01-01’
+        @commits = self.get-tags: ‘2014-01-01’, repo => $repo
     } elsif $config ~~ /:i ^ compare \s $<commit>=\S+ $/ {
         @commits = $<commit>
     } else {
@@ -227,9 +228,9 @@ method get-commits($config) {
     return Nil, |@commits # TODO throw exceptions instead of doing this
 }
 
-method get-tags($date) {
+method get-tags($date, :$repo=RAKUDO) {
     my $old-dir = $*CWD;
-    chdir RAKUDO;
+    chdir $repo;
     LEAVE chdir $old-dir;
 
     my @tags = <HEAD>;
@@ -245,9 +246,9 @@ method get-tags($date) {
     @tags.reverse
 }
 
-method to-full-commit($commit, :$short = False) {
+method to-full-commit($commit, :$short=False, :$repo=RAKUDO) {
     my $old-dir = $*CWD;
-    chdir RAKUDO;
+    chdir $repo;
     LEAVE chdir $old-dir;
 
     return if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
