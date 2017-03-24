@@ -216,9 +216,9 @@ method get-commits($config, :$repo=RAKUDO) {
         my $num-commits = @commits.elems;
         return “Too many commits ($num-commits) in range, you're only allowed {COMMITS-LIMIT}” if $num-commits > COMMITS-LIMIT
     } elsif $config ~~ /:i ^ [ releases | v? 6 \.? c ] $/ {
-        @commits = self.get-tags: ‘2015-12-24’, repo => $repo
+        @commits = self.get-tags: ‘2015-12-24’, :$repo
     } elsif $config ~~ /:i ^ all $/ {
-        @commits = self.get-tags: ‘2014-01-01’, repo => $repo
+        @commits = self.get-tags: ‘2014-01-01’, :$repo
     } elsif $config ~~ /:i ^ compare \s $<commit>=\S+ $/ {
         @commits = $<commit>
     } else {
