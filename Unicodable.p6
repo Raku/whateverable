@@ -81,6 +81,20 @@ method get-description($ord) {
     sprintf “U+%04X %s [%s] (%s)”, $ord, $ord.uniname, $ord.uniprop, $char
 }
 
+method from-numerics($query) {
+    $query ~~ m:ignoremark/^
+        :i \s*
+        [
+            [ | ‘u’ (.) <?{ $0[*-1].Str.uniname.match: /PLUS.*SIGN/ }>
+              | [ <:Nd> & <:Numeric_Value(0)> ] ‘x’ # TODO is it fixed now?
+            ]
+            $<digit>=<:HexDigit>+
+        ]+ %% \s+
+        $/;
+    return () without $<digit>;
+    $<digit>.map: { parse-base ~$_, 16 }
+}
+
 method process($msg, $query is copy) {
     my $old-dir = $*CWD;
 
@@ -95,16 +109,10 @@ method process($msg, $query is copy) {
 
     my @all;
 
-    if $query ~~ m:ignoremark/^ :i \s*
-                             [
-                                 [ | ‘u’ (.) <?{ $0[*-1].Str.uniname.match: /PLUS.*SIGN/ }>
-                                   | [ <:Nd> & <:Numeric_Value(0)> ] ‘x’ # TODO is it fixed now?
-                                 ]
-                                 $<digit>=<:HexDigit>+
-                             ]+ %% \s+
-                             $/ {
-        for $<digit> {
-            my $char-desc = self.get-description: parse-base ~$_, 16;
+    my @numerics = self.from-numerics($query);
+    if @numerics {
+        for @numerics {
+            my $char-desc = self.get-description: $_;
             @all.push: $char-desc;
             $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
         }
@@ -189,7 +197,8 @@ method process($msg, $query is copy) {
 
 method propdump($msg, $query) {
     my $answer = ‘’;
-    my @query = $query.comb>>.ords.flat;
+    my @numerics = self.from-numerics($query);
+    my @query = @numerics || $query.comb».ords.flat;
     my &escape = *.trans: (‘|’,) => (‘&#124;’,);
     for @prop-table -> $category {
         $answer ~= sprintf “\n### %s\n”, $category.key;
