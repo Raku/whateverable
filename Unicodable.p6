@@ -202,17 +202,17 @@ method propdump($msg, $query) {
     my &escape = *.trans: (‘|’,) => (‘&#124;’,);
     for @prop-table -> $category {
         $answer ~= sprintf “\n### %s\n”, $category.key;
-        $answer ~= sprintf “| %-55s |”, ‘Property names’;
-        $answer ~= .fmt: “ %-25s |” for @query.map: -> $char {“Value: {&escape($char.chr)}”};
+        $answer ~= sprintf ‘| %-55s |’, ‘Property names’;
+        $answer ~= .fmt: ‘ %-25s |’ for @query.map: -> $char { “Value: {&escape($char.chr)}” };
         $answer ~= “\n”;
         $answer ~= “|{‘-’ x 57}|”;
         $answer ~= “{‘-’ x 27}|” x @query;
         $answer ~= “\n”;
         for $category.value -> $cat {
-            my @props = @query.map: *.uniprop($cat[0]);
+            my @props = @query.map: *.uniprop: $cat[0];
             my $bold = ([eq] @props) ?? ｢｣ !! ｢**｣;
-            $answer ~= ($bold ~ $cat.join(‘, ’) ~ $bold).fmt: “| %-55s |”;
-            $answer ~= &escape($_).fmt: “ %-25s |” for @props;
+            $answer ~= ($bold ~ $cat.join(‘, ’) ~ $bold).fmt: ‘| %-55s |’;
+            $answer ~= &escape($_).fmt: ‘ %-25s |’ for @props;
             $answer ~= “\n”;
         }
     }
