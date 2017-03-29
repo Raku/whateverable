@@ -277,7 +277,7 @@ $t.test(‘Did you forget to specify a revision?’,
 
 # Timeouts
 
-$t.test(:21timeout, ‘timeout’,
+$t.test(:22timeout, ‘timeout’,
         ‘commit: 2015.12,HEAD say ‘Zzzz…’; sleep ∞’,
         /^ <me($t)>‘, ¦2015.12,HEAD(’<sha>‘): «Zzzz…␤«timed out after 10 seconds» «exit signal = SIGHUP (1)»»’ $/);
 
