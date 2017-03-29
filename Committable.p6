@@ -37,9 +37,11 @@ method help($msg) {
     “Like this: {$msg.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 }
 
-multi method irc-to-me($msg where { .args[1].starts-with(any shortcuts.keys X~ ‘:’)
-                                    and .text ~~ /^ \s* $<code>=.+ / }) is default {
-    my $value = self.process: $msg, shortcuts{$msg.args[1].split(‘:’, 2)[0]}, ~$<code>;
+multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=<{shortcuts.keys}>
+                                                                 $<delim>=[‘:’ | ‘,’]/)
+                                  && .text ~~ /^ \s* $<code>=.+ /) is default {
+    return if $prefix<delim> eq ‘,’;
+    my $value = self.process: $msg, shortcuts{$prefix<shortcut>}, ~$<code>;
     return without $value;
     return $value but Reply($msg)
 }

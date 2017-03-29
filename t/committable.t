@@ -175,6 +175,16 @@ $t.test(‘“6c” query’,
         ‘commit: 6c say $*PERL’,
         /^ <{$t.our-nick}> ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
 
+$t.test(‘“what:” query’,
+        ‘what: say $*PERL’,
+        /^ <{$t.our-nick}> ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
+
+$t.test(‘“what,” does not work’,
+        ‘what, say ‘what, is actually working…’’);
+
+$t.test(‘“6c,” does not work’,
+        ‘6c, say ‘6c, is actually working…’’);
+
 $t.test(‘“all” query (same output everywhere)’,
         ‘commit: all say 'hi'’, # ASCII quotes because they are supported everywhere
         /^ <{$t.our-nick}> ‘, ¦all (’\d+‘ commits): «hi»’ $/,
