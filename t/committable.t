@@ -234,7 +234,7 @@ $t.test(‘comment after a url (without #)’,
         /^ <me($t)>‘, ¦HEAD(’<sha>‘): «url test»’ $/);
 
 $t.test(‘wrong url’,
-        ‘commit: HEAD http://github.org/sntoheausnteoahuseoau’,
+        ‘commit: HEAD http://github.com/sntoheausnteoahuseoau’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found).”);
 
 $t.test(‘wrong mime type’,

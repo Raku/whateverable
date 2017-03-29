@@ -203,7 +203,7 @@ $t.test(‘comment after a url (without #)’,
         “{$t.our-nick}, Output on both points: «url test»”);
 
 $t.test(‘wrong url’,
-        ‘bisect: http://github.org/sntoheausnteoahuseoau’,
+        ‘bisect: http://github.com/sntoheausnteoahuseoau’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found).”);
 
 $t.test(‘wrong mime type’,

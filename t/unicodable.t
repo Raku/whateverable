@@ -156,7 +156,7 @@ $t.test(‘comment after a url (without #)’,
         “{$t.our-nick}, U+0021 EXCLAMATION MARK [Po] (!)”);
 
 $t.test(‘wrong url’,
-        ‘u: http://github.org/sntoheausnteoahuseoau’,
+        ‘u: http://github.com/sntoheausnteoahuseoau’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found).”);
 
 $t.test(‘wrong mime type’,
