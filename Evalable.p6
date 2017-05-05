@@ -33,7 +33,7 @@ method help($msg) {
 }
 
 multi method irc-to-me($message) {
-    if $message.args[1] ~~ / ^ ‘m:’ / {
+    if $message.args[1] ~~ / ^ ‘m:’\s / {
         my $update-promise = Promise.new;
         $!update-promise-channel.send: $update-promise;
         $message.irc.send-cmd: ‘NAMES’, $message.channel;
