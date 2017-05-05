@@ -54,6 +54,19 @@ multi method irc-to-me($message) {
     }
 }
 
+multi method irc-privmsg-channel($msg where .args[1] ~~
+                                 /
+                                 ^ ‘say’ \s+
+                                 <!before ‘I’ [\s | ‘'’]>
+                                 [
+                                     || [ [<:Uppercase> || ‘'’ || ‘"’ || ｢“｣ || ｢‘｣ ] .* $ ]
+                                     || [ (.*) $ <?{$0.chars / $0.comb(/<-alpha -space>/) ≤ 10 }> ]
+                                 ]
+                                 <!after <[.!?]>>
+                                 /) {
+    self.irc-to-me($msg)
+}
+
 method process($message, $code is copy) {
     my $old-dir = $*CWD;
     my $commit = ‘HEAD’;
