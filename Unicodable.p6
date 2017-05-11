@@ -66,19 +66,30 @@ multi method irc-privmsg-channel($msg where .args[1] ~~ / ^ ‘.u’ \s (.*)/) {
     self.irc-to-me($msg)
 }
 
-method get-description($ord) {
+multi method codepointify(Int $ord ) { $ord.fmt(“U+%04X”) }
+multi method codepointify(Str $char) { $char.ords».fmt(“U+%04X”).join: ‘, ’ }
+
+method sanify($ord) {
     my $char;
     try {
         $char = $ord.chr;
-        CATCH { default { return sprintf “U+%04X (invalid codepoint)”, $ord } }
+        CATCH { default { return “{self.codepointify($ord)} (invalid codepoint)” } }
     }
-    $char = ‘◌’ ~ $ord.chr if $ord.uniprop.starts-with: ‘M’; # TODO ask samcv
     try {
         $char.encode;
-        CATCH { default { $char = ‘unencodable character’ } }
+        CATCH { default { return ‘unencodable character’ } }
     }
+    $char = ‘◌’ ~ $ord.chr if $ord.uniprop.starts-with: ‘M’; # TODO ask samcv
     $char = ‘control character’ if $ord.uniprop eq ‘Cc’;
-    sprintf “U+%04X %s [%s] (%s)”, $ord, $ord.uniname, $ord.uniprop, $char
+    $char
+}
+
+method get-description($ord) {
+    my $sane = self.sanify($ord);
+    return $sane if $sane.ends-with(‘)’);
+    sprintf “%s %s [%s] (%s)”,
+            self.codepointify($ord), $ord.uniname,
+            $ord.uniprop, self.sanify($ord)
 }
 
 method from-numerics($query) {
@@ -203,7 +214,7 @@ method propdump($msg, $query) {
     for @prop-table -> $category {
         $answer ~= sprintf “\n### %s\n”, $category.key;
         $answer ~= sprintf ‘| %-55s |’, ‘Property names’;
-        $answer ~= .fmt: ‘ %-25s |’ for @query.map: -> $char { “Value: {&escape($char.chr)}” };
+        $answer ~= .fmt: ‘ %-25s |’ for @query.map: -> $char { “Value: {&escape(self.sanify: $char)}” };
         $answer ~= “\n”;
         $answer ~= “|{‘-’ x 57}|”;
         $answer ~= “{‘-’ x 27}|” x @query;
@@ -212,7 +223,7 @@ method propdump($msg, $query) {
             my @props = @query.map: *.uniprop: $cat[0];
             my $bold = ([eq] @props) ?? ｢｣ !! ｢**｣;
             $answer ~= ($bold ~ $cat.join(‘, ’) ~ $bold).fmt: ‘| %-55s |’;
-            $answer ~= &escape($_).fmt: ‘ %-25s |’ for @props;
+            $answer ~= &escape(.comb».ords.flat.map({self.sanify($_)}).join).fmt: ‘ %-25s |’ for @props;
             $answer ~= “\n”;
         }
     }
