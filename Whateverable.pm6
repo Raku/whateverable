@@ -23,6 +23,7 @@ use IRC::Client::Message;
 use IRC::Client;
 use IRC::TextColor;
 use JSON::Fast;
+use Number::Denominate;
 use Pastebin::Gist;
 use Terminal::ANSIColor;
 use Text::Diff::Sift4;
@@ -71,6 +72,9 @@ multi method irc-to-me(Message $    where .text ~~ /:i^ [source|url] ‘?’? $/
 multi method irc-to-me(Message $    where .text ~~ /:i^ wiki ‘?’? $/) { self.get-wiki-link }
 multi method irc-to-me(Message $msg where .text ~~ /:i^ help ‘?’? $/) {
     self.help($msg) ~ “ # See wiki for more examples: {self.get-wiki-link}”
+}
+multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime $/) {
+    ~denominate now - BEGIN now
 }
 multi method irc-notice-me( $ --> ‘Sorry, it is too private here’) {} # TODO issue #16
 multi method irc-privmsg-me($ --> ‘Sorry, it is too private here’) {} # TODO issue #16
