@@ -76,6 +76,7 @@ multi method benchmark-code($full-commit-hash, @code) {
     }
     my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/rakudo-moar/$full-commit-hash.zst”;
     run :in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’;
+    $proc.out.close;
     my $timing;
     if “{BUILDS-LOCATION}/rakudo-moar/$full-commit-hash/bin/perl6”.IO !~~ :e {
         return ‘Commit exists, but a perl6 executable could not be built for it’
