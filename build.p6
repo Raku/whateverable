@@ -16,26 +16,39 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# This script will build rakudo for all commits that it can find
+# This script will build something for all commits that it can find
 
 use File::Temp;
 use File::Directory::Tree;
 
-constant PARALLEL-COUNT    = 1;
-constant COMMIT-RANGE      = ‘2015.07^..HEAD’;
-constant TAGS-SINCE        = ‘2014-01-01’;
+enum Project <Rakudo-Moar Rakudo-JVM Rakudo-JS MoarVM>;
+my \PROJECT = do given @*ARGS[0] // ‘’ {
+    when /:i ^‘moarvm’$ / { MoarVM }
+    default { Rakudo-Moar }
+}
+my \RAKUDOISH         = PROJECT == Rakudo-Moar | Rakudo-JVM | Rakudo-JS;
+my \DIR-BASE          = PROJECT.lc;
 
-constant WORKING-DIRECTORY = ‘.’; # TODO not supported yet
+my \PARALLEL-COUNT    = 1;
+my \COMMIT-RANGE      = ‘2015.07^..HEAD’;
+my \TAGS-SINCE        = ‘2014-01-01’;
 
-constant RAKUDO-ORIGIN     = ‘https://github.com/rakudo/rakudo.git’;
-constant RAKUDO-LATEST     = ‘/tmp/whateverable/rakudo-repo’;
-constant RAKUDO-CURRENT    = “{WORKING-DIRECTORY}/rakudo”.IO.absolute;
+my \WORKING-DIRECTORY = ‘.’; # TODO not supported yet
 
-constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/rakudo-moar”.IO.absolute;
-constant BUILDS-LOCATION   = ‘/tmp/whateverable/rakudo-moar’;
-constant BUILD-LOCK        = ‘/tmp/whateverable/build-lock’;
+my \REPO-ORIGIN       = RAKUDOISH
+                        ?? ‘https://github.com/rakudo/rakudo.git’
+                        !! ‘https://github.com/MoarVM/MoarVM.git’;
 
-constant GIT-REFERENCE     = WORKING-DIRECTORY.IO.absolute;
+my \REPO-LATEST       = “/tmp/whateverable/{DIR-BASE}-repo”;
+# ↑ yes, separate cloned repo for every backend to prevent several
+#   instances of this script fighting with each other
+my \REPO-CURRENT      = “{WORKING-DIRECTORY}/{DIR-BASE}”.IO.absolute;
+
+my \ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/{DIR-BASE}”.IO.absolute;
+my \BUILDS-LOCATION   = “/tmp/whateverable/{DIR-BASE}”;
+my \BUILD-LOCK        = “{BUILDS-LOCATION}/build-lock”;
+
+my \GIT-REFERENCE     = WORKING-DIRECTORY.IO.absolute;
 
 mkdir BUILDS-LOCATION;
 mkdir ARCHIVES-LOCATION;
@@ -45,23 +58,22 @@ exit 0 unless run ‘mkdir’, :err(Nil), ‘--’, BUILD-LOCK; # only one insta
 my $locked = True;
 END BUILD-LOCK.IO.rmdir if $locked;
 
-# TODO should we also pull nqp/ and MoarVM/ ?
-if RAKUDO-LATEST.IO ~~ :d  {
+if REPO-LATEST.IO ~~ :d  {
     my $old-dir = $*CWD;
     LEAVE chdir $old-dir;
-    chdir RAKUDO-LATEST;
+    chdir REPO-LATEST;
     run ‘git’, ‘pull’;
 } else {
-    exit unless run ‘git’, ‘clone’, ‘--’, RAKUDO-ORIGIN, RAKUDO-LATEST;
+    exit unless run ‘git’, ‘clone’, ‘--’, REPO-ORIGIN, REPO-LATEST;
 }
 
-if RAKUDO-CURRENT.IO !~~ :d  {
-    run ‘git’, ‘clone’, ‘--’, RAKUDO-LATEST, RAKUDO-CURRENT;
+if REPO-CURRENT.IO !~~ :d  {
+    run ‘git’, ‘clone’, ‘--’, REPO-LATEST, REPO-CURRENT;
 }
 
 my $channel = Channel.new;
 
-my @git-latest = ‘git’, ‘--git-dir’, “{RAKUDO-LATEST}/.git”, ‘--work-tree’, RAKUDO-LATEST;
+my @git-latest = ‘git’, ‘--git-dir’, “{REPO-LATEST}/.git”, ‘--work-tree’, REPO-LATEST;
 my @args-tags   = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’, ‘--since’, TAGS-SINCE;
 my @args-latest = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, COMMIT-RANGE;
 
@@ -79,8 +91,8 @@ await (for ^PARALLEL-COUNT { # TODO rewrite when .race starts working in rakudo
               }
           });
 
-# update rakudo repo so that bots know about latest commits
-run ‘git’, ‘--git-dir’, “{RAKUDO-CURRENT}/.git”, ‘--work-tree’, RAKUDO-CURRENT, ‘pull’, ‘--tags’, RAKUDO-LATEST;
+# update repo so that bots know about latest commits
+run ‘git’, ‘--git-dir’, “{REPO-CURRENT}/.git”, ‘--work-tree’, REPO-CURRENT, ‘pull’, ‘--tags’, REPO-LATEST;
 
 sub process-commit($commit) {
     return if “{ARCHIVES-LOCATION}/$commit.zst”.IO ~~ :e; # already exists
@@ -91,7 +103,7 @@ sub process-commit($commit) {
     my $archive-path = “{ARCHIVES-LOCATION}/$commit.zst”.IO.absolute;
 
     # ⚡ clone
-    run ‘git’, ‘clone’, ‘-q’, ‘--’, RAKUDO-LATEST, $temp-folder;
+    run ‘git’, ‘clone’, ‘-q’, ‘--’, REPO-LATEST, $temp-folder;
     # ⚡ checkout to $commit
     my @git-temp = ‘git’, ‘--git-dir’, “$temp-folder/.git”, ‘--work-tree’, $temp-folder;
     run |@git-temp, ‘reset’, ‘-q’, ‘--hard’, $commit;
@@ -108,10 +120,20 @@ sub process-commit($commit) {
         say “»»»»» $commit: configure”;
         my $configure-log-fh = open :w, “$log-path/configure.log”;
         my $configure-err-fh = open :w, “$log-path/configure.err”;
-        $config-ok = run(:out($configure-log-fh), :err($configure-err-fh),
-                         ‘perl’, ‘--’, ‘Configure.pl’,
-                         ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’, “--prefix=$build-path”,
-                         “--git-reference={GIT-REFERENCE}” );
+
+        my @args = do given PROJECT {
+            when MoarVM {
+                @args = ‘perl’, ‘--’, ‘Configure.pl’, “--prefix=$build-path”,
+                        ‘--debug=3’
+            }
+            when Rakudo-Moar {
+                @args = ‘perl’, ‘--’, ‘Configure.pl’, “--prefix=$build-path”,
+                        ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’,
+                        “--git-reference={GIT-REFERENCE}”
+            }
+        }
+        $config-ok = run :out($configure-log-fh), :err($configure-err-fh), |@args;
+
         $configure-log-fh.close;
         $configure-err-fh.close;
         say “»»»»» Cannot configure $commit” unless $config-ok;
@@ -123,8 +145,11 @@ sub process-commit($commit) {
         say “»»»»» $commit: make”;
         my $make-log-fh = open :w, “$log-path/make.log”;
         my $make-err-fh = open :w, “$log-path/make.err”;
-        $make-ok = run(:out($make-log-fh), :err($make-err-fh),
-                       ‘make’, ‘-C’, $temp-folder);
+        my @args = do given PROJECT {
+            when MoarVM      { ‘make’, ‘-j’, ‘8’, ‘-C’, $temp-folder }
+            when Rakudo-Moar { ‘make’,            ‘-C’, $temp-folder }
+        }
+        $make-ok = run :out($make-log-fh), :err($make-err-fh), |@args;
         $make-log-fh.close;
         $make-err-fh.close;
         say “»»»»» Cannot make $commit” unless $make-ok;
