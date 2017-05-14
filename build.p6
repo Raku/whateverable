@@ -32,6 +32,7 @@ my \DIR-BASE          = PROJECT.lc;
 my \PARALLEL-COUNT    = 1;
 my \COMMIT-RANGE      = ‘2015.07^..HEAD’;
 my \TAGS-SINCE        = ‘2014-01-01’;
+my \ALL-SINCE         = ‘2017-01-01’; # catch branches that are flapping in the breeze
 
 my \WORKING-DIRECTORY = ‘.’; # TODO not supported yet
 
@@ -73,15 +74,19 @@ if REPO-CURRENT.IO !~~ :d  {
 
 my $channel = Channel.new;
 
-my @git-latest = ‘git’, ‘--git-dir’, “{REPO-LATEST}/.git”, ‘--work-tree’, REPO-LATEST;
+my @git-latest  = ‘git’, ‘--git-dir’, “{REPO-LATEST}/.git”, ‘--work-tree’, REPO-LATEST;
 my @args-tags   = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’, ‘--since’, TAGS-SINCE;
 my @args-latest = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, COMMIT-RANGE;
+my @args-recent = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--all’, ‘--since’, ALL-SINCE;
 
-#$channel.send: $_ for run(:out, |@args-tags  ).out.split(0.chr, :skip-empty);
-# ↑ TODO this ends with Nil or an empty string for some reason? It makes
-# this check: ｢last unless $commit｣ exit from the loop, so it never reaches
-# actual commits.
-$channel.send: $_ for run(:out, |@args-latest).out.split(0.chr, :skip-empty);
+my %commits;
+for @args-tags, @args-latest, @args-recent -> @_ {
+    for run(:out, |@_).out.split(0.chr, :skip-empty) {
+        next if %commits{$_}:exists;
+        %commits{$_}++;
+        $channel.send: $_
+    }
+}
 
 await (for ^PARALLEL-COUNT { # TODO rewrite when .race starts working in rakudo
               start loop {
