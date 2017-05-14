@@ -30,7 +30,7 @@ use Text::Diff::Sift4;
 
 use Misc;
 
-constant RAKUDO = ‘./rakudo’.IO.absolute;
+constant RAKUDO = ‘./rakudo-moar’.IO.absolute; # TODO should depend on the backend
 constant MOARVM = ‘./moarvm’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
 constant SOURCE = ‘https://github.com/perl6/whateverable’;
