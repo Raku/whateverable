@@ -34,15 +34,39 @@ method help($msg) {
 multi method irc-to-me($msg) {
     my $value = self.process: $msg;
     return without $value;
-    return ‘Found nothing!’ unless $value;
     return $value but Reply($msg)
+}
+
+sub process-line($line) { # 🙈
+    my $backticks = ｢`｣ x (($line.comb(/｢`｣+/) || ｢｣).max.chars + 1);
+    my ($path, $line-number, $text) = $line.split(“\x0”, 3);
+
+    my $start = do
+    if $path ~~ /^ $<repo>=[ <-[/]>+ ‘/’ <-[/]>+ ] ‘/’ $<path>=.* $/ {
+        my $link = “https://github.com/{$<repo>}/blob/master/{$<path>}#L$line-number”;
+        “[$<repo>:*$line-number*:]($link)”
+    } else {
+        $path # not a module
+    }
+    my $c = “\c[ZERO WIDTH SPACE]”;
+    my $magic = $c ~ $backticks ~ ‘**’ ~ $backticks ~ $c;
+    $text = shorten $text, 300; # do not print too long lines
+    $text ~~ s:g/ “\c[ESC][1;31m” (.*?) [ “\c[ESC][m” | $ ] /$magic$0$magic/;
+
+    “$start $backticks$c$text$c$backticks” ~ ‘<br>’
 }
 
 method process($msg) {
     my @git = ‘git’, ‘--git-dir’, “{ECO-PATH}/.git”, ‘--work-tree’, ECO-PATH;
     run |@git, ‘pull’;
-    self.get-output(|@git, ‘grep’, ‘-i’, ‘--perl-regexp’, ‘--line-number’,
-                    ‘-e’, $msg)<output>
+    my $result = self.get-output(|@git, ‘grep’,
+                                 ‘--color=always’, ‘-z’, ‘-i’, ‘-I’,
+                                 ‘--perl-regexp’, ‘--line-number’,
+                                 ‘-e’, $msg);
+
+    return ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 & 1 or $result<signal> ≠ 0;
+    return ‘Found nothing!’ unless $result<output>;
+    ‘’ but FileStore({ ‘result.md’ => $result<output>.lines.map(&process-line).join(“\n”)})
 }
 
 
