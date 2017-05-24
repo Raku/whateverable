@@ -34,6 +34,7 @@ method help($msg) {
 multi method irc-to-me($msg) {
     my $value = self.process: $msg;
     return without $value;
+    return ‘Found nothing!’ unless $value;
     return $value but Reply($msg)
 }
 
