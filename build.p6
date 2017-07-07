@@ -30,9 +30,10 @@ my \RAKUDOISH         = PROJECT == Rakudo-Moar | Rakudo-JVM | Rakudo-JS;
 my \DIR-BASE          = PROJECT.lc;
 
 my \PARALLEL-COUNT    = 1;
-my \COMMIT-RANGE      = ‘2015.07^..HEAD’;
-my \TAGS-SINCE        = ‘2014-01-01’;
-my \ALL-SINCE         = ‘2017-01-01’; # catch branches that are flapping in the breeze
+my \TAGS-SINCE        = ‘2014-01-01’;     # to build all tags
+my \COMMIT-RANGE      = ‘2015.07^..HEAD’; # to build recent commits
+my \ALL-SINCE         = ‘2017-01-01’;     # to catch branches that are flapping in the breeze
+my \EVERYTHING-RANGE  = ‘2014.01^..HEAD’; # to build everything, but in historical order
 
 my \WORKING-DIRECTORY = ‘.’; # TODO not supported yet
 
@@ -78,9 +79,10 @@ my @git-latest  = ‘git’, ‘--git-dir’, “{REPO-LATEST}/.git”, ‘--wor
 my @args-tags   = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’, ‘--since’, TAGS-SINCE;
 my @args-latest = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, COMMIT-RANGE;
 my @args-recent = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--all’, ‘--since’, ALL-SINCE;
+my @args-old    = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--reverse’, EVERYTHING-RANGE;
 
 my %commits;
-for @args-tags, @args-latest, @args-recent -> @_ {
+for @args-tags, @args-latest, @args-recent, @args-old -> @_ {
     for run(:out, |@_).out.split(0.chr, :skip-empty) {
         next if %commits{$_}:exists;
         %commits{$_}++;
