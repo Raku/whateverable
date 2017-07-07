@@ -37,7 +37,7 @@ constant SOURCE = ‘https://github.com/perl6/whateverable’;
 constant WIKI   = ‘https://github.com/perl6/whateverable/wiki/’;
 constant WORKING-DIRECTORY = ‘.’; # TODO not supported yet
 constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
-constant BUILDS-LOCATION   = ‘/tmp/whateverable/’;
+constant BUILDS-LOCATION   = ‘/tmp/whateverable/’.IO.absolute;
 
 constant MESSAGE-LIMIT is export = 260;
 constant COMMITS-LIMIT = 500;
@@ -128,6 +128,8 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
 
 method build-exists($full-commit-hash, :$backend=‘rakudo-moar’) {
     “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”.IO ~~ :e
+    or
+    “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”.IO ~~ :e # long-term storage (symlink to a large archive)
 }
 
 method get-similar($tag-or-hash, @other?, :$repo=RAKUDO) {
@@ -163,6 +165,8 @@ method get-similar($tag-or-hash, @other?, :$repo=RAKUDO) {
 method run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) {
     my $build-path   = “{  BUILDS-LOCATION}/$backend/$full-commit-hash”;
     my $archive-path = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”;
+    my $archive-link = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”;
+
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
     while run(‘mkdir’, ‘--’, $build-path).exitcode ≠ 0 {
@@ -174,9 +178,15 @@ method run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) {
         # we should be doing everything in separate isolated containers (soon),
         # so this problem will fade away.
     }
-    my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, $archive-path;
-    run :in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’;
-    $proc.out.close();
+    if $archive-path.IO ~~ :e {
+        my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, $archive-path;
+        run :in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’;
+        $proc.out.close();
+    } else {
+        my $proc = run :out, :bin, ‘lrzip’, ‘-dqo’, ‘-’, ‘--’, $archive-link;
+        run :in($proc.out), :bin, ‘tar’, ‘--extract’, ‘--absolute-names’, ‘--’, $build-path;
+        $proc.out.close();
+    }
 
     my $return = $code($build-path); # basically, we wrap around $code
 
