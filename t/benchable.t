@@ -201,7 +201,7 @@ $t.test(‘Only one commit is wrong (did you mean … ?)’,
 $t.test(‘Both commits are wrong (did you mean … ?)’,
         ‘bench: 2015.12^,2015.13,69fecb52eb2 say 42’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
-        /^ <me($t)>‘, ¦2015.12^: «’ \d+\.\d+ ‘» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “07fecb5”?)»’ $/);
+        /^ <me($t)>‘, ¦2015.12^: «’ \d+\.\d+ ‘» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “c9ebfc2”?)»’ $/);
 
 # Timeouts
 
