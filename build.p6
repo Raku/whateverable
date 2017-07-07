@@ -156,7 +156,7 @@ sub process-commit($commit) {
         my $make-log-fh = open :w, “$log-path/make.log”;
         my $make-err-fh = open :w, “$log-path/make.err”;
         my @args = do given PROJECT {
-            when MoarVM      { ‘make’, ‘-j’, ‘8’, ‘-C’, $temp-folder }
+            when MoarVM      { ‘make’, ‘-j’, ‘7’, ‘-C’, $temp-folder }
             when Rakudo-Moar { ‘make’,            ‘-C’, $temp-folder }
         }
         $make-ok = run :out($make-log-fh), :err($make-err-fh), |@args;
