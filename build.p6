@@ -129,13 +129,12 @@ sub process-commit($commit) {
 
         my @args = do given PROJECT {
             when MoarVM {
-                @args = ‘perl’, ‘--’, ‘Configure.pl’, “--prefix=$build-path”,
+                ‘perl’, ‘--’, ‘Configure.pl’, “--prefix=$build-path”,
                         ‘--debug=3’
             }
             when Rakudo-Moar {
-                @args = ‘perl’, ‘--’, ‘Configure.pl’, “--prefix=$build-path”,
-                        ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’,
-                        “--git-reference={GIT-REFERENCE}”
+                 ‘perl’, ‘--’, ‘Configure.pl’, “--prefix=$build-path”,
+                         ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’
             }
         }
         $config-ok = run :out($configure-log-fh), :err($configure-err-fh), |@args;
