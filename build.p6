@@ -137,6 +137,11 @@ sub process-commit($commit) {
                          ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’
             }
         }
+        if PROJECT == Rakudo-Moar and run ‘grep’, ‘-m1’, ‘-q’, ‘--’,
+                                          ‘--git-reference’, ‘Configure.pl’ {
+            @args.push: “--git-reference={GIT-REFERENCE}”
+        }
+
         $config-ok = run :out($configure-log-fh), :err($configure-err-fh), |@args;
 
         $configure-log-fh.close;
