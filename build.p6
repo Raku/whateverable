@@ -101,6 +101,7 @@ run ‘git’, ‘--git-dir’, “{REPO-CURRENT}/.git”, ‘--work-tree’, RE
 
 sub process-commit($commit) {
     return if “{ARCHIVES-LOCATION}/$commit.zst”.IO ~~ :e; # already exists
+    return if $++ ≥ 10; # refuse to build too many commits at once
 
     my ($temp-folder,) = tempdir, :!unlink;
     my $build-path   = “{BUILDS-LOCATION}/$commit”.IO.absolute;
