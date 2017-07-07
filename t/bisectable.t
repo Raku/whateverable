@@ -91,7 +91,7 @@ $t.test(‘bisect by output’,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
 
-$t.test(‘bisect by exit signal’,
+$t.test(:25timeout, ‘bisect by exit signal’,
         ‘bisect: old=2015.10 new=2015.12 Buf.new(0xFE).decode(‘utf8-c8’) # RT 126756’,
         “{$t.our-nick}, Bisecting by exit signal (old=2015.10 new=2015.12). Old exit signal: 0 (None)”,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
