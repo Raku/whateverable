@@ -131,8 +131,7 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
         $result = self.run-snippet: $full-commit, $filename;
         %*ENV<MVM_COVERAGE_LOG>:delete;
 
-        # TODO shell injection in $grep
-        my $g = run 'grep', '-P', $grep, $log, :out;
+        my $g = run 'grep', '-P', '--', $grep, $log, :out;
         my $s = run 'sort', '--key=2,2', '--key=3n', '-u', :in($g.out), :out;
         my $colrm = run 'colrm', 1, 5, :in($s.out), :out;
         $result<coverage> = $colrm.out.slurp-rest.chomp;

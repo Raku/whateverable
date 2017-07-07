@@ -62,7 +62,7 @@ method process($msg) {
     my $result = self.get-output(|@git, ‘grep’,
                                  ‘--color=always’, ‘-z’, ‘-i’, ‘-I’,
                                  ‘--perl-regexp’, ‘--line-number’,
-                                 ‘-e’, $msg);
+                                 ‘--’, $msg);
 
     return ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 & 1 or $result<signal> ≠ 0;
     return ‘Found nothing!’ unless $result<output>;
