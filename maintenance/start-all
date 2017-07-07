@@ -1,0 +1,12 @@
+#!/bin/bash
+bots=(Bisectable Committable Benchable Evalable Unicodable
+      Statisfiable Bloatable Quotable Greppable Coverable)
+
+mkdir -p logs
+
+for bot in "${bots[@]}"; do
+    if ! pgrep -f "$bot" > /dev/null; then
+        echo "Starting $bot…"
+        "./$bot.p6" &> "$(date "+logs/${bot,,}_%F_%H%M.log")" & disown
+    fi
+done
