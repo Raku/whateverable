@@ -48,12 +48,12 @@ sub process-line($line) { # 🙈
     } else {
         $path # not a module
     }
-    my $c = “\c[ZERO WIDTH SPACE]”;
-    my $magic = $c ~ $backticks ~ ‘**’ ~ $backticks ~ $c;
     $text = shorten $text, 300; # do not print too long lines
-    $text ~~ s:g/ “\c[ESC][1;31m” (.*?) [ “\c[ESC][m” | $ ] /$magic$0$magic/;
+    $text .= trans: (｢<｣,   ｢>｣,  ｢&｣,  ｢\｣,  ｢`｣,  ｢*｣,  ｢_｣,  ｢~｣) =>
+                    (｢\<｣, ｢\>｣, ｢\&｣, ｢\\｣, ｢\`｣, ｢\*｣, ｢\_｣, ｢\~｣); # ｣; # TODO is it correct? No, that's an ugly hack…
+    $text ~~ s:g/ “\c[ESC][1;31m” (.*?) [ “\c[ESC][m” | $ ] /<b>{$0}<\/b>/; # TODO get rid of \/ ?
 
-    “$start $backticks$c$text$c$backticks” ~ ‘<br>’
+    “$start <code>{$text}</code>” ~ ‘<br>’
 }
 
 method process($msg) {
