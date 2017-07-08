@@ -64,7 +64,7 @@ method process($msg) {
                                  ‘--perl-regexp’, ‘--line-number’,
                                  ‘--’, $msg);
 
-    return ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 & 1 || $result<signal> ≠ 0;
+    return ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 | 1 or $result<signal> ≠ 0;
     return ‘Found nothing!’ unless $result<output>;
     ‘’ but FileStore({ ‘result.md’ => $result<output>.lines.map(&process-line).join(“\n”)})
 }
