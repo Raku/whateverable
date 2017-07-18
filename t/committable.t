@@ -161,23 +161,28 @@ $t.test(‘huge stdin is not replied back fully’,
 
 $t.test(‘“releases” query’,
         ‘commit: releases say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦releases (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
+        /^ <{$t.our-nick}> ‘, ¦releases (’\d+‘ commits): «Perl 6 (6.c)»’ $/,
+        :20timeout);
 
 $t.test(‘“v6c” query’,
         ‘commit: v6c say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦v6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
+        /^ <{$t.our-nick}> ‘, ¦v6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/,
+        :20timeout);
 
 $t.test(‘“6.c” query’,
         ‘commit: 6.c say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦6.c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
+        /^ <{$t.our-nick}> ‘, ¦6.c (’\d+‘ commits): «Perl 6 (6.c)»’ $/,
+        :20timeout);
 
 $t.test(‘“6c” query’,
         ‘commit: 6c say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
+        /^ <{$t.our-nick}> ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/,
+        :20timeout);
 
 $t.test(‘“what:” query’,
         ‘what: say $*PERL’,
-        /^ <{$t.our-nick}> ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/);
+        /^ <{$t.our-nick}> ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)»’ $/,
+        :20timeout);
 
 $t.test(‘“what,” does not work’,
         ‘what, say ‘what, is actually working…’’);
@@ -188,12 +193,12 @@ $t.test(‘“6c,” does not work’,
 $t.test(‘“all” query (same output everywhere)’,
         ‘commit: all say 'hi'’, # ASCII quotes because they are supported everywhere
         /^ <{$t.our-nick}> ‘, ¦all (’\d+‘ commits): «hi»’ $/,
-        :20timeout);
+        :30timeout);
 
 $t.test(‘“all” query (different output everywhere)’,
         ‘commit: all say rand’,
         “{$t.our-nick}, https://whatever.able/fakeupload”,
-        :20timeout);
+        :30timeout);
 
 $t.test(‘multiple commits separated by comma’,
         “commit: 2016.02,2016.03,9ccd848,HEAD say ‘hello’”,
@@ -283,7 +288,8 @@ $t.test(‘Both commits are wrong (did you mean … ?)’,
 $t.test(‘Did you forget to specify a revision?’,
         ‘commit: say ‘hello world’’,
         “{$t.our-nick}, Seems like you forgot to specify a revision (will use “v6.c” instead of “say”)”,
-        /^ <{$t.our-nick}> ‘, ¦v6.c (’\d+‘ commits): «hello world»’ $/);
+        /^ <{$t.our-nick}> ‘, ¦v6.c (’\d+‘ commits): «hello world»’ $/,
+        :20timeout);
 
 # Timeouts
 
