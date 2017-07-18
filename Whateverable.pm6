@@ -35,7 +35,7 @@ constant MOARVM = ‘./moarvm’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
 constant SOURCE = ‘https://github.com/perl6/whateverable’;
 constant WIKI   = ‘https://github.com/perl6/whateverable/wiki/’;
-constant WORKING-DIRECTORY = ‘.’; # TODO not supported yet
+constant WORKING-DIRECTORY = ‘.’.IO.absolute; # TODO not supported yet
 constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
 constant BUILDS-LOCATION   = ‘/tmp/whateverable/’.IO.absolute;
 
@@ -50,6 +50,64 @@ unit role Whateverable does IRC::Client::Plugin does Helpful;
 has $.timeout is rw = 10;
 has $!stdin = slurp ‘stdin’;
 has $!bad-releases = set ‘2016.01’, ‘2016.01.1’;
+
+multi method irc-to-me(Message $msg where ?True) is default {
+    try return callsame;
+    self.handle-exception($!, $msg)
+}
+
+method handle-exception($exception, $msg?) {
+    CATCH { # exception handling is too fat, so let's do this also…
+        .say;
+        return ‘Exception was thrown while I was trying to handle another exception…’
+        ~ ‘ What are they gonna do to me, Sarge? What are they gonna do⁈’
+    }
+    say $exception;
+    with $msg {
+        .irc.send-cmd: ‘PRIVMSG’, .channel, “I'm acting stupid on {.channel}. Help me.”,
+                           :server(.server), :prefix(PARENTS.join(‘, ’) ~ ‘: ’);
+    }
+
+    my ($text, @files) = flat self.awesomify-exception: $exception;
+    @files .= map({ ‘uncommitted-’ ~ .split(‘/’).tail => .IO.slurp });
+    @files.push: ‘|git-diff-HEAD.patch’ => run(:out, ‘git’, ‘diff’, ‘HEAD’).out.slurp-rest if @files;
+    @files.push: ‘result.md’ => $text;
+    @files.push: (query => .text) with $msg;
+
+    (‘’ but FileStore(%@files))
+        but PrettyLink({“No! It wasn't me! It was the one-armed man! Backtrace: $_”})
+    # https://youtu.be/MC6bzR9qmxM?t=97
+}
+
+method awesomify-exception($exception) {
+    my @local-files;
+    my $sha = run(:out, ‘git’, ‘rev-parse’, ‘--verify’, ‘HEAD’).out.slurp-rest;
+    ‘<pre>’ ~
+    $exception.gist.lines.map({
+        # TODO Proper way to get data out of exceptions?
+        # For example, right now it is broken for paths with spaces
+        when /:s ^(\s**2in \w+ \S* at “{WORKING-DIRECTORY}/”?)$<path>=[\S+](
+                                         [<.ws>‘(’<-[)]>+‘)’]? line )$<line>=[\d+]$/ {
+            my $status = run :out, ‘git’, ‘status’, ‘--porcelain’, ‘--’, ~$<path>;
+            proceed unless $status; # not a repo file
+            $status = $status.out.slurp-rest;
+            my $uncommitted = $status && !$status.starts-with: ‘  ’; # not committed yet
+            @local-files.push: ~$<path> if $uncommitted;
+            my $href = $uncommitted
+              ?? “#file-uncommitted-{$<path>.split(‘/’).tail.lc.trans(‘.’ => ‘-’)}-” # TODO not perfect but good enough
+              !! “{SOURCE}/blob/$sha/{markdown-escape $<path>}#”;
+            $href ~= “L$<line>”;
+
+            markdown-escape($0) ~
+            # let's hope for the best ↓
+            “<a href="$href">{$<path>}</a>” ~
+            markdown-escape($1 ~ $<line>) ~
+            ($uncommitted ?? ‘ (⚠ uncommitted)’ !! ‘’)
+        }
+        default { $_ }
+    }).join(“\n”)
+    ~ ‘</pre>’, @local-files
+}
 
 multi method irc-to-me(Message $msg where .text ~~
                        #↓ Matches only one space on purpose (for whitespace-only stdin)
@@ -84,12 +142,6 @@ multi method irc-to-me($) {
 
 method get-wiki-link { WIKI ~ self.^name }
 
-method beg-for-help($msg) {
-    warn ‘Please help me!’;
-    $msg.irc.send-cmd: ‘PRIVMSG’, $msg.channel, ‘Hey folks. What's up with me?’,
-                       :server($msg.server), :prefix(PARENTS.join(‘, ’) ~ ‘: ’)
-}
-
 method get-short-commit($original-commit) { # TODO not an actual solution tbh
     $original-commit ~~ /^ <xdigit> ** 7..40 $/
     ?? $original-commit.substr(0, 7)
@@ -97,31 +149,32 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
 }
 
 method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
-    my $out = Channel.new; # TODO switch to some Proc :merge thing once it is implemented
+    my @lines;
     my $proc = Proc::Async.new: |@run-args, w => defined $stdin;
-    $proc.stdout.tap: -> $v { $out.send: $v };
-    $proc.stderr.tap: -> $v { $out.send: $v };
-
     my $s-start = now;
-    my $promise = $proc.start: scheduler => BEGIN ThreadPoolScheduler.new;
-    with $stdin {
-        $proc.print: $_;
-        $proc.close-stdin;
-    }
+    my $result;
+    my $s-end;
 
-    await Promise.anyof: Promise.in($timeout), $promise;
-    my $s-end = now;
-
-    if not $promise.status ~~ Kept { # timed out
-        $proc.kill; # TODO sends HUP, but should kill the process tree instead
-        $out.send: “«timed out after $timeout seconds»”;
+    react {
+        whenever $proc.stdout { @lines.push: $_ }; # RT #131763
+        whenever $proc.stderr { @lines.push: $_ };
+        whenever Promise.in($timeout) {
+            $proc.kill; # TODO sends HUP, but should kill the process tree instead
+            @lines.push: “«timed out after $timeout seconds»”
+        }
+        whenever $proc.start { #: scheduler => BEGIN ThreadPoolScheduler.new {
+            $result = $_;
+            $s-end = now;
+            done
+        }
+        with $stdin {
+            whenever $proc.print: $_ { $proc.close-stdin }
+        }
     }
-    try sink await $promise; # wait until it is actually stopped
-    $out.close;
     %(
-        output    => $out.list.join.chomp,
-        exit-code => $promise.result.exitcode,
-        signal    => $promise.result.signal,
+        output    => @lines.join.chomp,
+        exit-code => $result.exitcode,
+        signal    => $result.signal,
         time      => $s-end - $s-start,
     )
 }
@@ -320,9 +373,15 @@ method process-code($code is copy, $message) {
     return 1, $code
 }
 
-multi method filter($response where (.encode.elems > MESSAGE-LIMIT
-                                     or ?.?additional-files
-                                     or (!~$_ and $_ ~~ ProperStr))) {
+method filter($response) {
+    try { self.subfilter: $response } //
+    try { self.subfilter: self.handle-exception($!, $response.?msg) } //
+    ‘Sorry kid, that's not my department.’
+}
+
+multi method subfilter($response where (.encode.elems > MESSAGE-LIMIT
+                                        or ?.?additional-files
+                                        or (!~$_ and $_ ~~ ProperStr))) {
     # Here $response is a Str with a lot of stuff mixed in (possibly)
     my $description = ‘Whateverable’;
     my $text = colorstrip $response.?long-str // ~$response;
@@ -339,7 +398,7 @@ multi method filter($response where (.encode.elems > MESSAGE-LIMIT
     $url
 }
 
-multi method filter($text is copy) {
+multi method subfilter($text is copy) {
     ansi-to-irc($text).trans:
         “\n” => ‘␤’,
         3.chr => 3.chr, 0xF.chr => 0xF.chr, # keep these for IRC colors

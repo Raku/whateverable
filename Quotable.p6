@@ -42,10 +42,7 @@ method process($msg, $query is copy) {
     $query = “/ $query /”;
 
     my $full-commit = self.to-full-commit: ‘2016.10’; # ‘HEAD’; # Ha, 2016.10 works a bit better for this purpose…
-    if not self.build-exists: $full-commit {
-        self.beg-for-help: $msg;
-        return ‘No build for the last commit. Oops!’
-    }
+    die ‘No build for the last commit. Oops!’ unless self.build-exists: $full-commit;
 
     my $filename = self.write-code: “\{ last if \$++ >= $LIMIT; print \$_, “\\0” \} for slurp(“irc/cache”).split(“\\0”).grep:\n” ~ $query;
     my $result = self.run-snippet: $full-commit, $filename, :180timeout;

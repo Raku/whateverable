@@ -154,8 +154,7 @@ method process($msg, $query is copy) {
         my $output = ‘’;
         $filename = self.write-code: “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
         if not self.build-exists: $full-commit {
-            $output = ‘No build for the last commit. Oops!’;
-            self.beg-for-help: $msg
+            die ‘No build for the last commit. Oops!’
         } else { # actually run the code
             my $result = self.run-snippet: $full-commit, $filename;
             $output = $result<output>;
@@ -170,16 +169,9 @@ method process($msg, $query is copy) {
         }
         if $output {
             for $output.split: “\c[31]” {
-                try {
-                    my $char-desc = self.get-description: +$_;
-                    @all.push: $char-desc;
-                    $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT;
-                    CATCH {
-                        .say;
-                        self.beg-for-help($msg);
-                        return ‘Oops, something went wrong!’
-                    }
-                }
+                my $char-desc = self.get-description: +$_;
+                @all.push: $char-desc;
+                $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
             }
         }
     } else {

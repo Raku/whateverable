@@ -123,11 +123,7 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output)
     }
 
     # This should not happen.
-    # TODO can we avoid this piece of code somehow?
-    self.beg-for-help: Nil; # $msg; # TODO where is $msg?
-    take ‘»»»»» Internal bisectable error. This should not happen. Please contact the maintainers.’;
-    take ‘»»»»» Therefore, skipping this revision’;
-    Skip
+    die ‘Internal bisectable error. This should not happen.’
 }
 
 my regex spaceeq { \s* ‘=’ \s* | \s+ }
@@ -215,11 +211,8 @@ method process($msg, $code is copy, $old, $new) {
 
     my $bisect-start = self.get-output: ‘git’, ‘bisect’, ‘start’;
     my $bisect-old   = self.get-output: ‘git’, ‘bisect’, ‘old’, $full-old;
-    if $bisect-start<exit-code> ≠ 0 and $bisect-old<exit-code> ≠ 0 {
-        self.beg-for-help: $msg;
-        return ‘Failed to run ｢bisect start｣’  if $bisect-start<exit-code> ≠ 0;
-        return ‘Failed to run ｢bisect old …”｣’ if $bisect-old<exit-code>   ≠ 0
-    }
+    die ‘Failed to run ｢bisect start｣’  if $bisect-start<exit-code> ≠ 0;
+    die ‘Failed to run ｢bisect old …”｣’ if $bisect-old<exit-code>   ≠ 0;
 
     my $init-result = self.get-output: ‘git’, ‘bisect’, ‘new’, $full-new;
     if $init-result<exit-code> ≠ 0 {
