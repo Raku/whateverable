@@ -49,8 +49,7 @@ sub process-line($line) { # 🙈
         $path # not a module
     }
     $text = shorten $text, 300; # do not print too long lines
-    $text .= trans: (｢<｣,   ｢>｣,  ｢&｣,  ｢\｣,  ｢`｣,  ｢*｣,  ｢_｣,  ｢~｣) =>
-                    (｢\<｣, ｢\>｣, ｢\&｣, ｢\\｣, ｢\`｣, ｢\*｣, ｢\_｣, ｢\~｣); # ｣; # TODO is it correct? No, that's an ugly hack…
+    $text = markdown-escape($text);
     $text ~~ s:g/ “\c[ESC][1;31m” (.*?) [ “\c[ESC][m” | $ ] /<b>{$0}<\/b>/; # TODO get rid of \/ ?
 
     “$start <code>{$text}</code>” ~ ‘<br>’

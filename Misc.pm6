@@ -36,3 +36,9 @@ sub fuzzy-nick($nick, $distance) is export {
 sub signal-to-text($signal) is export {
     “$signal ({Signal($signal) // ‘None’})”
 }
+
+sub markdown-escape($text) is export {
+    # TODO is it correct? No, that's an ugly hack…
+    $text.trans: (｢<｣,   ｢>｣,  ｢&｣,  ｢\｣,  ｢`｣,  ｢*｣,  ｢_｣,  ｢~｣) =>
+                 (｢\<｣, ｢\>｣, ｢\&｣, ｢\\｣, ｢\`｣, ｢\*｣, ｢\_｣, ｢\~｣); # ｣);
+}
