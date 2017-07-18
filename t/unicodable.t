@@ -127,8 +127,8 @@ $t.test(‘Some interesting ASCII characters’,
 $t.test(‘Combining characters’,
         ‘u: Xͫ⃝’,
         “{$t.our-nick}, U+0058 LATIN CAPITAL LETTER X [Lu] (X)”,
-        “{$t.our-nick}, U+036B COMBINING LATIN SMALL LETTER M [Mn] (◌ͫ)”,
-        “{$t.our-nick}, U+20DD COMBINING ENCLOSING CIRCLE [Me] (◌⃝)”);
+        “{$t.our-nick}, U+036B COMBINING LATIN SMALL LETTER M [Mn] (\c[NBSP]\x036B)”,
+        “{$t.our-nick}, U+20DD COMBINING ENCLOSING CIRCLE [Me] (\c[NBSP]\x20DD)”);
 
 $t.test(‘Invalid characters’,
         ‘u: 0x11FFFF 0x99999999’,

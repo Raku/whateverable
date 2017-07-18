@@ -73,14 +73,16 @@ method sanify($ord) {
     my $char;
     try {
         $char = $ord.chr;
-        CATCH { default { return “{self.codepointify($ord)} (invalid codepoint)” } }
+        CATCH { return “{self.codepointify($ord)} (invalid codepoint)” }
     }
     try {
         $char.encode;
-        CATCH { default { return ‘unencodable character’ } }
+        CATCH { return ‘unencodable character’ }
     }
-    $char = ‘◌’ ~ $ord.chr if $ord.uniprop.starts-with: ‘M’; # TODO ask samcv
-    $char = ‘control character’ if $ord.uniprop eq ‘Cc’;
+    my $gcb = $ord.uniprop(‘Grapheme_Cluster_Break’);
+    return “\c[NBSP]” ~ $char              if $gcb eq ‘Extend’ | ‘ZWJ’;
+    return              $char ~ “\c[NBSP]” if $gcb eq ‘Prepend’;
+    return ‘control character’             if $gcb eq ‘Control’ | ‘CR’ | ‘LF’;
     $char
 }
 
@@ -89,7 +91,7 @@ method get-description($ord) {
     return $sane if $sane.ends-with(‘)’);
     sprintf “%s %s [%s] (%s)”,
             self.codepointify($ord), $ord.uniname,
-            $ord.uniprop, self.sanify($ord)
+            $ord.uniprop, $sane
 }
 
 method from-numerics($query) {
