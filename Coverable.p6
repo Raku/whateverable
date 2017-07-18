@@ -135,7 +135,6 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
         my $s = run 'sort', '--key=2,2', '--key=3n', '-u', :in($g.out), :out;
         my $colrm = run 'colrm', 1, 5, :in($s.out), :out;
         $result<coverage> = $colrm.out.slurp-rest.chomp;
-        $colrm.out.close;
         $output = $result<output>;
         if $result<signal> < 0 { # numbers less than zero indicate other weird failures
             $output = “Cannot test this commit ($output)”
@@ -176,7 +175,6 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
                 # ⚠ TODO don't do this ↓ for every line, do it for every *file*. It will be much faster.
                 my $proc = run :out, |@git, ‘show’, “$full-commit:$fname”;
                 my $code = run(:out, :in($proc.out), ‘sed’, ‘-n’, $sed-range).out.slurp-rest.trim; # TODO trim? or just chomp?
-                $proc.out.close;
                 $code .= subst(:g, “\n”, ‘```<br>```’); # TODO multiline code blocks using github markdown?
                 $code .= subst(:g, ‘|’, ‘\|’); # TODO really?
                 $cover-report ~= “ ```$code``` |\n”; # TODO close properly (see how many ``` are there already)

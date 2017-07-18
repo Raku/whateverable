@@ -64,7 +64,6 @@ sub pack-it {
         #      once in forever.
         my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, $archive-path;
         exit 1 unless run :in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’;
-        $proc.out.close;
     }
 
     my @bytes = @pack.join.comb(2)».parse-base: 16;
@@ -77,7 +76,6 @@ sub pack-it {
 
     my $proc = run :out, :bin, ‘tar’, ‘cf’, ‘-’, ‘--absolute-names’, ‘--remove-files’, ‘--’, |@paths;
     if run :in($proc.out), :bin, ‘lrzip’, ‘-q’, ‘-L’, ‘9’, ‘-o’, $large-archive-path {
-        $proc.out.close;
         for @pack {
             $large-archive-path.IO.symlink(“{ARCHIVES-LOCATION}/$_”);
             unlink “{ARCHIVES-LOCATION}/$_.zst”

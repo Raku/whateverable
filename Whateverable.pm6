@@ -234,11 +234,9 @@ method run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) {
     if $archive-path.IO ~~ :e {
         my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, $archive-path;
         run :in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’;
-        $proc.out.close();
     } else {
         my $proc = run :out, :bin, ‘lrzip’, ‘-dqo’, ‘-’, ‘--’, $archive-link;
         run :in($proc.out), :bin, ‘tar’, ‘--extract’, ‘--absolute-names’, ‘--’, $build-path;
-        $proc.out.close();
     }
 
     my $return = $code($build-path); # basically, we wrap around $code
