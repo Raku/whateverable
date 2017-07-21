@@ -30,7 +30,7 @@ method help($msg) {
 }
 
 multi method irc-to-me($msg where /^ :r [ [ ‘d=’ | ‘-d’ \s* ] $<sources>=[\S+] \s ]?
-                                    \s* $<config>=.+ $/) {
+                                    \s* $<config>=<.&commit-list> $/) {
     my $value = self.process: $msg, ~$<config>, ~($<sources> // ‘compileunits’);
     return without $value;
     return $value but Reply($msg)

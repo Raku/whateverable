@@ -84,7 +84,7 @@ method help($msg) {
     “Like this: {$msg.server.current-nick}: f583f22 grep=SETTING say ‘hello’; say ‘world’”
 }
 
-multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=\S+ \s+ ['grep=' $<grep>=\S+ \s+]? $<code>=.+ / }) {
+multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=<.&commit-list> \s+ ['grep=' $<grep>=\S+ \s+]? $<code>=.+ / }) {
     my ($value, %additional-files) = self.process: $msg, ~$<config>, ~($<grep> // 'SETTING::'), ~$<code>;
     return without $value;
     return ($value but Reply($msg)) but FileStore(%additional-files)

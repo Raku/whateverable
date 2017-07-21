@@ -46,7 +46,7 @@ multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=<{s
     return $value but Reply($msg)
 }
 
-multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=\S+ \s+ $<code>=.+ / }) {
+multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=<.&commit-list> \s+ $<code>=.+ / }) {
     my $value = self.process: $msg, ~$<config>, ~$<code>;
     return without $value;
     return $value but Reply($msg)

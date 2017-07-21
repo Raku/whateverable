@@ -89,7 +89,7 @@ multi method benchmark-code($full-commit-hash, @code) {
     $timing
 }
 
-multi method irc-to-me($msg where .text ~~ /^ \s* $<config>=([:i compare \s]? \S+) \s+ $<code>=.+ /) {
+multi method irc-to-me($msg where .text ~~ /^ \s* $<config>=([:i compare \s]? <.&commit-list>) \s+ $<code>=.+ /) {
     my ($value, %additional-files) = self.process: $msg, ~$<config>, ~$<code>;
     return without $value;
     return ($value but Reply($msg)) but FileStore(%additional-files)

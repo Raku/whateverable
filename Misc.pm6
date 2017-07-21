@@ -42,3 +42,7 @@ sub markdown-escape($text) is export {
     $text.trans: (｢<｣,   ｢>｣,  ｢&｣,  ｢\｣,  ｢`｣,  ｢*｣,  ｢_｣,  ｢~｣) =>
                  (｢\<｣, ｢\>｣, ｢\&｣, ｢\\｣, ｢\`｣, ｢\*｣, ｢\_｣, ｢\~｣); # ｣);
 }
+
+my token commit-list is export {
+    [<-[\s] -[‘,’]>+]+ % [‘,’\s*]
+}

@@ -280,7 +280,7 @@ method get-commits($config, :$repo=RAKUDO) {
     my @commits;
 
     if $config.contains: ‘,’ {
-        @commits = $config.split: ‘,’;
+        @commits = $config.split: /‘,’\s*/;
     } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
         chdir $repo; # goes back in LEAVE
         if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode ≠ 0 {
