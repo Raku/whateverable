@@ -290,7 +290,7 @@ method get-commits($config, :$repo=RAKUDO) {
         if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   ≠ 0 {
             return “Bad end, cannot find a commit for “$<end>””;
         }
-        my $result = self.get-output: ‘git’, ‘rev-list’, “$<start>^..$<end>”; # TODO unfiltered input
+        my $result = self.get-output: ‘git’, ‘rev-list’, ‘--reverse’, “$<start>^..$<end>”; # TODO unfiltered input
         return ‘Couldn't find anything in the range’ if $result<exit-code> ≠ 0;
         @commits = $result<output>.lines;
         my $num-commits = @commits.elems;
