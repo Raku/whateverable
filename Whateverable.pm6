@@ -102,11 +102,12 @@ method awesomify-exception($exception) {
         when /:s ^(\s**2in \w+ \S* at “{WORKING-DIRECTORY}/”?)$<path>=[\S+](
                                          [<.ws>‘(’<-[)]>+‘)’]? line )$<line>=[\d+]$/ {
             my $status = run :out, ‘git’, ‘status’, ‘--porcelain’, ‘--’, ~$<path>;
-            proceed unless $status; # not a repo file
+            proceed if !$status && !%*ENV<DEBUGGABLE>; # not a repo file and not in the debug mode
+            my $private-debugging = !$status;
             $status = $status.out.slurp-rest;
             my $uncommitted = $status && !$status.starts-with: ‘  ’; # not committed yet
-            @local-files.push: ~$<path> if $uncommitted;
-            my $href = $uncommitted
+            @local-files.push: ~$<path> if $uncommitted || $private-debugging;
+            my $href = $uncommitted || $private-debugging
               ?? “#file-uncommitted-{$<path>.split(‘/’).tail.lc.trans(‘.’ => ‘-’)}-” # TODO not perfect but good enough
               !! “{SOURCE}/blob/$sha/{markdown-escape $<path>}#”;
             $href ~= “L$<line>”;
