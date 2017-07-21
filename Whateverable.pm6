@@ -84,11 +84,12 @@ method handle-exception($exception, $msg?) {
     @files .= map({ ‘uncommitted-’ ~ .split(‘/’).tail => .IO.slurp });
     @files.push: ‘|git-diff-HEAD.patch’ => run(:out, ‘git’, ‘diff’, ‘HEAD’).out.slurp-rest if @files;
     @files.push: ‘result.md’ => $text;
-    @files.push: (query => .text) with $msg;
 
-    (‘’ but FileStore(%@files))
-        but PrettyLink({“No! It wasn't me! It was the one-armed man! Backtrace: $_”})
+    my $return = (‘’ but FileStore(%@files))
+      but PrettyLink({“No! It wasn't me! It was the one-armed man! Backtrace: $_”});
     # https://youtu.be/MC6bzR9qmxM?t=97
+    $return = $return but Reply($_) with $msg;
+    $return
 }
 
 method awesomify-exception($exception) {
