@@ -101,7 +101,8 @@ method awesomify-exception($exception) {
         # For example, right now it is broken for paths with spaces
         when /:s ^(\s**2in \w+ \S* at “{WORKING-DIRECTORY}/”?)$<path>=[\S+](
                                          [<.ws>‘(’<-[)]>+‘)’]? line )$<line>=[\d+]$/ {
-            my $status = run :out, ‘git’, ‘status’, ‘--porcelain’, ‘--’, ~$<path>;
+            my $status = run :out, ‘git’, ‘status’, ‘--porcelain’, ‘--untracked-files=no’,
+                                   ‘--’, ~$<path>;
             proceed if !$status && !%*ENV<DEBUGGABLE>; # not a repo file and not in the debug mode
             my $private-debugging = !$status;
             $status = $status.out.slurp-rest;
