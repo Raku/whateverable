@@ -22,6 +22,7 @@ use Misc;
 use Whateverable;
 
 use IRC::Client;
+use Config::INI;
 
 unit class Greppable does Whateverable;
 
@@ -37,13 +38,18 @@ multi method irc-to-me($msg) {
     return $value but Reply($msg)
 }
 
-sub process-line($line) { # 🙈
+sub process-line($line, %commits) { # 🙈
     my $backticks = ｢`｣ x (($line.comb(/｢`｣+/) || ｢｣).max.chars + 1);
     my ($path, $line-number, $text) = $line.split(“\x0”, 3);
 
     my $start = do
     if $path ~~ /^ $<repo>=[ <-[/]>+ ‘/’ <-[/]>+ ] ‘/’ $<path>=.* $/ {
-        my $link = “https://github.com/{$<repo>}/blob/master/{$<path>}#L$line-number”;
+        my $commit = %commits{$<repo>};
+        without $commit { # cache it!
+            $commit = Config::INI::parse(slurp “{ECO-PATH}/$<repo>/.gitrepo”)<subrepo><commit>;
+            %commits{$<repo>} = $commit;
+        }
+        my $link = “https://github.com/{$<repo>}/blob/$commit/{$<path>}#L$line-number”;
         “[$<repo>:*$line-number*:]($link)”
     } else {
         $path # not a module
@@ -65,7 +71,8 @@ method process($msg) {
 
     return ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 | 1 or $result<signal> ≠ 0;
     return ‘Found nothing!’ unless $result<output>;
-    ‘’ but FileStore({ ‘result.md’ => $result<output>.lines.map(&process-line).join(“\n”)})
+    my %commits = ();
+    ‘’ but FileStore({ ‘result.md’ => $result<output>.lines.map({process-line $_, %commits}).join(“\n”)})
 }
 
 
