@@ -51,9 +51,21 @@ has $.timeout is rw = 10;
 has $!stdin = slurp ‘stdin’;
 has $!bad-releases = set ‘2016.01’, ‘2016.01.1’;
 
-multi method irc-to-me(Message $msg where ?True) is default {
-    try return callsame;
-    self.handle-exception($!, $msg)
+submethod TWEAK {
+    # wrap around everything to catch exceptions
+    once { # per class
+        self.^lookup(‘irc-to-me’).wrap: anon sub ($self, $msg) {
+            try { return callsame }
+            $self.handle-exception($!, $msg)
+        };
+
+        self.^lookup(‘filter’).wrap: anon sub ($self, $response) {
+            my &filter = nextcallee;
+            try { return filter $self, $response }
+            try { return filter $self, $self.handle-exception($!, $response.?msg) }
+            ‘Sorry kid, that's not my department.’
+        };
+    }
 }
 
 method handle-exception($exception, $msg?) {
@@ -371,13 +383,7 @@ method process-code($code is copy, $message) {
     return 1, $code
 }
 
-method filter($response) {
-    try { self.subfilter: $response } //
-    try { self.subfilter: self.handle-exception($!, $response.?msg) } //
-    ‘Sorry kid, that's not my department.’
-}
-
-multi method subfilter($response where (.encode.elems > MESSAGE-LIMIT
+multi method filter($response where (.encode.elems > MESSAGE-LIMIT
                                         or ?.?additional-files
                                         or (!~$_ and $_ ~~ ProperStr))) {
     # Here $response is a Str with a lot of stuff mixed in (possibly)
@@ -396,7 +402,7 @@ multi method subfilter($response where (.encode.elems > MESSAGE-LIMIT
     $url
 }
 
-multi method subfilter($text is copy) {
+multi method filter($text is copy) {
     ansi-to-irc($text).trans:
         “\n” => ‘␤’,
         3.chr => 3.chr, 0xF.chr => 0xF.chr, # keep these for IRC colors
