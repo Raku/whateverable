@@ -39,11 +39,11 @@ method help($msg) {
     ~ ‘: old=2015.12 new=HEAD exit 1 if (^∞).grep({ last })[5] // 0 == 4’ # TODO better example
 }
 
-method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-output) ) {
+method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-output, :$cwd) ) {
     my $status;
     my @bisect-log = gather loop {
-        my $revision-type = self.test-commit: $code-file, |%_;
-        my $result = self.get-output: ‘git’, ‘bisect’, $revision-type.lc;
+        my $revision-type = self.test-commit: :$cwd, $code-file, |%_;
+        my $result = self.get-output: :$cwd, ‘git’, ‘bisect’, $revision-type.lc;
         $status = $result<exit-code>;
         last if $result<output> ~~ /^^ \S+ ‘ is the first new commit’ /; # TODO just return this
         last if $result<exit-code> ≠ 0;
@@ -52,8 +52,8 @@ method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-out
     return @bisect-log.join(“\n”), $status
 }
 
-method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output) {
-    my $current-commit = self.get-output(‘git’, ‘rev-parse’, ‘HEAD’)<output>;
+method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output, :$cwd) {
+    my $current-commit = self.get-output(:$cwd, ‘git’, ‘rev-parse’, ‘HEAD’)<output>;
 
     # looks a bit nicer this way
     LEAVE take “»»»»» {‘-’ x 73}”;
@@ -175,11 +175,8 @@ method process($msg, $code is copy, $old, $new) {
 
     my $filename = self.write-code: $code;
 
-    my $old-dir = $*CWD;
-    chdir RAKUDO;
     my $old-result = self.run-snippet: $full-old, $filename;
     my $new-result = self.run-snippet: $full-new, $filename;
-    chdir $old-dir;
 
     return “Problem with $short-old commit: $old-result<output>” if $old-result<signal> < 0;
     return “Problem with $short-new commit: $new-result<output>” if $new-result<signal> < 0;
@@ -207,14 +204,13 @@ method process($msg, $code is copy, $old, $new) {
 
     my $dir = tempdir :!unlink;
     run ‘git’, ‘clone’, RAKUDO, $dir; # TODO check the result
-    chdir $dir;
 
-    my $bisect-start = self.get-output: ‘git’, ‘bisect’, ‘start’;
-    my $bisect-old   = self.get-output: ‘git’, ‘bisect’, ‘old’, $full-old;
+    my $bisect-start = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘start’;
+    my $bisect-old   = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘old’, $full-old;
     die ‘Failed to run ｢bisect start｣’  if $bisect-start<exit-code> ≠ 0;
     die ‘Failed to run ｢bisect old …”｣’ if $bisect-old<exit-code>   ≠ 0;
 
-    my $init-result = self.get-output: ‘git’, ‘bisect’, ‘new’, $full-new;
+    my $init-result = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘new’, $full-new;
     if $init-result<exit-code> ≠ 0 {
         $msg.reply: ‘bisect log: ’ ~ self.upload: { query  => $msg.text,
                                                     result => colorstrip($init-result<output>), },
@@ -225,17 +221,17 @@ method process($msg, $code is copy, $old, $new) {
     my ($bisect-output, $bisect-status);
     if $old-result<signal> ≠ $new-result<signal> {
         $msg.reply: “Bisecting by exit signal (old=$short-old new=$short-new). Old exit signal: {signal-to-text $old-result<signal>}”;
-        ($bisect-output, $bisect-status) = self.run-bisect: $filename, :old-exit-signal($old-result<signal>)
+        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $filename, :old-exit-signal($old-result<signal>)
     } elsif $old-result<exit-code> ≠ $new-result<exit-code> {
         $msg.reply: “Bisecting by exit code (old=$short-old new=$short-new). Old exit code: $old-result<exit-code>”;
-        ($bisect-output, $bisect-status) = self.run-bisect: $filename, :old-exit-code($old-result<exit-code>)
+        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $filename, :old-exit-code($old-result<exit-code>)
     } else {
         if $old-result<signal> ≠ 0 {
             $msg.reply: “Bisecting by output (old=$short-old new=$short-new) because on both starting points the exit code is $old-result<exit-code> and exit signal is {signal-to-text $old-result<signal>}”
         } else {
             $msg.reply: “Bisecting by output (old=$short-old new=$short-new) because on both starting points the exit code is $old-result<exit-code>”
         }
-        ($bisect-output, $bisect-status) = self.run-bisect: $filename, :old-output($old-result<output>)
+        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $filename, :old-output($old-result<output>)
     }
     $msg.reply: ‘bisect log: ’ ~ self.upload: { ‘query’   => $msg.text,
                                                 ‘result’  => colorstrip(“$init-result<output>\n$bisect-output”), },
@@ -243,13 +239,15 @@ method process($msg, $code is copy, $old, $new) {
                                               public => !%*ENV<DEBUGGABLE>;
 
     if $bisect-status == 2 {
-        my $good-revs = self.get-output(‘git’, ‘for-each-ref’, ‘--format=%(objectname)’, ‘refs/bisect/old-*’)<output>;
-        my @possible-revs = self.get-output(‘git’, ‘rev-list’, ‘refs/bisect/new’, ‘--not’, |$good-revs.lines)<output>.lines;
+        my $good-revs     = self.get-output(cwd => $dir, ‘git’, ‘for-each-ref’,
+                                        ‘--format=%(objectname)’, ‘refs/bisect/old-*’)<output>;
+        my @possible-revs = self.get-output(cwd => $dir, ‘git’, ‘rev-list’,
+                                            ‘refs/bisect/new’, ‘--not’, |$good-revs.lines)<output>.lines;
         return “There are {+@possible-revs} candidates for the first “new” revision. See the log for more details”
     } elsif $bisect-status ≠ 0 {
         return ｢‘bisect run’ failure. See the log for more details｣
     } else {
-        my $link-msg = self.get-output(‘git’, ‘show’, ‘--quiet’, ‘--date=short’,
+        my $link-msg = self.get-output(cwd => $dir, ‘git’, ‘show’, ‘--quiet’, ‘--date=short’,
                                        “--pretty=(%cd) {COMMIT-LINK}/%H”, ‘bisect/new’)<output>;
         $msg.reply($link-msg);
         if $link-msg.ends-with: ‘07fecb52eb1fd07397659f19a5cf36dc61f84053’ {
@@ -260,7 +258,6 @@ method process($msg, $code is copy, $old, $new) {
     return;
 
     LEAVE {
-        chdir  $old-dir  if defined $old-dir;
         unlink $filename if defined $filename and $filename.chars > 0;
         rmtree $dir      if defined $dir      and $dir.chars      > 0;
         sleep 0.02 # otherwise the output may be in the wrong order TODO is it a problem in IRC::Client?

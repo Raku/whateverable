@@ -91,7 +91,6 @@ multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=<.&commit-list> \s
 }
 
 method process($msg, $config is copy, $grep is copy, $code is copy) {
-    my $old-dir = $*CWD; # TODO not needed because we don't chdir anywhere?
     my $start-time = now;
 
     if $config ~~ /^ [say|sub] $/ {
@@ -186,9 +185,8 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
 
     return $short-str but ProperStr($long-str), %('result.md' => $cover-report); # TODO no need for $short-str as mentioned earlier
 
-    LEAVE { # TODO not needed same as $old-dir?
-        chdir $old-dir;
-        unlink $filename if defined $filename and $filename.chars > 0
+    LEAVE {
+        unlink q$filename if defined $filename and $filename.chars > 0
     }
 }
 

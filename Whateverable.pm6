@@ -163,7 +163,7 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
     !! $original-commit
 }
 
-method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
+method get-output(*@run-args, :$timeout = $!timeout, :$stdin, :$cwd = $*CWD) {
     my @lines;
     my $proc = Proc::Async.new: |@run-args, w => defined $stdin;
     my $s-start = now;
@@ -177,7 +177,7 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin) {
             $proc.kill; # TODO sends HUP, but should kill the process tree instead
             @lines.push: “«timed out after $timeout seconds»”
         }
-        whenever $proc.start { #: scheduler => BEGIN ThreadPoolScheduler.new {
+        whenever $proc.start: :$cwd { #: scheduler => BEGIN ThreadPoolScheduler.new { # TODO do we need to set scheduler?
             $result = $_;
             $s-end = now;
             done
@@ -201,19 +201,17 @@ method build-exists($full-commit-hash, :$backend=‘rakudo-moar’) {
 }
 
 method get-similar($tag-or-hash, @other?, :$repo=RAKUDO) {
-    my $old-dir = $*CWD;
-    LEAVE chdir $old-dir;
-    chdir $repo;
-
     my @options = @other;
-    my @tags = self.get-output(‘git’, ‘tag’, ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
+    my @tags = self.get-output(cwd => $repo, ‘git’, ‘tag’,
+                               ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
                                ‘--sort=-taggerdate’)<output>.lines
                                .map(*.split(‘/’))
                                .grep({ self.build-exists: .[0] || .[1] })
                                .map(*[2]);
 
     my $cutoff = $tag-or-hash.chars max 7;
-    my @commits = self.get-output(‘git’, ‘rev-list’, ‘--all’, ‘--since=2014-01-01’)<output>
+    my @commits = self.get-output(cwd => $repo, ‘git’, ‘rev-list’,
+                                  ‘--all’, ‘--since=2014-01-01’)<output>
                       .lines.map(*.substr: 0, $cutoff);
 
     # flat(@options, @tags, @commits).min: { sift4($_, $tag-or-hash, 5, 8) }
@@ -277,21 +275,18 @@ method run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$time
 }
 
 method get-commits($config, :$repo=RAKUDO) {
-    my $old-dir = $*CWD;
-    LEAVE chdir $old-dir;
     my @commits;
 
     if $config.contains: ‘,’ {
         @commits = $config.split: /‘,’\s*/;
     } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
-        chdir $repo; # goes back in LEAVE
-        if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode ≠ 0 {
+        if run(:out(Nil), :cwd($repo), ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode ≠ 0 {
             return “Bad start, cannot find a commit for “$<start>””;
         }
-        if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   ≠ 0 {
+        if run(:out(Nil), :cwd($repo), ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   ≠ 0 {
             return “Bad end, cannot find a commit for “$<end>””;
         }
-        my $result = self.get-output: ‘git’, ‘rev-list’, ‘--reverse’, “$<start>^..$<end>”; # TODO unfiltered input
+        my $result = self.get-output: :cwd($repo), ‘git’, ‘rev-list’, ‘--reverse’, “$<start>^..$<end>”; # TODO unfiltered input
         return ‘Couldn't find anything in the range’ if $result<exit-code> ≠ 0;
         @commits = $result<output>.lines;
         my $num-commits = @commits.elems;
@@ -310,13 +305,9 @@ method get-commits($config, :$repo=RAKUDO) {
 }
 
 method get-tags($date, :$repo=RAKUDO) {
-    my $old-dir = $*CWD;
-    chdir $repo;
-    LEAVE chdir $old-dir;
-
     my @tags = <HEAD>;
     my %seen;
-    for self.get-output(‘git’, ‘log’, ‘--pretty="%d"’,
+    for self.get-output(cwd => $repo, ‘git’, ‘log’, ‘--pretty="%d"’,
                         ‘--tags’, ‘--no-walk’, “--since=$date”)<output>.lines -> $tag {
         next unless $tag ~~ /:i ‘tag:’ \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) /; # TODO use tag -l
         next if $!bad-releases{$0}:exists;
@@ -328,14 +319,11 @@ method get-tags($date, :$repo=RAKUDO) {
 }
 
 method to-full-commit($commit, :$short=False, :$repo=RAKUDO) {
-    my $old-dir = $*CWD;
-    chdir $repo;
-    LEAVE chdir $old-dir;
+    return if run(:out(Nil), :cwd($repo), ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
 
-    return if run(:out(Nil), ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
-
-    my $result = self.get-output: |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
-                                  ($short ?? ‘--abbrev-commit’ !! Empty), $commit);
+    my $result = self.get-output: cwd => $repo,
+                                  |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
+                                    ($short ?? ‘--abbrev-commit’ !! Empty), $commit);
 
     return if     $result<exit-code> ≠ 0;
     return unless $result<output>;

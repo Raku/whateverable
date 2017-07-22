@@ -53,7 +53,6 @@ multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=<.&commit-list> \s
 }
 
 method process($msg, $config is copy, $code is copy) {
-    my $old-dir = $*CWD;
     my $start-time = now;
 
     if $config ~~ /^ [say|sub] $/ {
@@ -120,7 +119,6 @@ method process($msg, $config is copy, $code is copy) {
     return $short-str but ProperStr($long-str);
 
     LEAVE {
-        chdir $old-dir;
         unlink $filename if defined $filename and $filename.chars > 0
     }
 }

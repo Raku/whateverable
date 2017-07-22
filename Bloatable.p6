@@ -70,8 +70,6 @@ method did-you-mean($out) {
 }
 
 method process($msg, $config, $sources is copy) {
-    my $old-dir = $*CWD;
-
     my ($commits-status, @commits) = self.get-commits: $config, repo => MOARVM;
     return $commits-status unless @commits;
 
@@ -123,13 +121,9 @@ method process($msg, $config, $sources is copy) {
         # print obvious problems without gisting the whole thing
         return @processed[*-2]<error> || @processed[*-1]<error>;
         # TODO this does not catch missing libmoar.so files
-    } else {
-        return ‘’ but FileStore(%files);
     }
 
-    LEAVE {
-        chdir $old-dir;
-    }
+    ‘’ but FileStore(%files);
 }
 
 Bloatable.new.selfrun: ‘bloatable6’, [ /‘bloat’ y?6?/, fuzzy-nick(‘bloatable6’, 2) ]

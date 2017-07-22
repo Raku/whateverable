@@ -110,8 +110,6 @@ method from-numerics($query) {
 }
 
 method process($msg, $query is copy) {
-    my $old-dir = $*CWD;
-
     my ($succeeded, $code-response) = self.process-code: $query, $msg;
     return $code-response unless $succeeded;
     if $code-response ne $query {
@@ -199,7 +197,6 @@ method process($msg, $query is copy) {
     return
 
     LEAVE {
-        chdir $old-dir;
         unlink $filename if defined $filename and $filename.chars > 0
     }
 }

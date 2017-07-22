@@ -68,7 +68,6 @@ multi method irc-privmsg-channel($msg where .args[1] ~~
 }
 
 method process($message, $code is copy) {
-    my $old-dir = $*CWD;
     my $commit = ‘HEAD’;
 
     my ($succeeded, $code-response) = self.process-code: $code, $message;
@@ -117,7 +116,6 @@ method process($message, $code is copy) {
     return “Full output: $link”;
 
     LEAVE {
-        chdir $old-dir;
         unlink $filename if defined $filename and $filename.chars > 0
     }
 }

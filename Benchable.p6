@@ -150,7 +150,6 @@ method process($msg, $config, $code is copy) {
        ($config ~~ /:i ^ [ releases | v? 6 \.? c | all ] $ / or $config.contains: ‘,’) {
         $msg.reply: ‘benchmarked the given commits, now zooming in on performance differences’;
         sleep 0.05; # to prevent messages from being reordered
-        chdir RAKUDO;
 
 Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
             if now - $start-time > TOTAL-TIME {
@@ -160,7 +159,9 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
             next unless %times{@commits[$x]}:exists and %times{@commits[$x + 1]}:exists;          # the commits have to have been run at all
             next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists;     # and without error
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) ≥ %times{@commits[$x]}<min> × 0.1 {
-                my $result = self.get-output: ‘git’, ‘rev-list’, ‘--bisect’, ‘--no-merges’, @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];
+                my $result = self.get-output: cwd => RAKUDO, ‘git’, ‘rev-list’,
+                                              ‘--bisect’, ‘--no-merges’,
+                                              @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];
                 my $new-commit = $result<output>;
                 if $result<exit-code> == 0 and defined $new-commit and $new-commit ne ‘’ {
                     my $short-commit = self.get-short-commit: $new-commit;
@@ -204,7 +205,6 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
     return $short-str but ProperStr($long-str), %graph;
 
     LEAVE {
-        chdir $old-dir;
         unlink $filename if defined $filename and $filename.chars > 0
     }
 }
