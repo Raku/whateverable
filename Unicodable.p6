@@ -27,6 +27,7 @@ use IRC::Client;
 unit class Unicodable does Whateverable;
 
 constant MESSAGE-LIMIT = 3;
+constant $LIMIT = 5_000;
 
 method TWEAK {
     self.timeout = 30;
@@ -147,6 +148,7 @@ method process($msg, $query is copy) {
         for @$sieve {
             my $char-desc = self.get-description: $_;
             @all.push: $char-desc;
+            return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
             $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
         }
     } elsif $query ~~ /^ ‘/’ / {
@@ -173,6 +175,7 @@ method process($msg, $query is copy) {
             for $output.split: “\c[31]” {
                 my $char-desc = self.get-description: +$_;
                 @all.push: $char-desc;
+                return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
                 $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
             }
         }
@@ -180,6 +183,7 @@ method process($msg, $query is copy) {
         for $query.comb».ords.flat {
             my $char-desc = self.get-description: $_;
             @all.push: $char-desc;
+            return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
             if @all [<] MESSAGE-LIMIT {
                 sleep 0.05 if @all > 1; # let's try to keep it in order
                 $msg.reply: $char-desc
