@@ -99,7 +99,7 @@ method awesomify-exception($exception) {
     $exception.gist.lines.map({
         # TODO Proper way to get data out of exceptions?
         # For example, right now it is broken for paths with spaces
-        when /:s ^(\s**2in \w+ \S* at “{WORKING-DIRECTORY}/”?)$<path>=[\S+](
+        when /:s ^([\s**2|\s**6]in \w+ \S* at “{WORKING-DIRECTORY}/”?)$<path>=[\S+](
                                          [<.ws>‘(’<-[)]>+‘)’]? line )$<line>=[\d+]$/ {
             my $status = run :out, ‘git’, ‘status’, ‘--porcelain’, ‘--untracked-files=no’,
                                    ‘--’, ~$<path>;
