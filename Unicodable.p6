@@ -28,6 +28,7 @@ unit class Unicodable does Whateverable;
 
 constant MESSAGE-LIMIT = 3;
 constant $LIMIT = 5_000;
+constant $PREVIEW-LIMIT = 50;
 
 method TWEAK {
     self.timeout = 30;
@@ -124,9 +125,8 @@ method process($msg, $query is copy) {
     my @numerics = self.from-numerics($query);
     if @numerics {
         for @numerics {
-            my $char-desc = self.get-description: $_;
-            @all.push: $char-desc;
-            $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
+            @all.push: $_;
+            $msg.reply: self.get-description: $_ if @all [<] MESSAGE-LIMIT
         }
     } elsif $query ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $ && .*? \S / {
         my @words;
@@ -144,10 +144,9 @@ method process($msg, $query is copy) {
         for @props -> $prop { $sieve .= grep({uniprop($_) eq $prop}) };
 
         for @$sieve {
-            my $char-desc = self.get-description: $_;
-            @all.push: $char-desc;
+            @all.push: $_;
             return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
-            $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
+            $msg.reply: self.get-description: $_ if @all [<] MESSAGE-LIMIT
         }
     } elsif $query ~~ /^ ‘/’ / {
         return ‘Regexes are not supported yet, sorry! Try code blocks instead’
@@ -171,27 +170,31 @@ method process($msg, $query is copy) {
         }
         if $output {
             for $output.split: “\c[31]” {
-                my $char-desc = self.get-description: +$_;
-                @all.push: $char-desc;
+                @all.push: +$_;
                 return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
-                $msg.reply: $char-desc if @all [<] MESSAGE-LIMIT
+                $msg.reply: self.get-description: +$_ if @all [<] MESSAGE-LIMIT
             }
         }
     } else {
         for $query.comb».ords.flat {
-            my $char-desc = self.get-description: $_;
-            @all.push: $char-desc;
+            @all.push: $_;
             return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
             if @all [<] MESSAGE-LIMIT {
                 sleep 0.05 if @all > 1; # let's try to keep it in order
-                $msg.reply: $char-desc
+                $msg.reply: self.get-description: $_
             }
         }
     }
-    return @all[*-1] if @all == MESSAGE-LIMIT;
+    return self.get-description: @all[*-1] if @all == MESSAGE-LIMIT;
     if @all > MESSAGE-LIMIT {
-        my $link-msg = { “{+@all} characters in total: $_” };
-        return (‘’ but ProperStr(@all.join: “\n”)) but PrettyLink($link-msg)
+        my $gist = @all.map({self.get-description: $_}).join: “\n”;
+        my $preview = @all ≤ $PREVIEW-LIMIT ?? @all».chr.join !! ‘’;
+        $preview = ‘’ if @all».uniprop(‘Grapheme_Cluster_Break’).any eq
+                      ‘Control’ | ‘CR’ | ‘LF’ | ‘Extend’ | ‘Prepend’ | ‘ZWJ’;
+        $preview = ‘’ if @all !~~ $preview.comb».ord; # round trip test
+        $preview = “ ($preview)” if $preview;
+        my $link-msg = { “{+@all} characters in total$preview: $_” };
+        return (‘’ but ProperStr($gist)) but PrettyLink($link-msg)
     }
     return ‘Found nothing!’ if not @all;
     return

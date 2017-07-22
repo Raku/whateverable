@@ -80,7 +80,7 @@ $t.test(‘More than three uploaded’,
         ‘u: ㈰🁍⩟⏛℧’,
         “{$t.our-nick}, U+3230 PARENTHESIZED IDEOGRAPH SUN [So] (㈰)”,
         “{$t.our-nick}, U+1F04D DOMINO TILE HORIZONTAL-04-00 [So] (🁍)”,
-        “{$t.our-nick}, 5 characters in total: https://whatever.able/fakeupload”);
+        “{$t.our-nick}, 5 characters in total (㈰🁍⩟⏛℧): https://whatever.able/fakeupload”);
 
 $t.test(‘Search by words’,
         ‘u: POO PILE’,
