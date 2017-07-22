@@ -88,7 +88,7 @@ method sanify($ord) {
 
 method get-description($ord) {
     my $sane = self.sanify($ord);
-    return $sane if $sane.ends-with(‘)’);
+    return $sane if $sane.ends-with(‘(invalid codepoint)’);
     sprintf “%s %s [%s] (%s)”,
             self.codepointify($ord), $ord.uniname,
             $ord.uniprop, $sane
