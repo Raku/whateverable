@@ -142,7 +142,7 @@ $t.test(‘commit^^^ syntax’,
 $t.test(‘commit..commit range syntax’,
         ‘bench: 79bb867..b1f77c8 say ‘a’ x 9999999999999999999’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
-        /^ <me($t)>‘, ¦b1f77c8: «’ \d+\.\d+ ‘» ¦87bba04: «’ \d+\.\d+ ‘» ¦79bb867: «’ \d+\.\d+ ‘»’ $/,
+        /^ <me($t)>‘, ¦79bb867: «’ \d+\.\d+ ‘» ¦87bba04: «’ \d+\.\d+ ‘» ¦b1f77c8: «’ \d+\.\d+ ‘»’ $/,
         :20timeout);
 
 # URLs
