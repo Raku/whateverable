@@ -46,3 +46,9 @@ sub markdown-escape($text) is export {
 my token commit-list is export {
     [<-[\s] -[‘,’]>+]+ % [‘,’\s*]
 }
+
+class Whateverable::X::HandleableAdHoc is X::AdHoc is export {}
+
+sub grumble(|c) is export {
+     Whateverable::X::HandleableAdHoc.new(payload => c).throw
+}

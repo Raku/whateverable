@@ -74,6 +74,8 @@ method handle-exception($exception, $msg?) {
         return ‘Exception was thrown while I was trying to handle another exception…’
         ~ ‘ What are they gonna do to me, Sarge? What are they gonna do⁈’
     }
+    return $exception.message if $exception ~~ Whateverable::X::HandleableAdHoc; # oh, it's OK!
+
     say $exception;
     with $msg {
         .irc.send-cmd: ‘PRIVMSG’, .channel, “I'm acting stupid on {.channel}. Help me.”,
