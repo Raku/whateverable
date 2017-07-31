@@ -59,7 +59,7 @@ submethod TWEAK {
             $self.handle-exception: $!, $msg
         };
 
-        self.^lookup(‘filter’).wrap: anon sub ($self, $response) {
+        self.^lookup(‘filter’).wrap: sub ($self, $response) {
             my &filter = nextcallee;
             try { return filter $self, $response }
             try { return filter $self, $self.handle-exception($!, $response.?msg) }
