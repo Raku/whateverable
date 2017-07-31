@@ -79,8 +79,10 @@ method handle-exception($exception, $msg?) {
 
     say $exception;
     with $msg {
-        .irc.send-cmd: ‘PRIVMSG’, .channel, “I'm acting stupid on {.channel}. Help me.”,
-                           :server(.server), :prefix(PARENTS.join(‘, ’) ~ ‘: ’);
+        if .channel ne ‘#whateverable’ {
+            .irc.send-cmd: ‘PRIVMSG’, .channel, “I'm acting stupid on {.channel}. Help me.”,
+                           :server(.server), :prefix(PARENTS.join(‘, ’) ~ ‘: ’)
+        }
     }
 
     my ($text, @files) = flat self.awesomify-exception: $exception;
