@@ -1,0 +1,25 @@
+my @bots = dir test => / ‘able.p6’ $ /;
+
+sub start-stop($task where ‘start-all’ | ‘stop-all’) {
+    for @bots {
+        next if .contains: ‘#’; # editor files
+        my $bot = .subst: /‘.p6’$/, ‘’;
+        my $log = dir(‘logs’, test => /^ $($bot.lc) .* ‘.log’ $/).sort.tail;
+        next unless $log;
+        my $result = run :out, ‘lsof’, ‘-tac’, ‘moar’, ‘--’, $log;
+        if $task eq ‘start-all’ {
+            next if $result.exitcode == 0;
+            say “Starting $bot…”;
+            run ‘bash’, ‘-c’, ｢"./$1.p6" &> "$(date "+logs/${1,,}_%F_%H%M.log")" & disown｣, ‘--’, $bot
+        } else { # ‘stop-all’
+            next if $result.exitcode ≠ 0;
+            say “Stopping $bot…”;
+            run ‘kill’, ‘--’, $result.out.slurp-rest.chomp
+        }
+    }
+}
+
+task ‘start-all’, { start-stop ‘start-all’ }
+task ‘stop-all’,  { start-stop ‘stop-all’  }
+task ‘test’,      { run ‘prove’, ‘--exec’, ‘perl6’, ‘t’ }
+task ‘upgrade’,   { run ‘rakudobrew’, ‘build’, ‘moar’   }
