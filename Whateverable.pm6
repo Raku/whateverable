@@ -147,7 +147,7 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ help ‘?’? $/) {
     self.help($msg) ~ “ # See wiki for more examples: {self.get-wiki-link}”
 }
 multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime $/) {
-    ~denominate now - BEGIN now
+    ~denominate now - INIT now
 }
 multi method irc-notice-me( $ --> ‘Sorry, it is too private here’) {} # TODO issue #16
 multi method irc-privmsg-me($ --> ‘Sorry, it is too private here’) {} # TODO issue #16
