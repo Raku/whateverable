@@ -54,9 +54,9 @@ has $!bad-releases = set ‘2016.01’, ‘2016.01.1’;
 submethod TWEAK {
     # wrap around everything to catch exceptions
     once { # per class
-        self.^lookup(‘irc-to-me’).wrap: anon sub ($self, $msg) {
-            try { return callsame }
-            $self.handle-exception($!, $msg)
+        self.^lookup(‘irc-to-me’).wrap: sub ($self, $msg) {
+            try { with (callsame) { return $_ but Reply($msg) } else { return } }
+            $self.handle-exception: $!, $msg
         };
 
         self.^lookup(‘filter’).wrap: anon sub ($self, $response) {
