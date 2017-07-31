@@ -319,7 +319,8 @@ method get-tags($date, :$repo=RAKUDO) {
 }
 
 method to-full-commit($commit, :$short=False, :$repo=RAKUDO) {
-    return if run(:out(Nil), :cwd($repo), ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
+    return if run(:out(Nil), :err(Nil), :cwd($repo),
+                  ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
 
     my $result = self.get-output: cwd => $repo,
                                   |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
