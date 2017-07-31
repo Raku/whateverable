@@ -45,9 +45,8 @@ constant PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
 
 constant Message = IRC::Client::Message;
 
-unit role Whateverable does IRC::Client::Plugin does Helpful;
+unit role Whateverable[:$default-timeout = 10] does IRC::Client::Plugin does Helpful;
 
-has $.timeout is rw = 10;
 has $!stdin = slurp ‘stdin’;
 has $!bad-releases = set ‘2016.01’, ‘2016.01.1’;
 
@@ -73,7 +72,7 @@ method handle-exception($exception, $msg?) {
     CATCH { # exception handling is too fat, so let's do this also…
         .say;
         return ‘Exception was thrown while I was trying to handle another exception…’
-        ~ ‘ What are they gonna do to me, Sarge? What are they gonna do⁈’
+             ~ ‘ What are they gonna do to me, Sarge? What are they gonna do⁈’
     }
     return $exception.message if $exception ~~ Whateverable::X::HandleableAdHoc; # oh, it's OK!
 
@@ -137,13 +136,8 @@ multi method irc-to-me(Message $msg where .text ~~
 }
 
 multi method irc-to-me(Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdin>=.* $/) {
-    my ($ok, $new-stdin) = self.process-code(~$<stdin>, $msg);
-    if $ok {
-        $!stdin = $new-stdin;
-        “STDIN is set to «{shorten $!stdin, 200}»” # TODO is 200 a good limit?
-    } else {
-        ‘Nothing done’
-    }
+    $!stdin = self.process-code: ~$<stdin>, $msg;
+    “STDIN is set to «{shorten $!stdin, 200}»” # TODO is 200 a good limit?
 }
 
 multi method irc-to-me(Message $    where .text ~~ /:i^ [source|url] ‘?’? $/ --> SOURCE) {}
@@ -258,9 +252,7 @@ method run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) {
     }
 
     my $return = $code($build-path); # basically, we wrap around $code
-
     rmtree $build-path;
-
     $return
 }
 
@@ -274,34 +266,30 @@ method run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$time
     }
 }
 
-method get-commits($config, :$repo=RAKUDO) {
-    my @commits;
+method get-commits($_, :$repo=RAKUDO) {
+    return .split: /‘,’\s*/ if .contains: ‘,’;
 
-    if $config.contains: ‘,’ {
-        @commits = $config.split: /‘,’\s*/;
-    } elsif $config ~~ /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
-        if run(:out(Nil), :cwd($repo), ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode ≠ 0 {
-            return “Bad start, cannot find a commit for “$<start>””;
+    if /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
+        if run(:out(Nil), :err(Nil), :cwd($repo),
+               ‘git’, ‘rev-parse’, ‘--verify’, $<start>).exitcode ≠ 0 {
+            grumble “Bad start, cannot find a commit for “$<start>””
         }
-        if run(:out(Nil), :cwd($repo), ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   ≠ 0 {
-            return “Bad end, cannot find a commit for “$<end>””;
+        if run(:out(Nil), :err(Nil), :cwd($repo),
+               ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   ≠ 0 {
+            grumble “Bad end, cannot find a commit for “$<end>””
         }
         my $result = self.get-output: :cwd($repo), ‘git’, ‘rev-list’, ‘--reverse’, “$<start>^..$<end>”; # TODO unfiltered input
-        return ‘Couldn't find anything in the range’ if $result<exit-code> ≠ 0;
-        @commits = $result<output>.lines;
-        my $num-commits = @commits.elems;
-        return “Too many commits ($num-commits) in range, you're only allowed {COMMITS-LIMIT}” if $num-commits > COMMITS-LIMIT
-    } elsif $config ~~ /:i ^ [ releases | v? 6 \.? c ] $/ {
-        @commits = self.get-tags: ‘2015-12-24’, :$repo
-    } elsif $config ~~ /:i ^ all $/ {
-        @commits = self.get-tags: ‘2014-01-01’, :$repo
-    } elsif $config ~~ /:i ^ compare \s $<commit>=\S+ $/ {
-        @commits = $<commit>
-    } else {
-        @commits = $config
+        grumble ‘Couldn't find anything in the range’ if $result<exit-code> ≠ 0;
+        my @commits = $result<output>.lines;
+        if @commits.elems > COMMITS-LIMIT {
+            grumble “Too many commits ({@commits.elems}) in range, you're only allowed {COMMITS-LIMIT}”
+        }
+        return @commits
     }
-
-    return Nil, |@commits # TODO throw exceptions instead of doing this
+    return self.get-tags: ‘2015-12-24’, :$repo if /:i ^ [ releases | v? 6 ‘.’? c ] $/;
+    return self.get-tags: ‘2014-01-01’, :$repo if /:i ^   all                      $/;
+    return ~$<commit>                          if /:i ^   compare \s $<commit>=\S+ $/;
+    return $_
 }
 
 method get-tags($date, :$repo=RAKUDO) {
@@ -344,35 +332,29 @@ method process-url($url, $message) {
     try {
         $response = $ua.get: $url;
         CATCH {
-            return 0, ‘It looks like a URL, but for some reason I cannot download it’
-                          ~ “ ({.message})”
+            grumble ‘It looks like a URL, but for some reason I cannot download it’
+                    ~ “ ({.message})”
         }
     }
-
     if not $response.is-success {
-        return 0, ‘It looks like a URL, but for some reason I cannot download it’
-                      ~ “ (HTTP status line is {$response.status-line}).”
+        grumble ‘It looks like a URL, but for some reason I cannot download it’
+                ~ “ (HTTP status line is {$response.status-line}).”
     }
-    if not $response.content-type.contains: any ‘text/plain’, ‘perl’ {
-        return 0, “It looks like a URL, but mime type is ‘{$response.content-type}’”
-                      ~ ‘ while I was expecting something with ‘text/plain’ or ‘perl’’
-                      ~ ‘ in it. I can only understand raw links, sorry.’
+    if not $response.content-type.contains: ‘text/plain’ | ‘perl’ {
+        grumble “It looks like a URL, but mime type is ‘{$response.content-type}’”
+                ~ ‘ while I was expecting something with ‘text/plain’ or ‘perl’’
+                ~ ‘ in it. I can only understand raw links, sorry.’
     }
-    my $body = $response.decoded-content;
 
+    my $body = $response.decoded-content;
     $message.reply: ‘Successfully fetched the code from the provided URL.’;
-    return 1, $body
+    return $body
 }
 
 method process-code($code is copy, $message) {
-    if $code ~~ m{^ ( ‘http’ s? ‘://’ \S+ ) } {
-        my ($succeeded, $response) = self.process-url(~$0, $message);
-        return 0, $response unless $succeeded;
-        $code = $response
-    } else {
-        $code .= subst: :g, ‘␤’, “\n”
-    }
-    return 1, $code
+    $code ~~ m{^ ( ‘http’ s? ‘://’ \S+ ) }
+    ?? self.process-url(~$0, $message)
+    !! $code.subst: :g, ‘␤’, “\n”
 }
 
 multi method filter($response where (.encode.elems > MESSAGE-LIMIT

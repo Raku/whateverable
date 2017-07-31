@@ -31,26 +31,23 @@ my \ECO-PATH = ‘all-modules’;
 method help($msg) {
     “Like this: {$msg.server.current-nick}: password”
 }
-
-multi method irc-to-me($msg) {
-    my $value = self.process: $msg;
-    return without $value;
-    return $value but Reply($msg)
-}
-
 sub process-line($line, %commits) { # 🙈
     my $backticks = ｢`｣ x (($line.comb(/｢`｣+/) || ｢｣).max.chars + 1);
     my ($path, $line-number, $text) = $line.split(“\x0”, 3);
 
     my $start = do
     if $path ~~ /^ $<repo>=[ <-[/]>+ ‘/’ <-[/]>+ ] ‘/’ $<path>=.* $/ {
-        my $commit = %commits{$<repo>};
+        my $repo      = $<repo>;
+        my $long-path = $<path>;
+        my $commit = %commits{$repo};
         without $commit { # cache it!
-            $commit = Config::INI::parse(slurp “{ECO-PATH}/$<repo>/.gitrepo”)<subrepo><commit>;
-            %commits{$<repo>} = $commit;
+            $commit = Config::INI::parse(slurp “{ECO-PATH}/$repo/.gitrepo”)<subrepo><commit>;
+            %commits{$repo} = $commit;
         }
-        my $link = “https://github.com/{$<repo>}/blob/$commit/{$<path>}#L$line-number”;
-        “[$<repo>:*$line-number*:]($link)”
+        my $link = “https://github.com/$repo/blob/$commit/$long-path#L$line-number”;
+        my $short-path = $long-path.subst: /^ .*‘/’ /, ‘’;
+        $short-path = “…/$short-path”;# if $long-path ne $short-path;
+        “[{$repo}<br>``{$short-path}`` :*$line-number*:]($link)”
     } else {
         $path # not a module
     }
@@ -58,21 +55,23 @@ sub process-line($line, %commits) { # 🙈
     $text = markdown-escape($text);
     $text ~~ s:g/ “\c[ESC][1;31m” (.*?) [ “\c[ESC][m” | $ ] /<b>{$0}<\/b>/; # TODO get rid of \/ ?
 
-    “$start <code>{$text}</code>” ~ ‘<br>’
+    “| $start | <code>{$text}</code> |”
 }
 
-method process($msg) {
+multi method irc-to-me($msg) {
     my @git = ‘git’, ‘--git-dir’, “{ECO-PATH}/.git”, ‘--work-tree’, ECO-PATH;
-    run |@git, ‘pull’;
+    run :out(Nil), |@git, ‘pull’;
     my $result = self.get-output(|@git, ‘grep’,
                                  ‘--color=always’, ‘-z’, ‘-i’, ‘-I’,
                                  ‘--perl-regexp’, ‘--line-number’,
                                  ‘--’, $msg);
 
-    return ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 | 1 or $result<signal> ≠ 0;
-    return ‘Found nothing!’ unless $result<output>;
+    grumble ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 | 1 or $result<signal> ≠ 0;
+    grumble ‘Found nothing!’ unless $result<output>;
     my %commits = ();
-    ‘’ but FileStore({ ‘result.md’ => $result<output>.lines.map({process-line $_, %commits}).join(“\n”)})
+    my $gist = “| File | Code |\n|--|--|\n”;
+    $gist ~= $result<output>.lines.map({process-line $_, %commits}).join(“\n”);
+    ‘’ but FileStore({ ‘result.md’ => $gist})
 }
 
 

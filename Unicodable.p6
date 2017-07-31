@@ -19,48 +19,34 @@
 
 use lib ‘.’;
 use Misc;
+use Replaceable;
 use Uniprops;
 use Whateverable;
 
 use IRC::Client;
 
-unit class Unicodable does Whateverable;
+unit class Unicodable does Whateverable[:30default-timeout] does Replaceable;
 
 constant MESSAGE-LIMIT = 3;
 constant $LIMIT = 5_000;
 constant $PREVIEW-LIMIT = 50;
-
-method TWEAK {
-    self.timeout = 30;
-}
 
 method help($msg) {
     ‘Just type any unicode character or part of a character name. Alternatively, you can also provide a code snippet.’
 }
 
 multi method irc-to-me($msg) {
+    if $msg.args[1].starts-with: ‘propdump:’ | ‘unidump:’ {
+        return self.propdump: $msg, $msg.text
+    }
     if $msg.args[1] ~~ / ^ ‘.u’ \s / {
-        my $update-promise = Promise.new;
-        $!update-promise-channel.send: $update-promise;
-        $msg.irc.send-cmd: ‘NAMES’, $msg.channel;
-        start {
-            await Promise.anyof: $update-promise, Promise.in(4);
-            $!users-lock.protect: {
-                return if any %!users{$msg.channel}<yoleaux yoleaux2>:exists
-            }
-            my $value = self.process: $msg, $msg.text;
-            $msg.reply: $_ but Reply($msg) with $value
+        self.make-believe: $msg, <yoleaux yoleaux2>, {
+            # TODO exceptions here are not caught
+            self.process: $msg, $msg.text
         }
         return
-    } elsif $msg.args[1].starts-with: ‘propdump:’ | ‘unidump:’ {
-        my $value = self.propdump: $msg, $msg.text;
-        return without $value;
-        return $value but Reply($msg)
-    } else {
-        my $value = self.process: $msg, $msg.text;
-        return without $value;
-        return $value but Reply($msg)
     }
+    self.process: $msg, $msg.text
 }
 
 multi method irc-privmsg-channel($msg where .args[1] ~~ / ^ ‘.u’ \s (.*)/) {
@@ -96,6 +82,21 @@ method get-description($ord) {
             $ord.uniprop, $sane
 }
 
+method get-preview(@all) {
+    return ‘’ if @all > $PREVIEW-LIMIT;
+    return ‘’ if @all».uniprop(‘Grapheme_Cluster_Break’).any eq
+                 ‘Control’ | ‘CR’ | ‘LF’ | ‘Extend’ | ‘Prepend’ | ‘ZWJ’;
+    my $preview = @all».chr.join;
+    return ‘’ if @all !~~ $preview.comb».ord; # round trip test
+    “ ($preview)”
+}
+
+method compose-gist(@all) {
+    my $gist = @all.map({self.get-description: $_}).join: “\n”;
+    my $link-msg = { “{+@all} characters in total{self.get-preview: @all}: $_” };
+    (‘’ but ProperStr($gist)) but PrettyLink($link-msg)
+}
+
 method from-numerics($query) {
     $query ~~ m:ignoremark/^
         :i \s*
@@ -111,15 +112,12 @@ method from-numerics($query) {
 }
 
 method process($msg, $query is copy) {
-    my ($succeeded, $code-response) = self.process-code: $query, $msg;
-    return $code-response unless $succeeded;
+    my $code-response = self.process-code: $query, $msg;
     if $code-response ne $query {
         $query = $code-response
     } elsif not $msg.args[1].match: /^ ‘.u’ \s / {
         $query = ~$0 if $msg.args[1] ~~ / <[,:]> \s (.*) / # preserve leading spaces
     }
-    my $filename;
-
     my @all;
 
     my @numerics = self.from-numerics($query);
@@ -145,7 +143,7 @@ method process($msg, $query is copy) {
 
         for @$sieve {
             @all.push: $_;
-            return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
+            grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
             $msg.reply: self.get-description: $_ if @all [<] MESSAGE-LIMIT
         }
     } elsif $query ~~ /^ ‘/’ / {
@@ -153,55 +151,43 @@ method process($msg, $query is copy) {
     } elsif $query ~~ /^ ‘{’ / {
         my $full-commit = self.to-full-commit: ‘HEAD’;
         my $output = ‘’;
-        $filename = self.write-code: “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
-        if not self.build-exists: $full-commit {
-            die ‘No build for the last commit. Oops!’
-        } else { # actually run the code
-            my $result = self.run-snippet: $full-commit, $filename;
-            $output = $result<output>;
-            if $result<signal> < 0 { # numbers less than zero indicate other weird failures
-                $output = “Something went wrong ($output)”;
-                return $output
-            } else {
-                $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
-                $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
-                return $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0
-            }
-        }
+        my $filename = self.write-code: “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
+        LEAVE { unlink $_ with $filename }
+
+        die ‘No build for the last commit. Oops!’ unless self.build-exists: $full-commit;
+
+        # actually run the code
+        my $result = self.run-snippet: $full-commit, $filename;
+        $output = $result<output>;
+        # numbers less than zero indicate other weird failures ↓
+        grumble “Something went wrong ($output)” if $result<signal> < 0;
+
+        $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
+        $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
+        return $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0;
+
         if $output {
             for $output.split: “\c[31]” {
                 @all.push: +$_;
-                return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
+                grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
                 $msg.reply: self.get-description: +$_ if @all [<] MESSAGE-LIMIT
             }
         }
     } else {
         for $query.comb».ords.flat {
             @all.push: $_;
-            return “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
+            grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
             if @all [<] MESSAGE-LIMIT {
                 sleep 0.05 if @all > 1; # let's try to keep it in order
                 $msg.reply: self.get-description: $_
             }
         }
     }
-    return self.get-description: @all[*-1] if @all == MESSAGE-LIMIT;
-    if @all > MESSAGE-LIMIT {
-        my $gist = @all.map({self.get-description: $_}).join: “\n”;
-        my $preview = @all ≤ $PREVIEW-LIMIT ?? @all».chr.join !! ‘’;
-        $preview = ‘’ if @all».uniprop(‘Grapheme_Cluster_Break’).any eq
-                      ‘Control’ | ‘CR’ | ‘LF’ | ‘Extend’ | ‘Prepend’ | ‘ZWJ’;
-        $preview = ‘’ if @all !~~ $preview.comb».ord; # round trip test
-        $preview = “ ($preview)” if $preview;
-        my $link-msg = { “{+@all} characters in total$preview: $_” };
-        return (‘’ but ProperStr($gist)) but PrettyLink($link-msg)
-    }
-    return ‘Found nothing!’ if not @all;
-    return
 
-    LEAVE {
-        unlink $filename if defined $filename and $filename.chars > 0
-    }
+    return self.get-description: @all[*-1] if @all == MESSAGE-LIMIT;
+    return self.compose-gist:    @all      if @all >  MESSAGE-LIMIT;
+    return ‘Found nothing!’            unless @all;
+    return
 }
 
 method propdump($msg, $query) {
@@ -226,35 +212,6 @@ method propdump($msg, $query) {
         }
     }
     ‘’ but FileStore({ ‘result.md’ => $answer })
-}
-
-# ↓ Here we will try to keep track of users on the channel.
-#   This is a temporary solution. See this bug report:
-#   * https://github.com/zoffixznet/perl6-IRC-Client/issues/29
-has %!users;
-has $!users-lock = Lock.new;
-has $!update-promise-channel = Channel.new;
-has %!temp-users;
-
-method irc-n353($e) {
-    my $channel = $e.args[2];
-    # Try to filter out privileges ↓
-    my @nicks = $e.args[3].words.map: { m/ (<[\w \[ \] \ ^ { } | ` -]>+) $/[0].Str };
-    %!temp-users{$channel} //= SetHash.new;
-    %!temp-users{$channel}{@nicks} = True xx @nicks
-}
-
-method irc-n366($e) {
-    my $channel = $e.args[1];
-    $!users-lock.protect: {
-        %!users{$channel} = %!temp-users{$channel};
-        %!temp-users{$channel}:delete
-    };
-    loop {
-        my $promise = $!update-promise-channel.poll;
-        last without $promise;
-        try { $promise.keep } # could be already kept
-    }
 }
 
 Unicodable.new.selfrun: ‘unicodable6’, [/u6?/, /uni6?/, fuzzy-nick(‘unicodable6’, 3), ‘propdump’, ‘unidump’];

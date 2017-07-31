@@ -41,7 +41,7 @@ constant OPTIONS = %(
 has %stats;
 has %stat-locks;
 
-method TWEAK {
+method TWEAK { # TODO it breaks exception handling
     mkdir STATS-LOCATION if STATS-LOCATION.IO !~~ :d;
     for OPTIONS.keys {
         %stat-locks{$_} = Lock.new;
@@ -143,6 +143,6 @@ multi method process($msg, $type, $zeroed) {
     $msg-response, %graph
 }
 
-Statisfiable.new.selfrun: ‘statisfiable6’, [/stat6?/, fuzzy-nick(‘statisfiable6’, 3) ]
+Statisfiable.new.selfrun: ‘statisfiable6’, [/‘stat’ s?6?/, fuzzy-nick(‘statisfiable6’, 3) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

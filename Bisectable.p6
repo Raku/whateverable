@@ -55,8 +55,7 @@ method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-out
 method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output, :$cwd) {
     my $current-commit = self.get-output(:$cwd, ‘git’, ‘rev-parse’, ‘HEAD’)<output>;
 
-    # looks a bit nicer this way
-    LEAVE take “»»»»» {‘-’ x 73}”;
+    LEAVE take “»»»»» {‘-’ x 73}”; # looks a bit nicer this way
 
     take “»»»»» Testing $current-commit”;
     if not self.build-exists: $current-commit {
@@ -143,49 +142,46 @@ my regex bisect-cmd { :i
 
 multi method irc-to-me($msg where .text ~~ &bisect-cmd) {
     return if $msg.args[1].starts-with: ‘what,’;
-    my $value = self.process: $msg, ~$<code>,
-                              ~($<old> // ‘2015.12’),
-                              ~($<new> // ‘HEAD’);
-    return without $value;
-    return $value but Reply($msg)
+    self.process: $msg, ~$<code>,
+                  ~($<old> // ‘2015.12’),
+                  ~($<new> // ‘HEAD’)
 }
 
 method process($msg, $code is copy, $old, $new) {
-    my ($succeeded, $code-response) = self.process-code: $code, $msg;
-    return $code-response unless $succeeded;
-    $code = $code-response;
+    $code = self.process-code: $code, $msg;
 
     # convert to real ids so we can look up the builds
     my @options = <HEAD>;
     my $full-old = self.to-full-commit: $old;
     without $full-old {
-        return “Cannot find revision “$old””
+        grumble “Cannot find revision “$old””
         ~ “ (did you mean “{self.get-short-commit: self.get-similar: $old, @options}”?)”
     }
-    return “No build for revision “$old”” unless self.build-exists: $full-old;
+    grumble “No build for revision “$old”” unless self.build-exists: $full-old;
     my $short-old = self.get-short-commit: $old eq $full-old | ‘HEAD’ ?? $full-old !! $old;
 
     my $full-new = self.to-full-commit: $new;
     without $full-new {
-        return “Cannot find revision “$new””
+        grumble “Cannot find revision “$new””
         ~ “ (did you mean “{self.get-short-commit: self.get-similar: $new, @options}”?)”
     }
-    return “No build for revision “$new”” unless self.build-exists: $full-new;
+    grumble “No build for revision “$new”” unless self.build-exists: $full-new;
     my $short-new = self.get-short-commit: $new eq ‘HEAD’ ?? $full-new !! $new;
 
     my $filename = self.write-code: $code;
+    LEAVE { unlink $_ with $filename }
 
     my $old-result = self.run-snippet: $full-old, $filename;
     my $new-result = self.run-snippet: $full-new, $filename;
 
-    return “Problem with $short-old commit: $old-result<output>” if $old-result<signal> < 0;
-    return “Problem with $short-new commit: $new-result<output>” if $new-result<signal> < 0;
+    grumble “Problem with $short-old commit: $old-result<output>” if $old-result<signal> < 0;
+    grumble “Problem with $short-new commit: $new-result<output>” if $new-result<signal> < 0;
 
     if $old-result<exit-code> == 125 {
-        return ‘Exit code on “old” revision is 125, which means skip this commit. Please try another old revision’
+        grumble ‘Exit code on “old” revision is 125, which means skip this commit. Please try another old revision’
     }
     if $new-result<exit-code> == 125 {
-        return ‘Exit code on “new” revision is 125, which means skip this commit. Please try another new revision’
+        grumble ‘Exit code on “new” revision is 125, which means skip this commit. Please try another new revision’
     }
 
     $old-result<output> //= ‘’;
@@ -193,22 +189,23 @@ method process($msg, $code is copy, $old, $new) {
 
     if  $old-result<exit-code>   == $new-result<exit-code>
     and $old-result<signal>      == $new-result<signal>
-    and $old-result<output>      eq $new-result<output>      {
+    and $old-result<output>      eq $new-result<output>    {
         if $old-result<signal> ≠ 0 {
             $msg.reply: “On both starting points (old=$short-old new=$short-new) the exit code is $old-result<exit-code>, exit signal is {signal-to-text $old-result<signal>} and the output is identical as well”
         } else {
             $msg.reply: “On both starting points (old=$short-old new=$short-new) the exit code is $old-result<exit-code> and the output is identical as well”
         }
-        return “Output on both points: «$old-result<output>»” # will be gisted automatically if required
+        grumble “Output on both points: «$old-result<output>»” # will be gisted automatically if required
     }
 
     my $dir = tempdir :!unlink;
-    run ‘git’, ‘clone’, RAKUDO, $dir; # TODO check the result
+    LEAVE { rmtree $_ with $dir }
+    run :out(Nil), :err(Nil), ‘git’, ‘clone’, RAKUDO, $dir; # TODO check the result
 
     my $bisect-start = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘start’;
     my $bisect-old   = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘old’, $full-old;
-    die ‘Failed to run ｢bisect start｣’  if $bisect-start<exit-code> ≠ 0;
-    die ‘Failed to run ｢bisect old …”｣’ if $bisect-old<exit-code>   ≠ 0;
+    grumble ‘Failed to run ｢bisect start｣’  if $bisect-start<exit-code> ≠ 0;
+    grumble ‘Failed to run ｢bisect old …”｣’ if $bisect-old<exit-code>   ≠ 0;
 
     my $init-result = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘new’, $full-new;
     if $init-result<exit-code> ≠ 0 {
@@ -216,7 +213,7 @@ method process($msg, $code is copy, $old, $new) {
                                                     result => colorstrip($init-result<output>), },
                                                   description => $msg.server.current-nick,
                                                   public => !%*ENV<DEBUGGABLE>;
-        return ‘bisect init failure. See the log for more details’
+        grumble ‘bisect init failure. See the log for more details’
     }
     my ($bisect-output, $bisect-status);
     if $old-result<signal> ≠ $new-result<signal> {
@@ -243,25 +240,20 @@ method process($msg, $code is copy, $old, $new) {
                                         ‘--format=%(objectname)’, ‘refs/bisect/old-*’)<output>;
         my @possible-revs = self.get-output(cwd => $dir, ‘git’, ‘rev-list’,
                                             ‘refs/bisect/new’, ‘--not’, |$good-revs.lines)<output>.lines;
-        return “There are {+@possible-revs} candidates for the first “new” revision. See the log for more details”
-    } elsif $bisect-status ≠ 0 {
-        return ｢‘bisect run’ failure. See the log for more details｣
-    } else {
-        my $link-msg = self.get-output(cwd => $dir, ‘git’, ‘show’, ‘--quiet’, ‘--date=short’,
-                                       “--pretty=(%cd) {COMMIT-LINK}/%H”, ‘bisect/new’)<output>;
-        $msg.reply($link-msg);
-        if $link-msg.ends-with: ‘07fecb52eb1fd07397659f19a5cf36dc61f84053’ {
-            return ‘The result looks a bit unrealistic, doesn't it? Most probably the output is different on every commit (e.g. ｢bisect: say rand｣)’
-        }
+        grumble “There are {+@possible-revs} candidates for the first “new” revision. See the log for more details”
+    }
+    if $bisect-status ≠ 0 {
+        grumble ｢‘bisect run’ failure. See the log for more details｣
+    }
+    my $link-msg = self.get-output(cwd => $dir, ‘git’, ‘show’, ‘--quiet’, ‘--date=short’,
+                                   “--pretty=(%cd) {COMMIT-LINK}/%H”, ‘bisect/new’)<output>;
+    $msg.reply($link-msg);
+    if $link-msg.ends-with: ‘07fecb52eb1fd07397659f19a5cf36dc61f84053’ {
+        grumble ‘The result looks a bit unrealistic, doesn't it? Most probably the output is different on every commit (e.g. ｢bisect: say rand｣)’
     }
 
-    return;
-
-    LEAVE {
-        unlink $filename if defined $filename and $filename.chars > 0;
-        rmtree $dir      if defined $dir      and $dir.chars      > 0;
-        sleep 0.02 # otherwise the output may be in the wrong order TODO is it a problem in IRC::Client?
-    }
+    LEAVE sleep 0.02;
+    return
 }
 
 Bisectable.new.selfrun: ‘bisectable6’, [ /bisect6?/, fuzzy-nick(‘bisectable6’, 2), ‘what’, ‘b’ ]

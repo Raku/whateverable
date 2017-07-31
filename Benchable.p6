@@ -60,58 +60,30 @@ multi method benchmark-code($full-commit, $filename) {
 }
 
 multi method benchmark-code($full-commit-hash, @code) {
-    my $code-to-compare = ‘use Bench; my %subs = ’ ~ @code.kv.map({ $^k => “ => sub \{ $^v \} ” }).join(‘,’) ~ ‘;’
-                        ~ ‘ my $b = Bench.new; $b.cmpthese(’ ~ ITERATIONS × 2 ~ ‘, %subs)’;
-
-    # lock on the destination directory to make
-    # sure that other bots will not get in our way.
-    while run(‘mkdir’, ‘--’, “{BUILDS-LOCATION}/rakudo-moar/$full-commit-hash”).exitcode ≠ 0 {
-        sleep 0.5;
-        # Uh, wait! Does it mean that at the same time we can use only one
-        # specific build? Yes, and you will have to wait until another bot
-        # deletes the directory so that you can extract it back again…
-        # There are some ways to make it work, but don't bother. Instead,
-        # we should be doing everything in separate isolated containers (soon),
-        # so this problem will fade away.
-    }
-    my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, “{ARCHIVES-LOCATION}/rakudo-moar/$full-commit-hash.zst”;
-    run :in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’;
-    my $timing;
-    if “{BUILDS-LOCATION}/rakudo-moar/$full-commit-hash/bin/perl6”.IO !~~ :e {
-        return ‘Commit exists, but a perl6 executable could not be built for it’
-    } else {
-        $timing = self.get-output(“{BUILDS-LOCATION}/rakudo-moar/$full-commit-hash/bin/perl6”,
-                                  ‘--setting=RESTRICTED’, ‘-I’,
-                                  “{LIB-DIR}/perl6-bench/lib,{LIB-DIR}/Perl6-Text--Table--Simple/lib”,
-                                  ‘-e’, $code-to-compare)<output>
-    }
-    rmtree “{BUILDS-LOCATION}/rakudo-moar/$full-commit-hash”;
-    $timing
+    my $filename = self.write-code: ‘use Bench; my %subs = ’
+        ~ @code.kv.map({ $^k => “ => sub \{ $^v \} ” }).join(‘,’) ~ ‘;’
+        ~ ‘ my $b = Bench.new; $b.cmpthese(’ ~ ITERATIONS × 2 ~ ‘, %subs)’;
+    LEAVE { unlink $_ with $filename }
+    my %ENV = %*ENV;
+    %ENV<PERL6LIB> = “{LIB-DIR}/perl6-bench/lib,{LIB-DIR}/Perl6-Text--Table--Simple/lib”;
+    self.run-snippet($full-commit-hash, $filename, :%ENV)<output>
 }
 
 multi method irc-to-me($msg where .text ~~ /^ \s* $<config>=([:i compare \s]? <.&commit-list>) \s+ $<code>=.+ /) {
     my ($value, %additional-files) = self.process: $msg, ~$<config>, ~$<code>;
-    return without $value;
-    return ($value but Reply($msg)) but FileStore(%additional-files)
+    $value but FileStore(%additional-files)
 }
 
-method process($msg, $config, $code is copy) {
+method process($msg, $config, $code) {
     my $start-time = now;
     my $old-dir = $*CWD;
-    my ($commits-status, @commits) = self.get-commits: $config;
-    return $commits-status unless @commits;
-
-    my ($succeeded, $code-response) = self.process-code: $code, $msg;
-    return $code-response unless $succeeded;
-    $code = $code-response;
-
-    my $filename = self.write-code: $code;
+    my @commits = self.get-commits: $config;
+    my $filename = self.write-code: self.process-code: $code, $msg;
+    LEAVE { unlink $_ with $filename }
 
     my %graph;
-
     my %times;
     my $actually-tested = 0;
-
     for @commits -> $commit {
         FIRST my $once = ‘Give me a ping, Vasili. One ping only, please.’;
         # convert to real ids so we can look up the builds
@@ -137,9 +109,8 @@ method process($msg, $config, $code is copy) {
             }
             $actually-tested++
         }
-
         if now - $start-time > TOTAL-TIME {
-            return “«hit the total time limit of {TOTAL-TIME} seconds»”
+            grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
         }
     }
 
@@ -153,11 +124,11 @@ method process($msg, $config, $code is copy) {
 
 Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
             if now - $start-time > TOTAL-TIME {
-                return “«hit the total time limit of {TOTAL-TIME} seconds»”
+                grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
             }
 
-            next unless %times{@commits[$x]}:exists and %times{@commits[$x + 1]}:exists;          # the commits have to have been run at all
-            next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists;     # and without error
+            next unless %times{@commits[$x]}:exists and %times{@commits[$x + 1]}:exists;      # the commits have to have been run at all
+            next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists; # and without error
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) ≥ %times{@commits[$x]}<min> × 0.1 {
                 my $result = self.get-output: cwd => RAKUDO, ‘git’, ‘rev-list’,
                                               ‘--bisect’, ‘--no-merges’,
@@ -202,11 +173,7 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
     my $short-str = ‘¦’ ~ @commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join:  ‘ ¦’;
     my $long-str  = ‘¦’ ~ @commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join: “\n¦”;
 
-    return $short-str but ProperStr($long-str), %graph;
-
-    LEAVE {
-        unlink $filename if defined $filename and $filename.chars > 0
-    }
+    return $short-str but ProperStr($long-str), %graph
 }
 
 Benchable.new.selfrun: ‘benchable6’, [ /bench6?/, fuzzy-nick(‘benchable6’, 2) ];

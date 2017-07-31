@@ -41,86 +41,76 @@ multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=<{s
                                                                  $<delim>=[‘:’ | ‘,’]/)
                                   && .text ~~ /^ \s* $<code>=.+ /) is default {
     return if $prefix<delim> eq ‘,’;
-    my $value = self.process: $msg, shortcuts{$prefix<shortcut>}, ~$<code>;
-    return without $value;
-    return $value but Reply($msg)
+    self.process: $msg, shortcuts{$prefix<shortcut>}, ~$<code>
 }
 
 multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=<.&commit-list> \s+ $<code>=.+ / }) {
-    my $value = self.process: $msg, ~$<config>, ~$<code>;
-    return without $value;
-    return $value but Reply($msg)
+    self.process: $msg, ~$<config>, ~$<code>
+}
+
+method process-commit($commit, $filename) {
+    # convert to real ids so we can look up the builds
+    my $full-commit = self.to-full-commit: $commit;
+    my $short-commit = self.get-short-commit: $commit;
+    $short-commit ~= “({self.get-short-commit: $full-commit})” if $commit eq ‘HEAD’;
+
+    $short-commit R=> self.subprocess-commit: $commit, $filename, $full-commit
+}
+
+method subprocess-commit($commit, $filename, $full-commit) {
+    without $full-commit {
+        return ‘Cannot find this revision (did you mean “’ ~
+          self.get-short-commit(self.get-similar: $commit, <HEAD v6.c releases all>) ~
+          ‘”?)’
+    }
+    return ‘No build for this commit’ unless self.build-exists: $full-commit;
+
+    $_ = self.run-snippet: $full-commit, $filename; # actually run the code
+    # numbers less than zero indicate other weird failures ↓
+    return “Cannot test this commit ($_<output>)” if .<signal> < 0;
+    my $output = .<output>;
+    $output ~= “ «exit code = $_<exit-code>»” if .<exit-code> ≠ 0;
+    $output ~= “ «exit signal = {Signal($_<signal>)} ($_<signal>)»” if .<signal> ≠ 0;
+    $output
 }
 
 method process($msg, $config is copy, $code is copy) {
     my $start-time = now;
-
     if $config ~~ /^ [say|sub] $/ {
         $msg.reply: “Seems like you forgot to specify a revision (will use “v6.c” instead of “$config”)”;
         $code = “$config $code”;
         $config = ‘v6.c’
     }
-
-    my ($commits-status, @commits) = self.get-commits: $config;
-    return $commits-status unless @commits;
-
-    my ($succeeded, $code-response) = self.process-code: $code, $msg;
-    return $code-response unless $succeeded;
-    $code = $code-response;
-
+    my @commits = self.get-commits: $config;
+    $code = self.process-code: $code, $msg;
     my $filename = self.write-code: $code;
+    LEAVE { unlink $_ with $filename }
 
-    my @result;
-    my %lookup;
-    for @commits -> $commit {
-        # convert to real ids so we can look up the builds
-        my $full-commit = self.to-full-commit: $commit;
-        my $output = ‘’;
-        if not defined $full-commit {
-            $output = ‘Cannot find this revision’;
-            my @options = <HEAD v6.c releases all>;
-            $output ~= “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options}”?)”
-        } elsif not self.build-exists: $full-commit {
-            $output = ‘No build for this commit’
-        } else { # actually run the code
-            my $result = self.run-snippet: $full-commit, $filename;
-            $output = $result<output>;
-            if $result<signal> < 0 { # numbers less than zero indicate other weird failures
-                $output = “Cannot test this commit ($output)”
-            } else {
-                $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
-                $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0
-            }
+    my @outputs; # unlike %shas this is ordered
+    my %shas;    # { output => [sha, sha, …], … }
+    %shas.categorize-list: as => *.value, {
+        if now - $start-time > TOTAL-TIME { # bail out if needed
+            grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
         }
-        my $short-commit = self.get-short-commit: $commit;
-        $short-commit ~= “({self.get-short-commit: $full-commit})” if $commit eq ‘HEAD’;
+        @outputs.push: .key if %shas{.key}:!exists;
+        .key
+    }, @commits.map: { self.process-commit: $_, $filename };
 
-        # Code below keeps results in order. Example state:
-        # @result = [ { commits => [‘A’, ‘B’], output => ‘42‘ },
-        #             { commits => [‘C’],      output => ‘69’ }, ];
-        # %lookup = { ‘42’ => 0, ‘69’ => 1 }
-        if not %lookup{$output}:exists {
-            %lookup{$output} = +@result;
-            @result.push: %( commits => [$short-commit], :$output )
-        } else {
-            @result[%lookup{$output}]<commits>.push: $short-commit
-        }
+    my $short-str = @outputs == 1 && %shas{@outputs[0]} > 3 && $config.chars < 20
+    ?? “¦{$config} ({+%shas{@outputs[0]}} commits): «{@outputs[0]}»”
+    !! ‘¦’ ~ @outputs.map({ “{%shas{$_}.join: ‘,’}: «$_»” }).join: ‘ ¦’;
 
-        if now - $start-time > TOTAL-TIME {
-            return “«hit the total time limit of {TOTAL-TIME} seconds»”
-        }
+    #my $vertical = %shas.values».join».chars.any > 42;
+    my &limited-join = sub (@sha-list) {
+        my $l = ‘’;
+        gather for @sha-list -> $sha {
+            { take “$l,”; $l = ‘’ } if $l and ($l ~ $sha).chars > 42;
+            $l ~= $l ?? “,$sha” !! $sha;
+            LAST take $l
+        }.join: “\n  ”
     }
-
-    my $short-str = @result == 1 && @result[0]<commits> > 3 && $config.chars < 20
-    ?? “¦{$config} ({+@result[0]<commits>} commits): «{@result[0]<output>}»”
-    !! ‘¦’ ~ @result.map({ “{.<commits>.join(‘,’)}: «{.<output>}»” }).join: ‘ ¦’;
-
-    my $long-str  = ‘¦’ ~ @result.map({ “«{.<commits>.join(‘,’)}»: {.<output>}” }).join: “\n¦”;
-    return $short-str but ProperStr($long-str);
-
-    LEAVE {
-        unlink $filename if defined $filename and $filename.chars > 0
-    }
+    my $long-str  = ‘¦’ ~ @outputs.map({ “«{limited-join %shas{$_}}»:\n$_” }).join: “\n¦”;
+    $short-str but ProperStr($long-str);
 }
 
 Committable.new.selfrun: ‘committable6’, [ /commit6?/, fuzzy-nick(‘committable6’, 3),

@@ -63,6 +63,6 @@ method process($msg, $query is copy) {
 }
 
 
-Quotable.new.selfrun: ‘quotable6’, [fuzzy-nick(‘quotable6’, 2), ‘quote’ ]
+Quotable.new.selfrun: ‘quotable6’, [ /‘quote’ 6?/, fuzzy-nick(‘quotable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

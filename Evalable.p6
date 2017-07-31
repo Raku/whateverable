@@ -19,12 +19,13 @@
 
 use lib ‘.’;
 use Misc;
+use Replaceable;
 use Whateverable;
 
 use IRC::Client;
 use Terminal::ANSIColor;
 
-unit class Evalable does Whateverable;
+unit class Evalable does Whateverable does Replaceable;
 
 constant SHORT-MESSAGE-LIMIT = MESSAGE-LIMIT ÷ 2;
 
@@ -32,49 +33,37 @@ method help($msg) {
     “Like this: {$msg.server.current-nick}: say ‘hello’; say ‘world’”
 }
 
-multi method irc-to-me($message) {
-    if $message.args[1] ~~ / ^ ‘m:’\s / {
-        my $update-promise = Promise.new;
-        $!update-promise-channel.send: $update-promise;
-        $message.irc.send-cmd: ‘NAMES’, $message.channel;
-        start {
-            await Promise.anyof: $update-promise, Promise.in(4);
-            $!users-lock.protect: {
-                return if %!users{$message.channel}<camelia>
-            }
-            my $value = self.process: $message, $message.text;
-            $message.reply: $value but $message with $value
+multi method irc-to-me($msg) {
+    if $msg.args[1] ~~ / ^ ‘m:’\s / {
+        self.make-believe: $msg, (‘camelia’,), {
+            # TODO exceptions here are not caught
+            self.process: $msg, $msg.text
         }
         return
-    } else {
-        return if $message.args[1].starts-with: ‘what,’;
-        my $value = self.process: $message, $message.text;
-        return without $value;
-        return $value but $message
     }
+    return if $msg.args[1].starts-with: ‘what,’;
+    self.process: $msg, $msg.text
 }
 
-multi method irc-privmsg-channel($msg where .args[1] ~~
-                                 /
-                                 ^ ‘say’ \s+
-                                 <!before ‘I’ [\s | ‘'’]>
-                                 [
-                                     || [ [<:Uppercase> || ‘'’ || ‘"’ || ｢“｣ || ｢‘｣ ] .* $ ]
-                                     || [ (.*) $ <?{$0.chars / $0.comb(/<-alpha -space>/) ≤ 10 }> ]
-                                 ]
-                                 <!after <[.!?]>>
-                                 /) {
-    self.irc-to-me($msg)
+#↓ Detect if somebody accidentally forgot “m:” or other command prefix
+multi method irc-privmsg-channel($msg) {
+    nextsame if $msg.args[1] !~~ /
+    ^ ‘say’ \s+
+    <!before ‘I’ [\s | ‘'’]>
+    [
+        || [ [<:Uppercase> || ‘'’ || ‘"’ || ｢“｣ || ｢‘｣ ] .* $ ]
+        || [ (.*) $ <?{$0.chars / $0.comb(/<-alpha -space>/) ≤ 10 }> ]
+    ]
+    <!after <[.!?]>>
+    /;
+    self.irc-to-me: $msg
 }
 
-method process($message, $code is copy) {
+method process($msg, $code is copy) {
     my $commit = ‘HEAD’;
-
-    my ($succeeded, $code-response) = self.process-code: $code, $message;
-    return $code-response unless $succeeded;
-    $code = $code-response;
-
+    $code = self.process-code: $code, $msg;
     my $filename = self.write-code: $code;
+    LEAVE { unlink $_ with $filename }
 
     # convert to real id so we can look up the build
     my $full-commit  = self.to-full-commit: $commit;
@@ -102,8 +91,8 @@ method process($message, $code is copy) {
         return $reply-start ~ $output ~ $reply-end
     }
     my $link = self.upload: {‘result’ => ($extra ?? “$extra\n” !! ‘’) ~ colorstrip($output),
-                             ‘query’  => $message.text, },
-                            description => $message.server.current-nick, :public;
+                             ‘query’  => $msg.text, },
+                            description => $msg.server.current-nick, :public;
     $reply-end = ‘…’ ~ $reply-end;
     my $extra-size = ($reply-start, $reply-end).map(*.encode.elems).sum;
     my $output-size = 0;
@@ -111,42 +100,9 @@ method process($message, $code is copy) {
             $output-size += .encode.elems;
             $output-size + $extra-size < SHORT-MESSAGE-LIMIT
         })[0..*-2].join;
-    $message.reply: $reply-start ~ $output-cut ~ $reply-end;
-    sleep 0.02; # otherwise the output may be in the wrong order TODO is it a problem in IRC::Client?
+    $msg.reply: $reply-start ~ $output-cut ~ $reply-end;
+    sleep 0.02;
     return “Full output: $link”;
-
-    LEAVE {
-        unlink $filename if defined $filename and $filename.chars > 0
-    }
-}
-
-# ↓ Here we will try to keep track of users on the channel.
-#   This is a temporary solution. See this bug report:
-#   * https://github.com/zoffixznet/perl6-IRC-Client/issues/29
-has %!users;
-has $!users-lock = Lock.new;
-has $!update-promise-channel = Channel.new;
-has %!temp-users;
-
-method irc-n353($e) {
-    my $channel = $e.args[2];
-    # Try to filter out privileges ↓
-    my @nicks = $e.args[3].words.map: { m/ (<[\w \[ \] \ ^ { } | ` -]>+) $/[0].Str };
-    %!temp-users{$channel} //= SetHash.new;
-    %!temp-users{$channel}{@nicks} = True xx @nicks
-}
-
-method irc-n366($e) {
-    my $channel = $e.args[1];
-    $!users-lock.protect: {
-        %!users{$channel} = %!temp-users{$channel};
-        %!temp-users{$channel}:delete
-    };
-    loop {
-        my $promise = $!update-promise-channel.poll;
-        last without $promise;
-        try { $promise.keep } # could be already kept
-    }
 }
 
 Evalable.new.selfrun: ‘evalable6’, [‘m’, /eval6?/, fuzzy-nick(‘evalable6’, 2), ‘what’, ‘e’ ]

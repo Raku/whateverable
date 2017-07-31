@@ -31,9 +31,7 @@ method help($msg) {
 
 multi method irc-to-me($msg where /^ :r [ [ ‘d=’ | ‘-d’ \s* ] $<sources>=[\S+] \s ]?
                                     \s* $<config>=<.&commit-list> $/) {
-    my $value = self.process: $msg, ~$<config>, ~($<sources> // ‘compileunits’);
-    return without $value;
-    return $value but Reply($msg)
+    self.process: $msg, ~$<config>, ~($<sources> // ‘compileunits’)
 }
 
 multi method bloaty($sources, %prev, %cur) {
@@ -61,20 +59,15 @@ multi method bloaty($sources, %prev) {
 method did-you-mean($out) {
     return if $out !~~ Associative;
     return if $out<exit-code> == 0;
-    if $out<output> ~~ /(‘no such data source:’ .*)/ {
-        return $0.tc ~ ‘ (Did you mean one of these: ’
-               ~ self.get-output(‘bloaty’, ‘--list-sources’)<output>.lines.join(‘ ’)
-               ~ ‘ ?)’
-    }
-    Nil
+    return unless $out<output> ~~ /(‘no such data source:’ .*)/;
+    $0.tc ~ ‘ (Did you mean one of these: ’
+          ~ self.get-output(‘bloaty’, ‘--list-sources’)<output>.lines.join(‘ ’)
+          ~ ‘ ?)’
 }
 
 method process($msg, $config, $sources is copy) {
-    my ($commits-status, @commits) = self.get-commits: $config, repo => MOARVM;
-    return $commits-status unless @commits;
-
+    my @commits = self.get-commits: $config, repo => MOARVM;
     my %files;
-
     my @processed;
     for @commits -> $commit {
         my %prev = @processed.tail if @processed;
@@ -103,7 +96,7 @@ method process($msg, $config, $sources is copy) {
                 $result ~= “Skipping because diffing the same commit is pointless.”;
             } else {
                 my $out = self.bloaty: $sources, %prev, %cur;
-                return $_ with self.did-you-mean: $out;
+                grumble $_ with self.did-you-mean: $out;
                 $result ~= $out<output> // $out;
             }
             %files{$filename} = $result
@@ -122,7 +115,6 @@ method process($msg, $config, $sources is copy) {
         return @processed[*-2]<error> || @processed[*-1]<error>;
         # TODO this does not catch missing libmoar.so files
     }
-
     ‘’ but FileStore(%files);
 }
 
