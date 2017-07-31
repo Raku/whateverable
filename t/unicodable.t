@@ -7,49 +7,13 @@ use Test;
 use IRC::Client;
 use Testable;
 
-my $t = Testable.new(bot => ‘./Unicodable.p6’);
+my $t = Testable.new: bot => ‘Unicodable’;
 
-# Help messages
+$t.common-tests: help => ‘Just type any unicode character or part of a character name.’
+                      ~ ‘ Alternatively, you can also provide a code snippet.’;
 
-$t.test(‘help message’,
-        “{$t.bot-nick}, helP”,
-        “{$t.our-nick}, Just type any unicode character or part of a character name.”
-            ~ ‘ Alternatively, you can also provide a code snippet.’
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Unicodable’);
-
-$t.test(‘help message’,
-        “{$t.bot-nick},   HElp?  ”,
-        “{$t.our-nick}, Just type any unicode character or part of a character name.”
-            ~ ‘ Alternatively, you can also provide a code snippet.’
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Unicodable’);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: Source   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   sourcE?  ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   URl ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:  urL?   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: wIki”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Unicodable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   wiki? ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Unicodable”);
-
-$t.test(‘typo-ed name’,
-        ‘unicdabel: source’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+$t.shortcut-tests: <u: u6: uni: uni, uni6: uni6, propdump: propdump, unidump: unidump,>,
+                   <u u6 uni uni6 propdump unidump>; # TODO u, u6,
 
 # Basics
 

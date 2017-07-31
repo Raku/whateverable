@@ -6,47 +6,15 @@ use lib ‘t/lib’;
 use Test;
 use Testable;
 
-my $t = Testable.new(bot => ‘./Committable.p6’);
+my $t = Testable.new: bot => ‘Committable’;
 
-# Help messages
+$t.common-tests: help => “Like this: {$t.bot-nick}: f583f22,HEAD say ‘hello’; say ‘world’”;
 
-$t.test(‘help message’,
-        “{$t.bot-nick}, helP”,
-        “{$t.our-nick}, Like this: {$t.bot-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Committable’);
-
-$t.test(‘help message’,
-        “{$t.bot-nick},   HElp?  ”,
-        “{$t.our-nick}, Like this: {$t.bot-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Committable’);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: Source   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   sourcE?  ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   URl ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:  urL?   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: wIki”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Committable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   wiki? ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Committable”);
-
-$t.test(‘typo-ed name’,
-        ‘comitable: source’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+$t.shortcut-tests: <c: commit: commit, commit6: commit6, what:
+                   mc: ec: mch: ech: ma: all: what: 6c: v6c: v6.c: 6.c:>,
+                   <u commit commit6 what
+                   mc ec mch ech ma all what 6c v6c v6.c 6.c>;
+# TODO what, c, mc, ec, mch, ech, ma, all, what, 6c, v6c, v6.c, 6.c,
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,

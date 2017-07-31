@@ -6,47 +6,13 @@ use lib ‘t/lib’;
 use Test;
 use Testable;
 
-my $t = Testable.new(bot => ‘./Benchable.p6’);
+my $t = Testable.new: bot => ‘Benchable’;
 
-# Help messages
+$t.common-tests: help => “Like this: {$t.bot-nick}: f583f22,HEAD ”
+                      ~ ｢my $a = ‘a’ x 2¹⁶; for ^1000 {my $b = $a.chop($_)}｣;
 
-$t.test(‘help message’,
-        “{$t.bot-nick}, helP”,
-        “{$t.our-nick}, Like this: {$t.bot-nick}: f583f22,HEAD ” ~ ｢my $a = ‘a’ x 2¹⁶; for ^1000 {my $b = $a.chop($_)}｣
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Benchable’);
-
-$t.test(‘help message’,
-        “{$t.bot-nick},   HElp?  ”,
-        “{$t.our-nick}, Like this: {$t.bot-nick}: f583f22,HEAD ” ~ ｢my $a = ‘a’ x 2¹⁶; for ^1000 {my $b = $a.chop($_)}｣
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Benchable’);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: Source   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   sourcE?  ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   URl ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:  urL?   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: wIki”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Benchable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   wiki? ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Benchable”);
-
-$t.test(‘typo-ed name’,
-        ‘clenchable: source’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+$t.shortcut-tests: <bench: bench, bench6: bench6,>,
+                   <bench bench6 b: b>;
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,

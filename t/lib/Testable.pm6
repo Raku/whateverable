@@ -6,6 +6,7 @@ my regex sha    is export { <.xdigit>**7..10 }
 my regex me($t) is export { <{$t.our-nick}>  }
 
 class Testable {
+    has $.bot;
     has $.our-nick;
     has $.bot-nick;
 
@@ -14,6 +15,7 @@ class Testable {
     has $.messages;
 
     submethod BUILD(:$bot, :$!our-nick = ‘testable’) {
+        $!bot = $bot;
         my $ready  = Channel.new;
         $!messages = Channel.new;
 
@@ -34,7 +36,7 @@ class Testable {
         );
         start $!irc-client.run;
 
-        $!bot-proc = Proc::Async.new($bot);
+        $!bot-proc = Proc::Async.new: ‘./’ ~ $bot ~ ‘.p6’;
         $!bot-proc.start;
 
         start { sleep 20; $ready.send: False }
@@ -78,5 +80,75 @@ class Testable {
         $!bot-proc.kill;
         $!irc-client.quit;
         sleep 2
+    }
+
+    method common-tests(:$help) {
+        self.test(‘source link’,
+                  “$.bot-nick: Source   ”,
+                  “$.our-nick, https://github.com/perl6/whateverable”);
+
+        self.test(‘source link’,
+                  “$.bot-nick:   sourcE?  ”,
+                  “$.our-nick, https://github.com/perl6/whateverable”);
+
+        self.test(‘source link’,
+                  “$.bot-nick:   URl ”,
+                  “$.our-nick, https://github.com/perl6/whateverable”);
+
+        self.test(‘source link’,
+                  “$.bot-nick:  urL?   ”,
+                  “$.our-nick, https://github.com/perl6/whateverable”);
+
+        self.test(‘source link’,
+                  “$.bot-nick: wIki”,
+                  “$.our-nick, https://github.com/perl6/whateverable/wiki/$.bot”);
+
+        self.test(‘source link’,
+                  “$.bot-nick:   wiki? ”,
+                  “$.our-nick, https://github.com/perl6/whateverable/wiki/$.bot”);
+
+
+        self.test(‘help message’,
+                  “$.bot-nick, helP”,
+                  “$.our-nick, $help # See wiki for more examples: ”
+                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
+
+        self.test(‘help message’,
+                  “$.bot-nick,   HElp?  ”,
+                  “$.our-nick, $help # See wiki for more examples: ”
+                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
+
+
+        self.test(‘typo-ed name’,
+                  “bl{$.bot-nick.substr: 1}: source”, # mangle it just a little bit
+                  “$.our-nick, https://github.com/perl6/whateverable”);
+
+        self.test(‘no space after name (semicolon delimiter)’,
+                  “{$.bot-nick}:url”,
+                  “$.our-nick, https://github.com/perl6/whateverable”);
+
+        self.test(‘no space after name (comma delimiter)’,
+                  “$.bot-nick,url”,
+                  “$.our-nick, https://github.com/perl6/whateverable”);
+
+
+        self.test(‘uptime’,
+                  “{$.bot-nick}: uptime”,
+                  /{$.our-nick}‘,’ \s \d+ \s seconds/);
+    }
+
+    method shortcut-tests(@yes, @no) {
+        for @yes {
+            self.test(““$_” shortcut”,
+                      “{$_}url”,
+                      “$.our-nick, https://github.com/perl6/whateverable”);
+            self.test(““$_ ” shortcut”,
+                      “$_ url”,
+                      “$.our-nick, https://github.com/perl6/whateverable”);
+        }
+        for @no {
+            self.test(““$_” shortcut does not work”,
+                      “$_ url”);
+        }
     }
 }

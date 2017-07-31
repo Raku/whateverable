@@ -7,47 +7,12 @@ use Test;
 use IRC::Client;
 use Testable;
 
-my $t = Testable.new(bot => ‘./Evalable.p6’);
+my $t = Testable.new: bot => ‘Evalable’;
 
-# Help messages
+$t.common-tests: help => “Like this: {$t.bot-nick}: say ‘hello’; say ‘world’”;
 
-$t.test(‘help message’,
-        “{$t.bot-nick}, helP”,
-        “{$t.our-nick}, Like this: {$t.bot-nick}: say ‘hello’; say ‘world’”
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Evalable’);
-
-$t.test(‘help message’,
-        “{$t.bot-nick},   HElp?  ”,
-        “{$t.our-nick}, Like this: {$t.bot-nick}: say ‘hello’; say ‘world’”
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Evalable’);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: Source   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   sourcE?  ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   URl ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:  urL?   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: wIki”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Evalable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   wiki? ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Evalable”);
-
-$t.test(‘typo-ed name’,
-        ‘blevalable: source’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+$t.shortcut-tests: <e: eval: eval, eval6: eval6, what:>,
+                   <e eval eval6 what>; # TODO e, what,
 
 # Basics
 

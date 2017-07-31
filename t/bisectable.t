@@ -6,70 +6,12 @@ use lib ‘t/lib’;
 use Test;
 use Testable;
 
-my $t = Testable.new(bot => ‘./Bisectable.p6’);
+my $t = Testable.new: bot => ‘Bisectable’;
 
-# Help messages
+$t.common-tests: help => “Like this: bisectable6: old=2015.12 new=HEAD exit 1 if (^∞).grep(\{ last })[5] // 0 == 4”;
 
-$t.test(‘help message’,
-        “{$t.bot-nick}, helP”,
-        “{$t.our-nick}, Like this: bisectable6: old=2015.12 new=HEAD exit 1 if (^∞).grep(\{ last })[5] // 0 == 4”
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Bisectable’);
-
-
-$t.test(‘help message’,
-        “{$t.bot-nick},   HElp?  ”,
-        “{$t.our-nick}, Like this: bisectable6: old=2015.12 new=HEAD exit 1 if (^∞).grep(\{ last })[5] // 0 == 4”
-            ~ ‘ # See wiki for more examples: https://github.com/perl6/whateverable/wiki/Bisectable’);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: Source   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   sourcE?  ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   URl ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:  urL?   ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘“bisect:” shortcut’,
-        ‘bisect: url’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘“bisect,” shortcut’,
-        ‘bisect, url’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘“bisect6:” shortcut’,
-        ‘bisect6: url’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘“bisect6,” shortcut’,
-        ‘bisect6, url’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
-
-$t.test(‘“bisect” shortcut does not work’,
-        ‘bisect url’);
-
-$t.test(‘“bisect6” shortcut does not work’,
-        ‘bisect6 url’);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}: wIki”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Bisectable”);
-
-$t.test(‘source link’,
-        “{$t.bot-nick}:   wiki? ”,
-        “{$t.our-nick}, https://github.com/perl6/whateverable/wiki/Bisectable”);
-
-$t.test(‘typo-ed name’,
-        ‘bsicetable6: source’,
-        “{$t.our-nick}, https://github.com/perl6/whateverable”);
+$t.shortcut-tests: <b: bisect: bisect, bisect6: bisect6, what:>,
+                   <b bisect bisect6 what>; # TODO b, what,
 
 # Basics
 
