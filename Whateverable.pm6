@@ -402,7 +402,13 @@ multi method filter($text is copy) {
 }
 
 method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
-    return ‘https://whatever.able/fakeupload’ if %*ENV<TESTABLE>;
+    if %*ENV<TESTABLE> {
+        my $gists-path = “{BUILDS-LOCATION}/tist”;
+        rmtree $gists-path if $gists-path.IO ~~ :d;
+        mkdir $gists-path;
+        spurt “$gists-path/{.key}”, .value for %files;
+        return ‘https://whatever.able/fakeupload’;
+    }
 
     state $config = from-json slurp CONFIG;
     %files = %files.pairs.map: { .key => %( ‘content’ => .value ) }; # github format

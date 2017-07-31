@@ -1,3 +1,4 @@
+use File::Directory::Tree;
 use IRC::Client;
 use Test;
 
@@ -42,6 +43,9 @@ class Testable {
     }
 
     method test($description, $command, *@expected, :$timeout = 11, :$delay = 3) {
+        my $gists-path = “/tmp/whateverable/tist/”;
+        rmtree $gists-path if $gists-path.IO ~~ :d;
+
         my @got;
         my $start = now;
 
@@ -59,15 +63,15 @@ class Testable {
             }
             @got.push: $message
         }
-        if @expected ≠ @got or any(@got Z!~~ @expected) {
-            diag “expected: {@expected.perl}”; # RT #129192
-            diag “     got: {@got.perl}”;
-            my $frame = callframe(2);
-            diag “This test ran at {$frame.file} line {$frame.line}”;
-            flunk $description;
-            return
+        cmp-ok @got, &[~~], @expected, $description
+    }
+
+    method test-gist($description, %files) {
+        for %files.kv -> $file, $tests {
+            my $path = “/tmp/whateverable/tist/$file”;
+            ok $path.IO ~~ :f, “gist file $file exists”;
+            cmp-ok slurp($path), &[~~], $_, “gist file {$file}: $description” for @$tests;
         }
-        pass $description
     }
 
     method end {
