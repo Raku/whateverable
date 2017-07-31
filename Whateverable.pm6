@@ -168,7 +168,7 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
     !! $original-commit
 }
 
-method get-output(*@run-args, :$timeout = $!timeout, :$stdin, :$cwd = $*CWD) {
+method get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd = $*CWD) {
     my @lines;
     my $proc = Proc::Async.new: |@run-args, w => defined $stdin;
     my $s-start = now;
@@ -182,7 +182,7 @@ method get-output(*@run-args, :$timeout = $!timeout, :$stdin, :$cwd = $*CWD) {
             $proc.kill; # TODO sends HUP, but should kill the process tree instead
             @lines.push: “«timed out after $timeout seconds»”
         }
-        whenever $proc.start: :$cwd { #: scheduler => BEGIN ThreadPoolScheduler.new { # TODO do we need to set scheduler?
+        whenever $proc.start: :$ENV, :$cwd { #: scheduler => BEGIN ThreadPoolScheduler.new { # TODO do we need to set scheduler?
             $result = $_;
             $s-end = now;
             done
@@ -264,18 +264,13 @@ method run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) {
     $return
 }
 
-method run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$timeout = $!timeout) {
+method run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$timeout = $default-timeout, :$ENV) {
     self.run-smth: :$backend, $full-commit-hash, -> $path {
-        my $out;
-        if “$path/bin/perl6”.IO !~~ :e {
-            $out = %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
-                     exit-code => -1, signal => -1, time => -1,)
-        } else {
-            $out = self.get-output: “$path/bin/perl6”,
-                                    ‘--setting=RESTRICTED’, ‘--’, $file,
-                                    :$!stdin, :$timeout
-        }
-        $out
+        “$path/bin/perl6”.IO !~~ :e
+        ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
+             exit-code => -1, signal => -1, time => -1,)
+        !! self.get-output: “$path/bin/perl6”, ‘--setting=RESTRICTED’, ‘--’,
+                            $file, :$!stdin, :$timeout, :$ENV
     }
 }
 
