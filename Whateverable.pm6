@@ -51,7 +51,7 @@ has $.timeout is rw = 10;
 has $!stdin = slurp ‘stdin’;
 has $!bad-releases = set ‘2016.01’, ‘2016.01.1’;
 
-submethod TWEAK {
+method TWEAK {
     # wrap around everything to catch exceptions
     once { # per class
         self.^lookup(‘irc-to-me’).wrap: sub ($self, $msg) {
@@ -66,6 +66,7 @@ submethod TWEAK {
             ‘Sorry kid, that's not my department.’
         };
     }
+    # TODO roles should not have TWEAK method
 }
 
 method handle-exception($exception, $msg?) {
