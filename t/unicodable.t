@@ -99,6 +99,11 @@ $t.test(‘Invalid characters’,
         “{$t.our-nick}, U+11FFFF <unassigned> [] (unencodable character)”,
         “{$t.our-nick}, U+99999999 (invalid codepoint)”);
 
+$t.test(‘Parens’,
+        ‘u: ()’,
+        “{$t.our-nick}, U+0028 LEFT PARENTHESIS [Ps] (()”,
+        “{$t.our-nick}, U+0029 RIGHT PARENTHESIS [Pe] ())”);
+
 # URLs
 
 $t.test(‘fetching code from urls’,
