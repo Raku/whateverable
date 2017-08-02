@@ -164,9 +164,20 @@ $t.test(‘malformed link (could not parse)’,
 
 # Camelia replacement
 
-$t.test(‘Answers on ‘m:’ when camelia is not around’,
+$t.test(‘Answers on ‘m: ’ when camelia is not around’,
         ‘m: say ‘42’’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42»’ $/);
+
+$t.test(‘‘m:’ without space is also fine’,
+        ‘m:say ‘42’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42»’ $/);
+
+$t.test(‘‘m:’ is not even needed’,
+        ‘say ‘42’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42»’ $/);
+
+$t.test(‘autodetection is smart enough’,
+        ‘say you actually start your message with “say”’);
 
 my $camelia = IRC::Client.new(:nick(‘camelia’) :host<127.0.0.1> :channels<#whateverable>);
 start $camelia.run;
