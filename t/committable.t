@@ -275,3 +275,5 @@ $t.test(‘committable does not crash’, # Issue #65
 $t.last-test;
 done-testing;
 END $t.end;
+
+# vim: expandtab shiftwidth=4 ft=perl6

@@ -23,3 +23,5 @@ task ‘start-all’, { start-stop ‘start-all’ }
 task ‘stop-all’,  { start-stop ‘stop-all’  }
 task ‘test’,      { run ‘prove’, ‘--exec’, ‘perl6’, ‘t’ }
 task ‘upgrade’,   { run ‘rakudobrew’, ‘build’, ‘moar’   }
+
+# vim: expandtab shiftwidth=4 ft=perl6

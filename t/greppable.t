@@ -58,3 +58,5 @@ cmp-ok $age, &[<], 24 × 60 × 60, ‘all-modules repo updated in 24h’;
 $t.last-test;
 done-testing;
 END $t.end;
+
+# vim: expandtab shiftwidth=4 ft=perl6

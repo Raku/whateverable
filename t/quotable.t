@@ -53,3 +53,5 @@ cmp-ok ‘irc/cache’.IO.modified.DateTime, &[>], DateTime.now.earlier(:2days),
 $t.last-test;
 done-testing;
 END $t.end;
+
+# vim: expandtab shiftwidth=4 ft=perl6

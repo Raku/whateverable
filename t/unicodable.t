@@ -214,3 +214,5 @@ $t.test(‘last basic query, just in case’,
 $t.last-test;
 done-testing;
 END $t.end;
+
+# vim: expandtab shiftwidth=4 ft=perl6

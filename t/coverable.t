@@ -49,3 +49,5 @@ $t.test(‘refuse a lot of commits’,
 $t.last-test;
 done-testing;
 END $t.end;
+
+# vim: expandtab shiftwidth=4 ft=perl6

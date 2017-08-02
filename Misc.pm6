@@ -52,3 +52,5 @@ class Whateverable::X::HandleableAdHoc is X::AdHoc is export {}
 sub grumble(|c) is export {
      Whateverable::X::HandleableAdHoc.new(payload => c).throw
 }
+
+# vim: expandtab shiftwidth=4 ft=perl6
