@@ -33,7 +33,7 @@ $t.test(‘invalid regex’,
 
 $t.test-gist(‘lots of results’,
              %(‘result’ => /^ ‘===SORRY!=== Error while compiling’ /));
-}
+
 
 # Non-bot tests
 todo ‘outdated data (issue #192)’, 2;
