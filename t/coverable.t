@@ -45,12 +45,7 @@ $t.test(‘refuse a lot of commits’,
         “{$t.bot-nick}: releases say ‘hi’”,
         “{$t.our-nick}, Coverable only works with one commit”);
 
-# Extra tests
 
-$t.test(‘basic query on HEAD’, # keep it last in this file
-        “{$t.bot-nick}: HEAD say ‘hi’”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”,
-        :50timeout);
-
+$t.last-test;
 done-testing;
 END $t.end;

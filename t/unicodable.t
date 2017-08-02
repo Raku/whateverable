@@ -204,11 +204,13 @@ $t.test(:31timeout, ‘timeout’,
 
 # Extra tests
 
-$t.test(‘last basic query, just in case’, # keep it last in this file
+$t.test(‘last basic query, just in case’,
         “{$t.bot-nick}: 🐵⨴𝈧”,
         /^ <me($t)>‘, U+1F435 MONKEY FACE [So] (🐵)’ $/,
         /^ <me($t)>‘, U+2A34 MULTIPLICATION SIGN IN LEFT HALF CIRCLE [Sm] (⨴)’ $/,
         /^ <me($t)>‘, U+1D227 GREEK INSTRUMENTAL NOTATION SYMBOL-17 [So] (𝈧)’ $/);
 
+
+$t.last-test;
 done-testing;
 END $t.end;

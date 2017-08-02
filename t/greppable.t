@@ -54,11 +54,7 @@ ok $timestamp, ‘Got the timestamp of HEAD in all-modules repo’;
 my $age = now - $timestamp.out.slurp-rest;
 cmp-ok $age, &[<], 24 × 60 × 60, ‘all-modules repo updated in 24h’;
 
-# Extra tests
 
-$t.test(‘basic query’, # keep it last in this file
-        “{$t.bot-nick}: password”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”);
-
+$t.last-test;
 done-testing;
 END $t.end;

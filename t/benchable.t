@@ -173,18 +173,9 @@ $t.test(‘Both commits are wrong (did you mean … ?)’,
 
 # TODO See issue #99
 
-# Extra tests
 
-$t.test(‘last basic query, just in case’, # keep it last in this file
-        “{$t.bot-nick}: HEAD say ‘hello’”,
-        /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
-        /^ <me($t)>‘, ¦HEAD: «’ \d+\.\d+ ‘»’ $/);
-
-END {
-    $t.end;
-    sleep 1;
-}
-
+$t.last-test;
 done-testing;
+END $t.end;
 
 # vim: expandtab shiftwidth=4 ft=perl6

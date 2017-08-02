@@ -14,6 +14,8 @@ class Testable {
     has $!irc-client;
     has $.messages;
 
+    has $!first-test;
+
     submethod BUILD(:$bot, :$!our-nick = ‘testable’) {
         $!bot = $bot;
         my $ready  = Channel.new;
@@ -44,7 +46,9 @@ class Testable {
         ok ?$!bot-nick, ‘bot joined the channel’
     }
 
-    method test($description, $command, *@expected, :$timeout = 11, :$delay = 3) {
+    method test(|c ($description, $command, *@expected, :$timeout = 11, :$delay = 3)) {
+        $!first-test = c without $!first-test;
+
         my $gists-path = “/tmp/whateverable/tist/”;
         rmtree $gists-path if $gists-path.IO ~~ :d;
 
@@ -76,6 +80,10 @@ class Testable {
         }
     }
 
+    method last-test {
+        self.test(|$!first-test)
+    }
+
     method end {
         $!bot-proc.kill;
         $!irc-client.quit;
@@ -83,6 +91,8 @@ class Testable {
     }
 
     method common-tests(:$help) {
+        temp $!first-test;
+
         self.test(‘source link’,
                   “$.bot-nick: Source   ”,
                   “$.our-nick, https://github.com/perl6/whateverable”);
@@ -138,6 +148,8 @@ class Testable {
     }
 
     method shortcut-tests(@yes, @no) {
+        temp $!first-test;
+
         for @yes {
             self.test(““$_” shortcut”,
                       “{$_}url”,

@@ -47,13 +47,7 @@ $t.test(‘invalid stats requested’,
         “{$t.bot-nick}: cakes-consumed”,
         /^ <me($t)>‘, I cannot recognize this command. See wiki for some examples: https://’ /);
 
-# Extra tests
 
-$t.test(‘core (CORE.setting size)’,
-        “{$t.bot-nick}: core”,
-        “{$t.our-nick}, OK! Working on it…”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”,
-        :120timeout);
-
+$t.last-test;
 done-testing;
 END $t.end;

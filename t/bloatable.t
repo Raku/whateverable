@@ -96,11 +96,7 @@ $t.test(‘incorrect source (using d=…)’,
         “{$t.bot-nick}: d=uhmm… 2017.01,HEAD”,
         /^ <me($t)>‘, No such data source: uhmm… (Did you mean one of these: ’ [\w+]+ % \s+ ‘ ?)’ $/);
 
-# Extra tests
 
-$t.test(‘one commit’, # keep it last in this file
-        “{$t.bot-nick}: HEAD”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”);
-
+$t.last-test;
 done-testing;
 END $t.end;

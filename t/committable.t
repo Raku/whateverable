@@ -271,11 +271,7 @@ $t.test(‘committable does not crash’, # Issue #65
 
 # TODO test total timeout
 
-# Extra tests
 
-$t.test(‘last basic query, just in case’, # keep it last in this file
-        “{$t.bot-nick}: HEAD say ‘hello’”,
-        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
-
+$t.last-test;
 done-testing;
 END $t.end;

@@ -199,17 +199,18 @@ $t.test(:21timeout, ‘timeout’,
 
 # Extra tests
 
-$t.test(‘another working query’,
+$t.test(‘another working query #1’,
         ‘bisect: new=d3acb938 try { NaN.Rat == NaN; exit 0 }; exit 1’,
         “{$t.our-nick}, Bisecting by exit code (old=2015.12 new=d3acb93). Old exit code: 0”,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-05-02) https://github.com/rakudo/rakudo/commit/e2f1fa735132b9f43e7aa9390b42f42a17ea815f”);
 
-$t.test(‘last working query’, # keep it last in this file
+$t.test(‘another working query #2’,
         ‘bisect: for ‘q b c d’.words -> $a, $b { }; CATCH { exit 0 }; exit 1’,
         /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-03-01) https://github.com/rakudo/rakudo/commit/1b6c901c10a0f9f65ac2d2cb8e7a362915fadc61”);
 
+$t.last-test;
 done-testing;
 END $t.end;

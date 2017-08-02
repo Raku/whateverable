@@ -49,12 +49,7 @@ subtest ‘all channels have recent data’, {
 cmp-ok ‘irc/cache’.IO.modified.DateTime, &[>], DateTime.now.earlier(:2days),
        ‘cache file was recently updated’;
 
-# Extra tests
 
-$t.test(‘basic test’, # keep it last in this file
-        “{$t.bot-nick}: /^ ‘bisect: ’ /”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”,
-        :150timeout);
-
+$t.last-test;
 done-testing;
 END $t.end;
