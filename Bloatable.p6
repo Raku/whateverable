@@ -118,6 +118,7 @@ method process($msg, $config, $sources is copy) {
     ‘’ but FileStore(%files);
 }
 
-Bloatable.new.selfrun: ‘bloatable6’, [ /‘bloat’ y?6?/, fuzzy-nick(‘bloatable6’, 2) ]
+Bloatable.new.selfrun: ‘bloatable6’, [ / bloat[y]?6? <before ‘:’> /,
+                                       fuzzy-nick(‘bloatable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

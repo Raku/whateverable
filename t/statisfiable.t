@@ -11,8 +11,8 @@ my $t = Testable.new: bot => ‘Statisfiable’;
 
 $t.common-tests: help => “Available stats: core (CORE.setting size), install (size of the installation), libmoar (libmoar.so size)”;
 
-$t.shortcut-tests: <stat: stat, stats: stats, stat6: stat6, stats6: stats6,>,
-                   <stat stats stat6 stats6>;
+$t.shortcut-tests: <stat: stat6: stats: stats6:>,
+                   <stat stat, stat6 stat6, stats stats, stats6 stats6,>;
 
 # Basics
 $t.test(‘core (CORE.setting size)’,

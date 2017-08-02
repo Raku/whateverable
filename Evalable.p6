@@ -41,7 +41,6 @@ multi method irc-to-me($msg) {
         }
         return
     }
-    return if $msg.args[1].starts-with: ‘what,’;
     self.process: $msg, $msg.text
 }
 
@@ -105,6 +104,7 @@ method process($msg, $code is copy) {
     return “Full output: $link”;
 }
 
-Evalable.new.selfrun: ‘evalable6’, [‘m’, /eval6?/, fuzzy-nick(‘evalable6’, 2), ‘what’, ‘e’ ]
+Evalable.new.selfrun: ‘evalable6’, [/ [ m | e[val]?6? | what ] <before ‘:’> /,
+                                    fuzzy-nick(‘evalable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

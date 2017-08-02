@@ -12,8 +12,8 @@ my $t = Testable.new: bot => ‘Unicodable’;
 $t.common-tests: help => ‘Just type any unicode character or part of a character name.’
                       ~ ‘ Alternatively, you can also provide a code snippet.’;
 
-$t.shortcut-tests: <u: u6: uni: uni, uni6: uni6, propdump: propdump, unidump: unidump,>,
-                   <u u6 uni uni6 propdump unidump>; # TODO u, u6,
+$t.shortcut-tests: <u: u6: uni: uni6: propdump: propdump, unidump: unidump,>,
+                   <u u, u6 u6, uni uni, uni6 uni6, propdump unidump>;
 
 # Basics
 

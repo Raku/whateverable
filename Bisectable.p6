@@ -141,7 +141,6 @@ my regex bisect-cmd { :i
 }
 
 multi method irc-to-me($msg where .text ~~ &bisect-cmd) {
-    return if $msg.args[1].starts-with: ‘what,’;
     self.process: $msg, ~$<code>,
                   ~($<old> // ‘2015.12’),
                   ~($<new> // ‘HEAD’)
@@ -256,6 +255,7 @@ method process($msg, $code is copy, $old, $new) {
     return
 }
 
-Bisectable.new.selfrun: ‘bisectable6’, [ /bisect6?/, fuzzy-nick(‘bisectable6’, 2), ‘what’, ‘b’ ]
+Bisectable.new.selfrun: ‘bisectable6’, [ / [ b[isect]?6? | ‘what’ ] <before ‘:’> /,
+                                         fuzzy-nick(‘bisectable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

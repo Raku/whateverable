@@ -143,6 +143,7 @@ multi method process($msg, $type, $zeroed) {
     $msg-response, %graph
 }
 
-Statisfiable.new.selfrun: ‘statisfiable6’, [/‘stat’ s?6?/, fuzzy-nick(‘statisfiable6’, 3) ]
+Statisfiable.new.selfrun: ‘statisfiable6’, [ / stat[s]?6? <before ‘:’> /,
+                                             fuzzy-nick(‘statisfiable6’, 3) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

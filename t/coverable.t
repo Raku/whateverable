@@ -11,8 +11,8 @@ my $t = Testable.new: bot => ‘Coverable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: f583f22 grep=SETTING:: say ‘hello’; say ‘world’”;
 
-$t.shortcut-tests: <cover: cover, cover6: cover6,>,
-                   <cover cover6 c>;
+$t.shortcut-tests: <cover: cover6:>,
+                   <cover cover, cover6 cover6, c c, c:>;
 
 # Basics
 

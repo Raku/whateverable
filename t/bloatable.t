@@ -11,8 +11,9 @@ my $t = Testable.new: bot => ‘Bloatable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: d=compileunits 292dc6a,HEAD”;
 
-$t.shortcut-tests: <bloat: bloat, bloat6: bloat6, bloaty: bloaty, bloaty6: bloaty6,>,
-                   <bloat bloat6 bloaty bloaty6>;
+$t.shortcut-tests: <bloat: bloat6: bloaty: bloaty6:>,
+                   <bloat bloat, bloat6 bloat6, bloaty bloaty, bloaty6 bloaty6,
+                    b b, b:>;
 
 # Basics
 

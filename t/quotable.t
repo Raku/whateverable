@@ -11,8 +11,8 @@ my $t = Testable.new: bot => ‘Quotable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: /^ ‘bisect: ’ /”;
 
-$t.shortcut-tests: <quote: quote, quote6: quote6,>,
-                   <quote quote6>;
+$t.shortcut-tests: <quote: quote6:>,
+                   <quote quote, quote6 quote6,>;
 
 # Basics
 $t.test(‘basic test’,

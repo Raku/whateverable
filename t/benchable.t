@@ -11,8 +11,8 @@ my $t = Testable.new: bot => ‘Benchable’;
 $t.common-tests: help => “Like this: {$t.bot-nick}: f583f22,HEAD ”
                       ~ ｢my $a = ‘a’ x 2¹⁶; for ^1000 {my $b = $a.chop($_)}｣;
 
-$t.shortcut-tests: <bench: bench, bench6: bench6,>,
-                   <bench bench6 b: b>;
+$t.shortcut-tests: <bench: bench6:>,
+                   <bench bench, bench6 bench6, b b, b:>;
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,
@@ -35,18 +35,8 @@ $t.test(‘“bench:” shortcut’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
         /^ <me($t)>‘, ¦HEAD: «’ \d+\.\d+ ‘»’ $/);
 
-$t.test(‘“bench,” shortcut’,
-        ‘bench, HEAD say ‘hello’’,
-        /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
-        /^ <me($t)>‘, ¦HEAD: «’ \d+\.\d+ ‘»’ $/);
-
 $t.test(‘“bench6:” shortcut’,
         ‘bench6: HEAD say ‘hello’’,
-        /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
-        /^ <me($t)>‘, ¦HEAD: «’ \d+\.\d+ ‘»’ $/);
-
-$t.test(‘“bench6,” shortcut’,
-        ‘bench6, HEAD say ‘hello’’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
         /^ <me($t)>‘, ¦HEAD: «’ \d+\.\d+ ‘»’ $/);
 

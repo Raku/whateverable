@@ -10,11 +10,11 @@ my $t = Testable.new: bot => ‘Committable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: f583f22,HEAD say ‘hello’; say ‘world’”;
 
-$t.shortcut-tests: <c: commit: commit, commit6: commit6, what:
+$t.shortcut-tests: <c: c6: commit: commit6: what:
                    mc: ec: mch: ech: ma: all: what: 6c: v6c: v6.c: 6.c:>,
-                   <u commit commit6 what
-                   mc ec mch ech ma all what 6c v6c v6.c 6.c>;
-# TODO what, c, mc, ec, mch, ech, ma, all, what, 6c, v6c, v6.c, 6.c,
+                   <c c, c6 c6, commit commit, commit6 commit6, what what,
+                   mc  ec  mch  ech  ma  all  what  6c  v6c  v6.c  6.c
+                   mc, ec, mch, ech, ma, all, what, 6c, v6c, v6.c, 6.c,>;
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,
@@ -34,16 +34,8 @@ $t.test(‘“commit:” shortcut’,
         ‘commit: HEAD say ‘hello’’,
         /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
-$t.test(‘“commit,” shortcut’,
-        ‘commit, HEAD say ‘hello’’,
-        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
-
 $t.test(‘“commit6:” shortcut’,
         ‘commit6: HEAD say ‘hello’’,
-        /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
-
-$t.test(‘“commit6,” shortcut’,
-        ‘commit6, HEAD say ‘hello’’,
         /^ <me($t)>‘, ¦HEAD(’<sha>‘): «hello»’ $/);
 
 $t.test(‘“commit” shortcut does not work’,

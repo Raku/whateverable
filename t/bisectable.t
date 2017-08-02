@@ -10,8 +10,8 @@ my $t = Testable.new: bot => ‘Bisectable’;
 
 $t.common-tests: help => “Like this: bisectable6: old=2015.12 new=HEAD exit 1 if (^∞).grep(\{ last })[5] // 0 == 4”;
 
-$t.shortcut-tests: <b: bisect: bisect, bisect6: bisect6, what:>,
-                   <b bisect bisect6 what>; # TODO b, what,
+$t.shortcut-tests: <b: b6: bisect: bisect6: what:>,
+                   <b b, b6 b6, bisect bisect, bisect6 bisect6, what what,>;
 
 # Basics
 

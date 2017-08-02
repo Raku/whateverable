@@ -79,6 +79,7 @@ if ECO-PATH.IO !~~ :d {
     run ‘git’, ‘clone’, ‘https://github.com/moritz/perl6-all-modules.git’, ECO-PATH
 }
 
-Greppable.new.selfrun: ‘greppable6’, [ /‘grep’ 6?/, fuzzy-nick(‘greppable6’, 2) ]
+Greppable.new.selfrun: ‘greppable6’, [ / grep6? <before ‘:’> /,
+                                       fuzzy-nick(‘greppable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

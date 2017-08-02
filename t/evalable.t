@@ -11,8 +11,8 @@ my $t = Testable.new: bot => ‘Evalable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: say ‘hello’; say ‘world’”;
 
-$t.shortcut-tests: <e: eval: eval, eval6: eval6, what:>,
-                   <e eval eval6 what>; # TODO e, what,
+$t.shortcut-tests: <e: e6: eval: eval6: what:>,
+                   <e e, e6 e6, eval eval, eval6 eval6, what what,>;
 
 # Basics
 
@@ -28,16 +28,8 @@ $t.test(‘“eval:” shortcut’,
         ‘eval: say ‘hello’’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
 
-$t.test(‘“eval,” shortcut’,
-        ‘eval, say ‘hello’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
-
 $t.test(‘“eval6:” shortcut’,
         ‘eval6: say ‘hello’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
-
-$t.test(‘“eval6,” shortcut’,
-        ‘eval6, say ‘hello’’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
 
 $t.test(‘“commit” shortcut does not work’,

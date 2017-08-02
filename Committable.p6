@@ -38,9 +38,8 @@ method help($msg) {
 }
 
 multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=<{shortcuts.keys}>
-                                                                 $<delim>=[‘:’ | ‘,’]/)
+                                                                 [‘:’ | ‘,’]/)
                                   && .text ~~ /^ \s* $<code>=.+ /) is default {
-    return if $prefix<delim> eq ‘,’;
     self.process: $msg, shortcuts{$prefix<shortcut>}, ~$<code>
 }
 
@@ -113,7 +112,7 @@ method process($msg, $config is copy, $code is copy) {
     $short-str but ProperStr($long-str);
 }
 
-Committable.new.selfrun: ‘committable6’, [ /commit6?/, fuzzy-nick(‘committable6’, 3),
-                                           ‘c’, |shortcuts.keys ]
+Committable.new.selfrun: ‘committable6’, [ / [ c[ommit]?6? | @(shortcuts.keys) ] <before ‘:’> /,
+                                           fuzzy-nick(‘committable6’, 3) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

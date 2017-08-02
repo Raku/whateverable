@@ -11,8 +11,8 @@ my $t = Testable.new: bot => ‘Greppable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: password”;
 
-$t.shortcut-tests: <grep: grep, grep6: grep6,>,
-                   <grep grep6>;
+$t.shortcut-tests: <grep: grep6:>,
+                   <grep grep, grep6 grep6,>;
 
 # Basics
 

@@ -214,6 +214,7 @@ method propdump($msg, $query) {
     ‘’ but FileStore({ ‘result.md’ => $answer })
 }
 
-Unicodable.new.selfrun: ‘unicodable6’, [/u6?/, /uni6?/, fuzzy-nick(‘unicodable6’, 3), ‘propdump’, ‘unidump’];
+    Unicodable.new.selfrun: ‘unicodable6’, [/ u[ni]?6? <before ‘:’> /, ‘propdump’, ‘unidump’,
+                                            fuzzy-nick(‘unicodable6’, 3)];
 
 # vim: expandtab shiftwidth=4 ft=perl6

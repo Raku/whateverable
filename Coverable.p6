@@ -182,6 +182,7 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
     ($short-str but ProperStr($long-str)) but FileStore(%(‘result.md’ => $cover-report));
 }
 
-Coverable.new.selfrun: ‘coverable6’, [ /cover6?/, fuzzy-nick(‘coverable6’, 3) ];
+Coverable.new.selfrun: ‘coverable6’, [ / cover6? <before ‘:’> /,
+                                       fuzzy-nick(‘coverable6’, 3) ];
 
 # vim: expandtab shiftwidth=4 ft=perl6
