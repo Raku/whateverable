@@ -112,7 +112,8 @@ method process($msg, $config is copy, $code is copy) {
     $short-str but ProperStr($long-str);
 }
 
-Committable.new.selfrun: ‘committable6’, [ / [ c[ommit]?6? | @(shortcuts.keys) ] <before ‘:’> /,
+Committable.new.selfrun: ‘committable6’, [ / [ | c <!before [｢:\｣|｢:/｣]> [ommit]?6?
+                                               | @(shortcuts.keys) ] <before ‘:’> /,
                                            fuzzy-nick(‘committable6’, 3) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

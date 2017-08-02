@@ -44,6 +44,12 @@ $t.test(‘“commit” shortcut does not work’,
 $t.test(‘“commit6” shortcut does not work’,
         ‘commit6 HEAD say ‘hello’’);
 
+$t.test(｢“c:\” is a path and therefore does not work｣,
+        ｢c:\HEAD say ‘hello’｣);
+
+$t.test(｢“c:/” is a path and therefore does not work｣,
+        ｢c:/HEAD say ‘hello’｣);
+
 $t.test(‘specific commit’,
         ‘commit: f583f22 say $*PERL.compiler.version’,
         “{$t.our-nick}, ¦f583f22: «v2016.06.183.gf.583.f.22»”);
