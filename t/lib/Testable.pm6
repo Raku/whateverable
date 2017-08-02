@@ -46,7 +46,7 @@ class Testable {
         ok ?$!bot-nick, ‘bot joined the channel’
     }
 
-    method test(|c ($description, $command, *@expected, :$timeout = 11, :$delay = 3)) {
+    method test(|c ($description, $command, *@expected, :$timeout = 11, :$delay = 0.5)) {
         $!first-test = c without $!first-test;
 
         my $gists-path = “/tmp/whateverable/tist/”;
