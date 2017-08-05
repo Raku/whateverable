@@ -86,6 +86,9 @@ method process($msg, $config, $code) {
     my $actually-tested = 0;
     for @commits -> $commit {
         FIRST my $once = ‘Give me a ping, Vasili. One ping only, please.’;
+        if now - $start-time > TOTAL-TIME {
+            grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
+        }
         # convert to real ids so we can look up the builds
         my $full-commit = self.to-full-commit: $commit;
         my $short-commit = self.get-short-commit: $commit;
@@ -108,9 +111,6 @@ method process($msg, $config, $code) {
                 %times{$short-commit} = self.benchmark-code: $full-commit, $filename
             }
             $actually-tested++
-        }
-        if now - $start-time > TOTAL-TIME {
-            grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
         }
     }
 
