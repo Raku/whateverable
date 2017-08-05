@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use Misc;
+
 #↓ Keep track of users and pretend to be someone if needed
 unit role Replaceable;
 
@@ -34,8 +36,12 @@ method make-believe($msg, @nicks, &play, :$timeout = 4) {
         $!users-lock.protect: {
             return if any %!users{$msg.channel}{@nicks}:exists
         }
-        $msg.reply: $_ with play
+        try {
+            $msg.reply: $_ but Reply($msg) with play;
+            CATCH { default { $msg.reply: self.handle-exception: $_, $msg } }
+        }
     }
+    Nil
 }
 
 method irc-n353($e) { # one or more messages
