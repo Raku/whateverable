@@ -3,7 +3,7 @@ use IRC::Client;
 use Test;
 
 my regex sha    is export { <.xdigit>**7..10 }
-my regex me($t) is export { <{$t.our-nick}>  }
+my regex me($t) is export { $($t.our-nick)   }
 
 class Testable {
     has $.bot;
