@@ -74,7 +74,10 @@ method handle-exception($exception, $msg?) {
         return ‘Exception was thrown while I was trying to handle another exception…’
              ~ ‘ What are they gonna do to me, Sarge? What are they gonna do⁈’
     }
-    return $exception.message if $exception ~~ Whateverable::X::HandleableAdHoc; # oh, it's OK!
+    if $exception ~~ Whateverable::X::HandleableAdHoc { # oh, it's OK!
+        return $exception.message but Reply($_) with $msg;
+        return $exception.message
+    }
 
     say $exception;
     with $msg {
