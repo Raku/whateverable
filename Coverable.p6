@@ -84,7 +84,7 @@ method help($msg) {
     “Like this: {$msg.server.current-nick}: f583f22 grep=SETTING:: say ‘hello’; say ‘world’”
 }
 
-multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=<.&commit-list> \s+ [‘grep=’ $<grep>=\S+ \s+]? $<code>=.+ / }) {
+multi method irc-to-me($msg where /^ \s* $<config>=<.&commit-list> \s+ [‘grep=’ $<grep>=\S+ \s+]? $<code>=.+ /) {
     self.process: $msg, ~$<config>, ~($<grep> // ‘SETTING::’), ~$<code>
 }
 
@@ -155,9 +155,6 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
 
     my $cover-report = “| File | Code |\n|--|--|\n”;
     my $url = “https://github.com/rakudo/rakudo/blob/$full-commit”;
-    # ↓ TODO So we are using RAKUDO, but RAKUDO may not know about some commits *yet*, while
-    #        they may be accessible if you give a hash directly.
-    my @git  = ‘git’, ‘--git-dir’, “{RAKUDO}/.git”, ‘--work-tree’, RAKUDO;
     for %coverage.keys.sort -> $fn {
         for condense(%coverage{$fn}) -> $l {
             my $ln = ‘L’ ~ ($l ~~ Int ?? $l !! “$l.min()-L$l.max()”);
@@ -167,10 +164,12 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
                 $cover-report ~= “| [$fname#$ln]($url/$fname#$ln) |”;
                 my $sed-range = “{$l.min},{$l.max}p”;
                 # ⚠ TODO don't do this ↓ for every line, do it for every *file*. It will be much faster.
-                my $proc = run :out, |@git, ‘show’, “$full-commit:$fname”;
+                my $proc = run :out, :cwd(RAKUDO), ‘git’, ‘show’, “$full-commit:$fname”;
+                # TODO So we are using RAKUDO ↑, but RAKUDO may not know about some commits *yet*, while
+                #      they may be accessible if you give a hash directly.
                 my $code = run(:out, :in($proc.out), ‘sed’, ‘-n’, $sed-range).out.slurp-rest.trim; # TODO trim? or just chomp?
-                $code .= subst(:g, “\n”, ‘```<br>```’); # TODO multiline code blocks using github markdown?
-                $code .= subst(:g, ‘|’, ‘\|’); # TODO really?
+                $code .= subst: :g, “\n”, ‘```<br>```’; # TODO multiline code blocks using github markdown?
+                $code .= subst: :g, ‘|’, ‘\|’; # TODO really?
                 $cover-report ~= “ ```$code``` |\n”; # TODO close properly (see how many ``` are there already)
             } else {
                 $cover-report ~= “| $fn#$ln | |\n”; # TODO write “N/A” instead of having an empty cell?

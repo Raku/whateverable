@@ -34,14 +34,10 @@ method help($msg) {
 }
 
 multi method irc-to-me($msg) {
-    if $msg.args[1] ~~ / ^ ‘m:’\s / {
-        self.make-believe: $msg, (‘camelia’,), {
-            # TODO exceptions here are not caught
-            self.process: $msg, $msg.text
-        }
-        return
+    return self.process: $msg, $msg.text if $msg.args[1] !~~ / ^ ‘m:’\s /;
+    self.make-believe: $msg, (‘camelia’,), {
+        self.process: $msg, $msg.text
     }
-    self.process: $msg, $msg.text
 }
 
 #↓ Detect if somebody accidentally forgot “m:” or other command prefix
@@ -68,40 +64,37 @@ method process($msg, $code is copy) {
     my $full-commit  = self.to-full-commit: $commit;
     my $short-commit = self.to-full-commit: $commit, :short;
 
-    my $extra  = ‘’;
-    my $output = ‘’;
-
     if not self.build-exists: $full-commit {
-        $output = “No build for $short-commit. Not sure how this happened!”
-    } else { # actually run the code
-        my $result = self.run-snippet: $full-commit, $filename;
-        $output = $result<output>;
-        if $result<signal> < 0 { # numbers less than zero indicate other weird failures
-            $output = “Cannot test $full-commit ($result<output>)”
-        } else {
-            $extra ~= “(exit code $result<exit-code>) ”     if $result<exit-code> ≠ 0;
-            $extra ~= “(signal {Signal($result<signal>)}) ” if $result<signal>    ≠ 0
-        }
+        grumble “No build for $short-commit. Not sure how this happened!”
+    }
+
+    # actually run the code
+    my $result = self.run-snippet: $full-commit, $filename;
+    my $output = $result<output>;
+    my $extra  = ‘’;
+    if $result<signal> < 0 { # numbers less than zero indicate other weird failures
+        $output = “Cannot test $full-commit ($output)”
+    } else {
+        $extra ~= “(exit code $result<exit-code>) ”     if $result<exit-code> ≠ 0;
+        $extra ~= “(signal {Signal($result<signal>)}) ” if $result<signal>    ≠ 0
     }
 
     my $reply-start = “rakudo-moar $short-commit: OUTPUT: «$extra”;
-    my $reply-end = ‘»’;
+    my $reply-end   = ‘»’;
     if MESSAGE-LIMIT ≥ ($reply-start, $output, $reply-end).map(*.encode.elems).sum {
-        return $reply-start ~ $output ~ $reply-end
+        return $reply-start ~ $output ~ $reply-end # no gist
     }
-    my $link = self.upload: {‘result’ => ($extra ?? “$extra\n” !! ‘’) ~ colorstrip($output),
-                             ‘query’  => $msg.text, },
-                            description => $msg.server.current-nick, :public;
     $reply-end = ‘…’ ~ $reply-end;
     my $extra-size = ($reply-start, $reply-end).map(*.encode.elems).sum;
     my $output-size = 0;
     my $output-cut = $output.comb.grep({
-            $output-size += .encode.elems;
-            $output-size + $extra-size < SHORT-MESSAGE-LIMIT
-        })[0..*-2].join;
+        $output-size += .encode.elems;
+        $output-size + $extra-size < SHORT-MESSAGE-LIMIT
+    })[0..*-2].join;
     $msg.reply: $reply-start ~ $output-cut ~ $reply-end;
     sleep 0.02;
-    return “Full output: $link”;
+    my $gist = ($extra ?? “$extra\n” !! ‘’) ~ colorstrip $output;
+    $gist but PrettyLink({ “Full output: $_” })
 }
 
 Evalable.new.selfrun: ‘evalable6’, [/ [ m | e[val]?6? | what ] <before ‘:’> /,

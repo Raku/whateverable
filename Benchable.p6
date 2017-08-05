@@ -69,7 +69,7 @@ multi method benchmark-code($full-commit-hash, @code) {
     self.run-snippet($full-commit-hash, $filename, :%ENV)<output>
 }
 
-multi method irc-to-me($msg where .text ~~ /^ \s* $<config>=([:i compare \s]? <.&commit-list>) \s+ $<code>=.+ /) {
+multi method irc-to-me($msg where /^ \s* $<config>=([:i compare \s]? <.&commit-list>) \s+ $<code>=.+ /) {
     my ($value, %additional-files) = self.process: $msg, ~$<config>, ~$<code>;
     $value but FileStore(%additional-files)
 }
@@ -90,7 +90,7 @@ method process($msg, $config, $code) {
             grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
         }
         # convert to real ids so we can look up the builds
-        my $full-commit = self.to-full-commit: $commit;
+        my $full-commit  = self.to-full-commit:   $commit;
         my $short-commit = self.get-short-commit: $commit;
         if not defined $full-commit {
             my @options = <HEAD v6.c releases all>;
@@ -105,11 +105,8 @@ method process($msg, $config, $code) {
                 my $s = $c == 1 ?? ‘’ !! ‘s’;
                 $msg.reply: “starting to benchmark the $c given commit$s”
             }
-            if $config ~~ /:i compare / {
-                %times{$short-commit} = self.benchmark-code: $full-commit, $code.split: ‘|||’
-            } else {
-                %times{$short-commit} = self.benchmark-code: $full-commit, $filename
-            }
+            my $arg = $config ~~ /:i compare / ?? $code.split: ‘|||’ !! $filename;
+            %times{$short-commit} = self.benchmark-code: $full-commit, $arg;
             $actually-tested++
         }
     }

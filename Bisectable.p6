@@ -246,13 +246,12 @@ method process($msg, $code is copy, $old, $new) {
     }
     my $link-msg = self.get-output(cwd => $dir, ‘git’, ‘show’, ‘--quiet’, ‘--date=short’,
                                    “--pretty=(%cd) {COMMIT-LINK}/%H”, ‘bisect/new’)<output>;
-    $msg.reply($link-msg);
+    $msg.reply: $link-msg;
     if $link-msg.ends-with: ‘07fecb52eb1fd07397659f19a5cf36dc61f84053’ {
         grumble ‘The result looks a bit unrealistic, doesn't it? Most probably the output is different on every commit (e.g. ｢bisect: say rand｣)’
     }
-
     LEAVE sleep 0.02;
-    return
+    Nil
 }
 
 Bisectable.new.selfrun: ‘bisectable6’, [ / [ b[isect]?6? | ‘what’ ] <before ‘:’> /,

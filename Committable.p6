@@ -37,13 +37,13 @@ method help($msg) {
     “Like this: {$msg.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 }
 
-multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=<{shortcuts.keys}>
+multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=@(shortcuts.keys)
                                                                  [‘:’ | ‘,’]/)
                                   && .text ~~ /^ \s* $<code>=.+ /) is default {
     self.process: $msg, shortcuts{$prefix<shortcut>}, ~$<code>
 }
 
-multi method irc-to-me($msg where { .text ~~ /^ \s* $<config>=<.&commit-list> \s+ $<code>=.+ / }) {
+multi method irc-to-me($msg where /^ \s* $<config>=<.&commit-list> \s+ $<code>=.+ /) {
     self.process: $msg, ~$<config>, ~$<code>
 }
 

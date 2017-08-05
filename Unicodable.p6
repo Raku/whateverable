@@ -39,23 +39,19 @@ multi method irc-to-me($msg) {
     if $msg.args[1].starts-with: ‘propdump:’ | ‘unidump:’ {
         return self.propdump: $msg, $msg.text
     }
-    if $msg.args[1] ~~ / ^ ‘.u’ \s / {
-        self.make-believe: $msg, <yoleaux yoleaux2>, {
-            # TODO exceptions here are not caught
-            self.process: $msg, $msg.text
-        }
-        return
+    return self.process: $msg, $msg.text if $msg.args[1] !~~ /^ ‘.u’ \s /;
+    self.make-believe: $msg, <yoleaux yoleaux2>, {
+        self.process: $msg, $msg.text
     }
-    self.process: $msg, $msg.text
 }
 
-multi method irc-privmsg-channel($msg where .args[1] ~~ / ^ ‘.u’ \s (.*)/) {
+multi method irc-privmsg-channel($msg where .args[1] ~~ /^ ‘.u’ \s (.*) /) {
     $msg.text = ~$0;
-    self.irc-to-me($msg)
+    self.irc-to-me: $msg
 }
 
-multi method codepointify(Int $ord ) { $ord.fmt(“U+%04X”) }
-multi method codepointify(Str $char) { $char.ords».fmt(“U+%04X”).join: ‘, ’ }
+multi method codepointify(Int $ord ) { $ord.fmt: ‘U+%04X’ }
+multi method codepointify(Str $char) { $char.ords».fmt(‘U+%04X’).join: ‘, ’ }
 
 method sanify($ord) {
     my $char;
@@ -75,8 +71,8 @@ method sanify($ord) {
 }
 
 method get-description($ord) {
-    my $sane = self.sanify($ord);
-    return $sane if $sane.ends-with(‘(invalid codepoint)’);
+    my $sane = self.sanify: $ord;
+    return $sane if $sane.ends-with: ‘(invalid codepoint)’;
     sprintf “%s %s [%s] (%s)”,
             self.codepointify($ord), $ord.uniname,
             $ord.uniprop, $sane
@@ -120,7 +116,7 @@ method process($msg, $query is copy) {
     }
     my @all;
 
-    my @numerics = self.from-numerics($query);
+    my @numerics = self.from-numerics: $query;
     if @numerics {
         for @numerics {
             @all.push: $_;
@@ -146,9 +142,9 @@ method process($msg, $query is copy) {
             grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
             $msg.reply: self.get-description: $_ if @all [<] MESSAGE-LIMIT
         }
-    } elsif $query ~~ /^ ‘/’ / {
-        return ‘Regexes are not supported yet, sorry! Try code blocks instead’
-    } elsif $query ~~ /^ ‘{’ / {
+    } elsif $query.starts-with: ‘/’ {
+        grumble ‘Regexes are not supported yet, sorry! Try code blocks instead’
+    } elsif $query.starts-with: ‘{’ {
         my $full-commit = self.to-full-commit: ‘HEAD’;
         my $output = ‘’;
         my $filename = self.write-code: “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
@@ -166,12 +162,10 @@ method process($msg, $query is copy) {
         $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
         return $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0;
 
-        if $output {
-            for $output.split: “\c[31]” {
-                @all.push: +$_;
-                grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
-                $msg.reply: self.get-description: +$_ if @all [<] MESSAGE-LIMIT
-            }
+        for $output.split: “\c[31]”, :skip-empty {
+            @all.push: +$_;
+            grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
+            $msg.reply: self.get-description: +$_ if @all [<] MESSAGE-LIMIT
         }
     } else {
         for $query.comb».ords.flat {
@@ -192,7 +186,7 @@ method process($msg, $query is copy) {
 
 method propdump($msg, $query) {
     my $answer = ‘’;
-    my @numerics = self.from-numerics($query);
+    my @numerics = self.from-numerics: $query;
     my @query = @numerics || $query.comb».ords.flat;
     my &escape = *.trans: (‘|’,) => (‘&#124;’,);
     for @prop-table -> $category {
@@ -207,14 +201,14 @@ method propdump($msg, $query) {
             my @props = @query.map: *.uniprop: $cat[0];
             my $bold = ([eq] @props) ?? ｢｣ !! ｢**｣;
             $answer ~= ($bold ~ $cat.join(‘, ’) ~ $bold).fmt: ‘| %-55s |’;
-            $answer ~= &escape(.comb».ords.flat.map({self.sanify($_)}).join).fmt: ‘ %-25s |’ for @props;
+            $answer ~= &escape(.comb».ords.flat.map({self.sanify: $_}).join).fmt: ‘ %-25s |’ for @props;
             $answer ~= “\n”;
         }
     }
     ‘’ but FileStore({ ‘result.md’ => $answer })
 }
 
-    Unicodable.new.selfrun: ‘unicodable6’, [/ u[ni]?6? <before ‘:’> /, ‘propdump’, ‘unidump’,
-                                            fuzzy-nick(‘unicodable6’, 3)];
+Unicodable.new.selfrun: ‘unicodable6’, [/ u[ni]?6? <before ‘:’> /, ‘propdump’, ‘unidump’,
+                                        fuzzy-nick(‘unicodable6’, 3)];
 
 # vim: expandtab shiftwidth=4 ft=perl6

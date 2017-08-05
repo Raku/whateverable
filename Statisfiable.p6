@@ -52,12 +52,11 @@ method TWEAK { # TODO it breaks exception handling
 }
 
 method help($) {
-    ‘Available stats: ’ ~ (
+    ‘Available stats: ’ ~ join ‘, ’,
         ‘core (CORE.setting size)’,
 #        ‘core.lines (lines in CORE.setting)’,
         ‘install (size of the installation)’,
-        ‘libmoar (libmoar.so size)’,
-    ).join: ‘, ’
+        ‘libmoar (libmoar.so size)’
 }
 
 multi method stat-for-commit(‘core’, $full-hash) {
@@ -86,15 +85,10 @@ multi method stat-for-commit(‘libmoar’, $full-hash) {
     }
 }
 
-multi method irc-to-me($msg where /:i ( <{OPTIONS.keys}> ) (‘0’)? /) {
+multi method irc-to-me($msg where /:i ( @(OPTIONS.keys) ) (‘0’)? /) {
     my $type   = ~$0;
     my $zeroed = ?$1;
-    start {
-        my ($value, %additional-files) = self.process: $msg, $type, $zeroed;
-        $value.defined
-        ?? ($value but $msg) but FileStore(%additional-files)
-        !! Nil
-    }
+    start self.process: $msg, $type, $zeroed
 }
 
 multi method process($msg, $type, $zeroed) {
@@ -103,29 +97,25 @@ multi method process($msg, $type, $zeroed) {
     my @results;
     %stat-locks{$type}.protect: {
         my %data := %stats{$type};
-
         my $let's-save = False;
-
-        my @git = ‘git’, ‘--git-dir’, “{RAKUDO}/.git”, ‘--work-tree’, RAKUDO;
-        my @command = |@git, ‘log’, ‘-z’, ‘--pretty=%H’, RANGE;
-        for run(:out, |@command).out.split: 0.chr, :skip-empty -> $full {
+        my @command = ‘git’, ‘log’, ‘-z’, ‘--pretty=%H’, RANGE;
+        for run(:out, :cwd(RAKUDO), |@command).out.split: 0.chr, :skip-empty -> $full {
             next unless $full;
             #my $short = self.to-full-commit($_, :short);
 
             if %data{$full}:!exists and self.build-exists: $full {
-                %data{$full} = self.stat-for-commit($type, $full);
+                %data{$full} = self.stat-for-commit: $type, $full;
                 $let's-save = True
             }
-            @results.push: ($full, $_) with %data{$full}
+            @results.push: $full => $_ with %data{$full}
         }
-
         spurt “{STATS-LOCATION}/$type”, to-json %data if $let's-save;
     }
 
     my $pfilename = ‘plot.svg’;
     my $title = OPTIONS{$type};
-    my @values = @results.reverse»[1];
-    my @labels = @results.reverse»[0]».substr: 0, 8;
+    my @values = @results.reverse».value;
+    my @labels = @results.reverse».key».substr: 0, 8;
 
     my $plot = SVG::Plot.new(
         :1000width,
@@ -138,9 +128,9 @@ multi method process($msg, $type, $zeroed) {
     ).plot(:lines);
     my %graph = $pfilename => SVG.serialize: $plot;
 
-    my $msg-response = @results.reverse.map(*.join: ‘ ’).join: “\n”;
+    my $msg-response = @results.reverse.map(*.kv.join: ‘ ’).join: “\n”;
 
-    $msg-response, %graph
+    $msg-response but FileStore(%graph)
 }
 
 Statisfiable.new.selfrun: ‘statisfiable6’, [ / stat[s]?6? <before ‘:’> /,

@@ -32,10 +32,7 @@ method help($msg) {
 }
 
 multi method irc-to-me($msg where /^ \s* [ ‘/’ $<regex>=[.*] ‘/’ || $<regex>=[.*?] ] \s* $/) {
-    my $value = self.process: $msg, ~$<regex>;
-    return without $value;
-    return ‘Found nothing!’ unless $value;
-    return $value but Reply($msg)
+    self.process: $msg, ~$<regex>
 }
 
 method process($msg, $query is copy) {
@@ -44,22 +41,23 @@ method process($msg, $query is copy) {
     my $full-commit = self.to-full-commit: ‘2016.10’; # ‘HEAD’; # Ha, 2016.10 works a bit better for this purpose…
     die ‘No build for the last commit. Oops!’ unless self.build-exists: $full-commit;
 
-    my $filename = self.write-code: “\{ last if \$++ >= $LIMIT; print \$_, “\\0” \} for slurp(“irc/cache”).split(“\\0”).grep:\n” ~ $query;
+    my $magic = “\{ last if \$++ >= $LIMIT; print \$_, “\\0” \} for slurp(“irc/cache”).split(“\\0”).grep:\n”;
+    my $filename = self.write-code: $magic ~ $query;
     my $result = self.run-snippet: $full-commit, $filename, :180timeout;
     my $output = $result<output>;
-    if $result<signal> < 0 { # numbers less than zero indicate other weird failures
-        $output = “Something went wrong ($output)”;
-        return $output
-    } else {
-        $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
-        $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
-        return $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0
-    }
+    # numbers less than zero indicate other weird failures ↓
+    grumble “Something went wrong ($output)” if $result<signal> < 0;
+
+    $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
+    $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
+    return $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0;
+
     my $count = 0;
     $output = $output.split(“\0”).grep({$count++; True}).join: “\n”;
 
     return “Cowardly refusing to gist more than $LIMIT lines” if $count ≥ $LIMIT; # TODO off by one somewhere
-    return $output
+    return ‘Found nothing!’ unless $output;
+    $output
 }
 
 
