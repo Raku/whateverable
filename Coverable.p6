@@ -26,66 +26,25 @@ unit class Coverable does Whateverable;
 
 constant TOTAL-TIME = 60 × 3;
 
-sub condense(@list) {
-    Seq.new( class :: does Iterator {
-        has $.iterator;
-        has $!first;
-        has $!last;
-        method pull-one() {
-            if $!iterator {
-                if (my $pulled := $!iterator.pull-one) =:= IterationEnd {
-                    $!iterator = Nil;
-                    $!first.defined
-                      ?? $!first == $!last
-                        ?? $!last
-                        !! Range.new($!first,$!last)
-                      !!  IterationEnd
-                }
-                elsif $pulled ~~ Int:D {
-                    if $!first.defined {
-                        if $pulled == $!last + 1 {
-                            ++$!last;
-                            ++$!last
-                              while !(($pulled := $!iterator.pull-one) =:= IterationEnd)
-                                && $pulled ~~ Int:D
-                                && $pulled == $!last + 1;
-                        }
-                        if $pulled =:= IterationEnd || $pulled ~~ Int:D {
-                            my $value = $!first == $!last
-                              ?? $!last
-                              !! Range.new($!first,$!last);
-                            $pulled =:= IterationEnd
-                              ?? ($!iterator = Nil)
-                              !! ($!first = $!last = $pulled);
-                            $value
-                        }
-                        else {
-                            die “Cannot handle $pulled.perl()”
-                        }
-                    }
-                    else {
-                        $!first = $!last = $pulled;
-                        self.pull-one
-                    }
-                }
-                else {
-                    die “Cannot handle $pulled.perl()”
-                }
-            }
-            else {
-                IterationEnd
-            }
-        }
-        method is-lazy() { $!iterator.is-lazy }
-    }.new(iterator => @list.iterator))
-}
-
 method help($msg) {
     “Like this: {$msg.server.current-nick}: f583f22 grep=SETTING:: say ‘hello’; say ‘world’”
 }
 
 multi method irc-to-me($msg where /^ \s* $<config>=<.&commit-list> \s+ [‘grep=’ $<grep>=\S+ \s+]? $<code>=.+ /) {
     self.process: $msg, ~$<config>, ~($<grep> // ‘SETTING::’), ~$<code>
+}
+
+sub condense(@arr) { # squish into ranges
+    my $cur = False;
+    gather for @arr {
+        if $_ - 1 ~~ $cur {
+            $cur = $cur.min .. $_
+        } else {
+            take $cur if $cur !== False;
+            $cur = $_
+        }
+        LAST take $cur
+    }
 }
 
 method process($msg, $config is copy, $grep is copy, $code is copy) {
@@ -156,7 +115,7 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
     my $cover-report = “| File | Code |\n|--|--|\n”;
     my $url = “https://github.com/rakudo/rakudo/blob/$full-commit”;
     for %coverage.keys.sort -> $fn {
-        for condense(%coverage{$fn}) -> $l {
+        for condense %coverage{$fn} -> $l {
             my $ln = ‘L’ ~ ($l ~~ Int ?? $l !! “$l.min()-L$l.max()”);
             if $fn.starts-with(‘SETTING::’) or $fn ~~ m|‘/Perl6/’| {
                 my $fname = $fn;
