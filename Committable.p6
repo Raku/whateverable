@@ -99,11 +99,10 @@ method process($msg, $config is copy, $code is copy) {
     ?? “¦{$config} ({+%shas{@outputs[0]}} commits): «{@outputs[0]}»”
     !! ‘¦’ ~ @outputs.map({ “{%shas{$_}.join: ‘,’}: «$_»” }).join: ‘ ¦’;
 
-    #my $vertical = %shas.values».join».chars.any > 42;
     my &limited-join = sub (@sha-list) {
         my $l = ‘’;
         gather for @sha-list -> $sha {
-            { take “$l,”; $l = ‘’ } if $l and ($l ~ $sha).chars > 42;
+            { take “$l,”; $l = ‘’ } if $l and ($l ~ $sha).chars > 70;
             $l ~= $l ?? “,$sha” !! $sha;
             LAST take $l
         }.join: “\n  ”
