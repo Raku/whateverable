@@ -15,7 +15,7 @@ $t.shortcut-tests: <b: b6: bisect: bisect6: what:>,
 
 # Basics
 
-$t.test(‘bisect by exit code’,
+$t.test(:13timeout, ‘bisect by exit code’,
         ‘bisect: exit 1 unless $*VM.version.Str.starts-with(‘2015’)’,
         /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
@@ -33,7 +33,7 @@ $t.test(‘bisect by output’,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
 
-$t.test(:25timeout, ‘bisect by exit signal’,
+$t.test(:30timeout, ‘bisect by exit signal’,
         ‘bisect: old=2015.10 new=2015.12 Buf.new(0xFE).decode(‘utf8-c8’) # RT 126756’,
         “{$t.our-nick}, Bisecting by exit signal (old=2015.10 new=2015.12). Old exit signal: 0 (None)”,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
@@ -181,7 +181,7 @@ $t.test(‘Did you mean some commit? (old)’,
         ‘bisect: old=a7L479b49dbd1 say 42’,
         “{$t.our-nick}, Cannot find revision “a7L479b49dbd1” (did you mean “a71479b”?)”);
 
-$t.test(‘Result is different on every revision’,
+$t.test(:13timeout, ‘Result is different on every revision’,
         ‘bisect: say rand’,
         /^ <me($t)>‘, Bisecting by output (old=2015.12 new=’<sha>‘) because on both starting points the exit code is 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
@@ -190,7 +190,7 @@ $t.test(‘Result is different on every revision’,
 
 # Timeouts
 
-$t.test(:21timeout, ‘timeout’,
+$t.test(:23timeout, ‘timeout’,
         ‘bisect: say ‘Zzzz…’; sleep ∞’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0, exit signal is 1 (SIGHUP) and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «Zzzz…␤«timed out after 10 seconds»»”);
@@ -205,7 +205,7 @@ $t.test(‘another working query #1’,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-05-02) https://github.com/rakudo/rakudo/commit/e2f1fa735132b9f43e7aa9390b42f42a17ea815f”);
 
-$t.test(‘another working query #2’,
+$t.test(:13timeout, ‘another working query #2’,
         ‘bisect: for ‘q b c d’.words -> $a, $b { }; CATCH { exit 0 }; exit 1’,
         /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
