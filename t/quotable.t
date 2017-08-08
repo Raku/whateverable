@@ -38,7 +38,7 @@ $t.test-gist(‘lots of results’,
 # Non-bot tests
 todo ‘outdated data (issue #192)’, 2;
 subtest ‘all channels have recent data’, {
-    my @tracked-channels = dir ‘irc’, test => { .starts-with(‘#’) && “irc/$_”.IO.d };
+    my @tracked-channels = dir ‘data/irc’, test => { .starts-with(‘#’) && “data/irc/$_”.IO.d };
     ok @tracked-channels > 0, ‘at least one channel is tracked’;
     for @tracked-channels {
         my $exists = “$_/{DateTime.now.earlier(:2days).Date}”.IO.e;
@@ -46,7 +46,7 @@ subtest ‘all channels have recent data’, {
     }
 }
 
-cmp-ok ‘irc/cache’.IO.modified.DateTime, &[>], DateTime.now.earlier(:2days),
+cmp-ok ‘data/irc/cache’.IO.modified.DateTime, &[>], DateTime.now.earlier(:2days),
        ‘cache file was recently updated’;
 
 

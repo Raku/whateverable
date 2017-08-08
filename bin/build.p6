@@ -44,13 +44,13 @@ my \REPO-ORIGIN       = RAKUDOISH
 my \REPO-LATEST       = “/tmp/whateverable/{DIR-BASE}-repo”;
 # ↑ yes, separate cloned repo for every backend to prevent several
 #   instances of this script fighting with each other
-my \REPO-CURRENT      = “{WORKING-DIRECTORY}/{DIR-BASE}”.IO.absolute;
+my \REPO-CURRENT      = “{WORKING-DIRECTORY}/data/{DIR-BASE}”.IO.absolute;
 
-my \ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/{DIR-BASE}”.IO.absolute;
+my \ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/data/builds/{DIR-BASE}”.IO.absolute;
 my \BUILDS-LOCATION   = “/tmp/whateverable/{DIR-BASE}”;
 my \BUILD-LOCK        = “{BUILDS-LOCATION}/build-lock”;
 
-my \GIT-REFERENCE     = WORKING-DIRECTORY.IO.absolute;
+my \GIT-REFERENCE     = “{WORKING-DIRECTORY}/data”.IO.absolute;
 
 mkdir BUILDS-LOCATION;
 mkdir ARCHIVES-LOCATION;

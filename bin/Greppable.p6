@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use lib ‘.’;
 use Misc;
 use Whateverable;
 
@@ -26,7 +25,7 @@ use Config::INI;
 
 unit class Greppable does Whateverable;
 
-my \ECO-PATH = ‘all-modules’;
+my \ECO-PATH = ‘data/all-modules’;
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: password”

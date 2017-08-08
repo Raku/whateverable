@@ -30,13 +30,13 @@ use Text::Diff::Sift4;
 
 use Misc;
 
-constant RAKUDO = ‘./rakudo-moar’.IO.absolute; # TODO should depend on the backend
-constant MOARVM = ‘./moarvm’.IO.absolute;
+constant RAKUDO = ‘./data/rakudo-moar’.IO.absolute; # TODO should depend on the backend
+constant MOARVM = ‘./data/moarvm’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
 constant SOURCE = ‘https://github.com/perl6/whateverable’;
 constant WIKI   = ‘https://github.com/perl6/whateverable/wiki/’;
 constant WORKING-DIRECTORY = ‘.’.IO.absolute; # TODO not supported yet
-constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds”.IO.absolute;
+constant ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/data/builds”.IO.absolute;
 constant BUILDS-LOCATION   = ‘/tmp/whateverable/’.IO.absolute;
 
 constant MESSAGE-LIMIT is export = 260;

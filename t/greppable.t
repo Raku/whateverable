@@ -47,12 +47,12 @@ $t.test-gist(‘Proper format’, # assume that tadzik's modules don't change
 
 # Non-bot tests
 
-my $timestamp = run :out, cwd => ‘all-modules’,
+my $timestamp = run :out, cwd => ‘data/all-modules’,
                     ‘git’, ‘show’, ‘-s’, ‘--format=%ct’, ‘HEAD’;
 
-ok $timestamp, ‘Got the timestamp of HEAD in all-modules repo’;
+ok $timestamp, ‘Got the timestamp of HEAD in data/all-modules repo’;
 my $age = now - $timestamp.out.slurp-rest;
-cmp-ok $age, &[<], 24 × 60 × 60, ‘all-modules repo updated in 24h’;
+cmp-ok $age, &[<], 24 × 60 × 60, ‘data/all-modules repo updated in 24h’;
 
 
 $t.last-test;

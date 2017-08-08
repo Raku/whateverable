@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use lib ‘.’;
-use Misc;
 use Whateverable;
+use Misc;
 
 use IRC::Client;
 use JSON::Fast;
@@ -29,7 +28,7 @@ use SVG;
 unit class Statisfiable does Whateverable;
 
 constant RANGE          = ‘2014.01..HEAD’;
-constant STATS-LOCATION = ‘./stats’.IO.absolute;
+constant STATS-LOCATION = ‘./data/stats’.IO.absolute;
 
 constant OPTIONS = %(
     core         => ‘CORE.setting.moarvm file size (MB)’,

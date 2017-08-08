@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use lib ‘.’;
-use Misc;
 use Whateverable;
+use Misc;
 
 use IRC::Client;
 
 unit class Quotable does Whateverable;
 
+constant $CACHE-FILE = ‘data/irc/cache’;
 constant $LIMIT = 5_000;
 
 method help($msg) {
@@ -41,7 +41,7 @@ method process($msg, $query is copy) {
     my $full-commit = self.to-full-commit: ‘2016.10’; # ‘HEAD’; # Ha, 2016.10 works a bit better for this purpose…
     die ‘No build for the last commit. Oops!’ unless self.build-exists: $full-commit;
 
-    my $magic = “\{ last if \$++ >= $LIMIT; print \$_, “\\0” \} for slurp(“irc/cache”).split(“\\0”).grep:\n”;
+    my $magic = “\{ last if \$++ >= $LIMIT; print \$_, “\\0” \} for slurp(‘$CACHE-FILE’).split(“\\0”).grep:\n”;
     my $filename = self.write-code: $magic ~ $query;
     my $result = self.run-snippet: $full-commit, $filename, :180timeout;
     my $output = $result<output>;

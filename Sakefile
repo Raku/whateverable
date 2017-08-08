@@ -1,16 +1,17 @@
-my @bots = dir test => / ‘able.p6’ $ /;
+my @bots = dir ‘bin’, test => / ‘able.p6’ $ /;
 
 sub start-stop($task where ‘start-all’ | ‘stop-all’) {
     for @bots {
         next if .contains: ‘#’; # editor files
-        my $bot = .subst: /‘.p6’$/, ‘’;
+        my $bot = .basename.subst: /‘.p6’$/, ‘’;
         my $log = dir(‘logs’, test => /^ $($bot.lc) .* ‘.log’ $/).sort.tail;
-        next unless $log;
+        next unless $log; # TODO but what if there's no log?
         my $result = run :out, ‘lsof’, ‘-tac’, ‘moar’, ‘--’, $log;
         if $task eq ‘start-all’ {
             next if $result.exitcode == 0;
             say “Starting $bot…”;
-            run ‘bash’, ‘-c’, ｢"./$1.p6" &> "$(date "+logs/${1,,}_%F_%H%M.log")" & disown｣, ‘--’, $bot
+            run ‘bash’, ‘-c’, ｢"./bin/$1.p6" &> "$(date "+logs/${1,,}_%F_%H%M.log")" & disown｣,
+                 ‘--’, $bot, :env(|%*ENV, PERL6LIB => ‘lib’)
         } else { # ‘stop-all’
             next if $result.exitcode ≠ 0;
             say “Stopping $bot…”;

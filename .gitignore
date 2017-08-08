@@ -1,15 +1,3 @@
 .precomp
-
-# TODO we should probably move these into a subdir
-builds
+data
 logs
-irc
-stats
-all-modules
-rakudo
-rakudo-moar
-MoarVM
-moarvm
-nqp
-perl6-bench
-Perl6-Text--Table--Simple

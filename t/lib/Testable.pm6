@@ -38,8 +38,8 @@ class Testable {
         );
         start $!irc-client.run;
 
-        $!bot-proc = Proc::Async.new: ‘./’ ~ $bot ~ ‘.p6’;
-        $!bot-proc.start;
+        $!bot-proc = Proc::Async.new: ‘./bin/’ ~ $bot ~ ‘.p6’;
+        $!bot-proc.start: :ENV(|%*ENV, PERL6LIB => ‘lib’);
 
         start { sleep 20; $ready.send: False }
         $!bot-nick = $ready.receive;

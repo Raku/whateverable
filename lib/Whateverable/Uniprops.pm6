@@ -1,4 +1,4 @@
-unit package Uniprops;
+unit package Whateverable::Uniprops;
 
 our @prop-table is export =
 ‘Numeric properties’ => (
