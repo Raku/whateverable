@@ -32,6 +32,10 @@ constant shortcuts = %(
     what => ‘6c’, ‘6c’ => ‘6c’, ‘v6c’ => ‘6c’, ‘v6.c’ => ‘6c’, ‘6.c’ => ‘6c’,
 );
 
+# https://github.com/rakudo/rakudo/wiki/dev-env-vars
+my \ENV-VARS = set <MVM_SPESH_DISABLE MVM_SPESH_NODELAY MVM_SPESH_INLINE_DISABLE
+                    MVM_SPESH_OSR_DISABLE MVM_JIT_DISABLE MVM_SPESH_LOG>;
+
 method help($msg) {
     “Like this: {$msg.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
 }
@@ -42,20 +46,28 @@ multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=@(s
     self.process: $msg, shortcuts{$prefix<shortcut>}, ~$<code>
 }
 
-multi method irc-to-me($msg where /^ \s* $<config>=<.&commit-list> \s+ $<code>=.+ /) {
-    self.process: $msg, ~$<config>, ~$<code>
+multi method irc-to-me($msg where /^ \s* [ @<envs>=((<[\w-]>+)‘=’(\S*)) ]* %% \s+
+                                     $<config>=<.&commit-list> \s+
+                                     $<code>=.+ /) {
+    my %ENV = @<envs>.map: { ~.[0] => ~.[1] } if @<envs>;
+    for %ENV {
+        grumble “ENV variable {.key} is not supported” if .key ∉ ENV-VARS;
+        grumble “ENV variable {.key} can only be 0, 1 or empty” if .value ne ‘0’ | ‘1’ | ‘’;
+    }
+    %ENV ,= %*ENV;
+    self.process: $msg, ~$<config>, ~$<code>, :%ENV
 }
 
-method process-commit($commit, $filename) {
+method process-commit($commit, $filename, :%ENV) {
     # convert to real ids so we can look up the builds
     my $full-commit = self.to-full-commit: $commit;
     my $short-commit = self.get-short-commit: $commit;
     $short-commit ~= “({self.get-short-commit: $full-commit})” if $commit eq ‘HEAD’;
 
-    $short-commit R=> self.subprocess-commit: $commit, $filename, $full-commit
+    $short-commit R=> self.subprocess-commit: $commit, $filename, $full-commit, :%ENV;
 }
 
-method subprocess-commit($commit, $filename, $full-commit) {
+method subprocess-commit($commit, $filename, $full-commit, :%ENV) {
     without $full-commit {
         return ‘Cannot find this revision (did you mean “’ ~
           self.get-short-commit(self.get-similar: $commit, <HEAD v6.c releases all>) ~
@@ -63,7 +75,7 @@ method subprocess-commit($commit, $filename, $full-commit) {
     }
     return ‘No build for this commit’ unless self.build-exists: $full-commit;
 
-    $_ = self.run-snippet: $full-commit, $filename; # actually run the code
+    $_ = self.run-snippet: $full-commit, $filename, :%ENV; # actually run the code
     # numbers less than zero indicate other weird failures ↓
     return “Cannot test this commit ($_<output>)” if .<signal> < 0;
     my $output = .<output>;
@@ -72,7 +84,7 @@ method subprocess-commit($commit, $filename, $full-commit) {
     $output
 }
 
-method process($msg, $config is copy, $code is copy) {
+method process($msg, $config is copy, $code is copy, :%ENV) {
     my $start-time = now;
     if $config ~~ /^ [say|sub] $/ {
         $msg.reply: “Seems like you forgot to specify a revision (will use “v6.c” instead of “$config”)”;
@@ -92,7 +104,7 @@ method process($msg, $config is copy, $code is copy) {
         }
         @outputs.push: .key if %shas{.key}:!exists;
         .key
-    }, @commits.map: { self.process-commit: $_, $filename };
+    }, @commits.map: { self.process-commit: $_, $filename, :%ENV };
 
     my $short-str = @outputs == 1 && %shas{@outputs[0]} > 3 && $config.chars < 20
     ?? “¦{$config} ({+%shas{@outputs[0]}} commits): «{@outputs[0]}»”
