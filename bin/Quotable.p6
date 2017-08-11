@@ -57,7 +57,7 @@ method process($msg, $query is copy) {
 
     return “Cowardly refusing to gist more than $LIMIT lines” if $count ≥ $LIMIT; # TODO off by one somewhere
     return ‘Found nothing!’ unless $output;
-    $output
+    ‘’ but ProperStr($output)
 }
 
 

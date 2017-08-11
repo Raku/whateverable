@@ -93,7 +93,7 @@ method process($msg, $code is copy) {
     $msg.reply: $reply-start ~ $output-cut ~ $reply-end;
     sleep 0.02;
     my $gist = ($extra ?? “$extra\n” !! ‘’) ~ colorstrip $output;
-    $gist but PrettyLink({ “Full output: $_” })
+    (‘’ but ProperStr($gist)) but PrettyLink({ “Full output: $_” })
 }
 
 Evalable.new.selfrun: ‘evalable6’, [/ [ m | e[val]?6? | what ] <before ‘:’> /,
