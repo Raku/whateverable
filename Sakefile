@@ -20,6 +20,16 @@ sub start-stop($task where ‘start-all’ | ‘stop-all’) {
     }
 }
 
+task any(‘debug:’ X~ @bots».extension(‘’)».basename».lc), sub {
+    # TODO https://github.com/perlpilot/p6-sake/issues/7
+    my $bot = @*ARGS.grep({.starts-with: ‘debug:’})[0];
+    return without $bot;
+    $bot .= subst: /^‘debug:’/, ‘’;
+    $bot .= tc;
+    say “Starting $bot…”;
+    run “./bin/$bot.p6”, :env(|%*ENV, PERL6LIB => ‘lib’, DEBUGGABLE => 1)
+}
+
 task ‘start-all’, { start-stop ‘start-all’ }
 task ‘stop-all’,  { start-stop ‘stop-all’  }
 task ‘test’,      { run ‘prove’, ‘--exec’, ‘perl6’, ‘t’ }
