@@ -98,7 +98,7 @@ multi method process($msg, $type, $zeroed) {
         my %data := %stats{$type};
         my $let's-save = False;
         my @command = ‘git’, ‘log’, ‘-z’, ‘--pretty=%H’, RANGE;
-        for run(:out, :cwd(RAKUDO), |@command).out.split: 0.chr, :skip-empty -> $full {
+        for run(:out, :cwd($RAKUDO), |@command).out.split: 0.chr, :skip-empty -> $full {
             next unless $full;
             #my $short = self.to-full-commit($_, :short);
 

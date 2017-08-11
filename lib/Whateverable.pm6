@@ -30,7 +30,7 @@ use Text::Diff::Sift4;
 
 use Misc;
 
-constant RAKUDO = ‘./data/rakudo-moar’.IO.absolute; # TODO should depend on the backend
+our $RAKUDO = ‘./data/rakudo-moar’.IO.absolute;
 constant MOARVM = ‘./data/moarvm’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
 constant SOURCE = ‘https://github.com/perl6/whateverable’;
@@ -202,7 +202,7 @@ method build-exists($full-commit-hash, :$backend=‘rakudo-moar’) {
     “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”.IO ~~ :e # long-term storage (symlink to a large archive)
 }
 
-method get-similar($tag-or-hash, @other?, :$repo=RAKUDO) {
+method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
     my @options = @other;
     my @tags = self.get-output(cwd => $repo, ‘git’, ‘tag’,
                                ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
@@ -269,7 +269,7 @@ method run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$time
     }
 }
 
-method get-commits($_, :$repo=RAKUDO) {
+method get-commits($_, :$repo=$RAKUDO) {
     return .split: /‘,’\s*/ if .contains: ‘,’;
 
     if /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
@@ -295,7 +295,7 @@ method get-commits($_, :$repo=RAKUDO) {
     return $_
 }
 
-method get-tags($date, :$repo=RAKUDO) {
+method get-tags($date, :$repo=$RAKUDO) {
     my @tags = <HEAD>;
     my %seen;
     for self.get-output(cwd => $repo, ‘git’, ‘log’, ‘--pretty="%d"’,
@@ -309,7 +309,7 @@ method get-tags($date, :$repo=RAKUDO) {
     @tags.reverse
 }
 
-method to-full-commit($commit, :$short=False, :$repo=RAKUDO) {
+method to-full-commit($commit, :$short=False, :$repo=$RAKUDO) {
     return if run(:out(Nil), :err(Nil), :cwd($repo),
                   ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
 

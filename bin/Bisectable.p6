@@ -198,7 +198,7 @@ method process($msg, $code is copy, $old, $new) {
 
     my $dir = tempdir :!unlink;
     LEAVE { rmtree $_ with $dir }
-    run :out(Nil), :err(Nil), ‘git’, ‘clone’, RAKUDO, $dir; # TODO check the result
+    run :out(Nil), :err(Nil), ‘git’, ‘clone’, $RAKUDO, $dir; # TODO check the result
 
     my $bisect-start = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘start’;
     my $bisect-old   = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘old’, $full-old;
