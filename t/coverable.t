@@ -19,7 +19,7 @@ $t.shortcut-tests: <cover: cover6:>,
 $t.test(‘basic query on HEAD’,
         “{$t.bot-nick}: HEAD say ‘hi’”,
         “{$t.our-nick}, https://whatever.able/fakeupload”,
-        :60timeout);
+        :50timeout);
 
 $t.test-gist(‘basic gist test’, # let's assume say proto is not going to change
              %(‘result.md’ =>
@@ -29,7 +29,7 @@ $t.test-gist(‘basic gist test’, # let's assume say proto is not going to cha
 $t.test(‘using grep option’,
         “{$t.bot-nick}: 2017.06 grep=SETTING say ‘hi’”,
         “{$t.our-nick}, https://whatever.able/fakeupload”,
-        :60timeout);
+        :50timeout);
 
 $t.test-gist(‘stuff is filtered’,
              %(‘result.md’ => none / ‘/Perl6’ /));
