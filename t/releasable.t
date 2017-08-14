@@ -82,7 +82,7 @@ $t.test(‘unknown format’,
 
 
 tag-last ‘2090.07’;
-commit ‘.hyper and .race finally re-added’;
+my $some-commit = commit ‘.hyper and .race finally re-added’;
 tag-last ‘2090.08’, Nil;
 
 $t.test(‘not started yet’,
@@ -94,6 +94,8 @@ $t.test(‘not started yet’,
            ‘Changelog for this release was not started yet’ $/,
         “{$t.our-nick}, Details: https://whatever.able/fakeupload”);
 
+$t.test-gist(‘commits are listed even without a new section’,
+             %(‘unreviewed.md’ => / $some-commit /) );
 
 @releases.shift;
 

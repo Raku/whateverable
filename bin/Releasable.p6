@@ -95,10 +95,13 @@ sub changelog-to-stats($changelog) {
     my ($version, $changes, $version-old) = ~$0, ~$1, ~$2;
 
     my $actual-commit = to-full-commit $version;
+    my $actual-commit-old;
+    my $summary;
     with $actual-commit {
-        return { summary => ‘Changelog for this release was not started yet’ }
+        $summary = ‘Changelog for this release was not started yet’;
+        $actual-commit-old = $actual-commit-old
     }
-    my $actual-commit-old = to-full-commit $version-old;
+    $actual-commit-old //= to-full-commit $version-old;
     die ‘Cannot resolve the tag for the previous release’ without $actual-commit-old;
 
     my @shas = $changes.match(:g, / [‘[’ (<.xdigit>**4..*) ‘]’ \s*]+ $$/)»[0].flat».Str;
@@ -119,7 +122,7 @@ sub changelog-to-stats($changelog) {
     }
     my $ignored = set ignored-commits;
     my @unlogged = @git-commits.grep: * !∈ ($commit-mentioned ∪ $ignored); # ordered
-    my $summary = “{@git-commits - @unlogged} out of {+@git-commits} commits logged”;
+    $summary //= “{@git-commits - @unlogged} out of {+@git-commits} commits logged”;
     { :$summary, :@unlogged, :@warnings }
 }
 
