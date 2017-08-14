@@ -30,7 +30,9 @@ use Text::Diff::Sift4;
 
 use Misc;
 
-our $RAKUDO = ‘./data/rakudo-moar’.IO.absolute;
+our $RAKUDO = (%*ENV<TESTABLE> // ‘’).contains(‘rakudo-mock’)
+              ?? ‘./t/data/rakudo’.IO.absolute
+              !! ‘./data/rakudo-moar’.IO.absolute;
 constant MOARVM = ‘./data/moarvm’.IO.absolute;
 constant CONFIG = ‘./config.json’.IO.absolute;
 constant SOURCE = ‘https://github.com/perl6/whateverable’;
@@ -42,6 +44,8 @@ constant BUILDS-LOCATION   = ‘/tmp/whateverable/’.IO.absolute;
 constant MESSAGE-LIMIT is export = 260;
 constant COMMITS-LIMIT = 500;
 constant PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
+
+our $RAKUDO-REPO = ‘https://github.com/rakudo/rakudo’;
 
 constant Message = IRC::Client::Message;
 
