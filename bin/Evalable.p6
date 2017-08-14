@@ -60,8 +60,8 @@ method process($msg, $code is copy) {
     LEAVE { unlink $_ with $filename }
 
     # convert to real id so we can look up the build
-    my $full-commit  = self.to-full-commit: $commit;
-    my $short-commit = self.to-full-commit: $commit, :short;
+    my $full-commit  = to-full-commit $commit;
+    my $short-commit = to-full-commit $commit, :short;
 
     if not self.build-exists: $full-commit {
         grumble “No build for $short-commit. Not sure how this happened!”

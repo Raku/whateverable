@@ -57,10 +57,10 @@ sub process-line($line, %commits) { # 🙈
 
 multi method irc-to-me($msg) {
     run :out(Nil), :cwd(ECO-PATH), ‘git’, ‘pull’;
-    my $result = self.get-output: :cwd(ECO-PATH), ‘git’, ‘grep’,
-                                  ‘--color=always’, ‘-z’, ‘-i’, ‘-I’,
-                                  ‘--perl-regexp’, ‘--line-number’,
-                                  ‘--’, $msg;
+    my $result = get-output :cwd(ECO-PATH), ‘git’, ‘grep’,
+                                            ‘--color=always’, ‘-z’, ‘-i’, ‘-I’,
+                                            ‘--perl-regexp’, ‘--line-number’,
+                                            ‘--’, $msg;
 
     grumble ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 | 1 or $result<signal> ≠ 0;
     grumble ‘Found nothing!’ unless $result<output>;

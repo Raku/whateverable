@@ -144,7 +144,7 @@ method process($msg, $query is copy) {
     } elsif $query.starts-with: ‘/’ {
         grumble ‘Regexes are not supported yet, sorry! Try code blocks instead’
     } elsif $query.starts-with: ‘{’ {
-        my $full-commit = self.to-full-commit: ‘HEAD’;
+        my $full-commit = to-full-commit ‘HEAD’;
         my $output = ‘’;
         my $filename = self.write-code: “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
         LEAVE { unlink $_ with $filename }

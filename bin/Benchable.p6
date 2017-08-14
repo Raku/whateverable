@@ -89,7 +89,7 @@ method process($msg, $config, $code) {
             grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
         }
         # convert to real ids so we can look up the builds
-        my $full-commit  = self.to-full-commit:   $commit;
+        my $full-commit  = to-full-commit         $commit;
         my $short-commit = self.get-short-commit: $commit;
         if not defined $full-commit {
             my @options = <HEAD v6.c releases all>;
@@ -126,9 +126,9 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
             next unless %times{@commits[$x]}:exists and %times{@commits[$x + 1]}:exists;      # the commits have to have been run at all
             next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists; # and without error
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) ≥ %times{@commits[$x]}<min> × 0.1 {
-                my $result = self.get-output: cwd => $RAKUDO, ‘git’, ‘rev-list’,
-                                              ‘--bisect’, ‘--no-merges’,
-                                              @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];
+                my $result = get-output :cwd($RAKUDO), ‘git’, ‘rev-list’,
+                                        ‘--bisect’, ‘--no-merges’,
+                                         @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];
                 my $new-commit = $result<output>;
                 if $result<exit-code> == 0 and defined $new-commit and $new-commit ne ‘’ {
                     my $short-commit = self.get-short-commit: $new-commit;

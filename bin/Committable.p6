@@ -60,7 +60,7 @@ multi method irc-to-me($msg where /^ \s* [ @<envs>=((<[\w-]>+)‘=’(\S*)) ]* %
 
 method process-commit($commit, $filename, :%ENV) {
     # convert to real ids so we can look up the builds
-    my $full-commit = self.to-full-commit: $commit;
+    my $full-commit = to-full-commit          $commit;
     my $short-commit = self.get-short-commit: $commit;
     $short-commit ~= “({self.get-short-commit: $full-commit})” if $commit eq ‘HEAD’;
 

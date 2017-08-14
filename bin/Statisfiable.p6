@@ -100,7 +100,7 @@ multi method process($msg, $type, $zeroed) {
         my @command = ‘git’, ‘log’, ‘-z’, ‘--pretty=%H’, RANGE;
         for run(:out, :cwd($RAKUDO), |@command).out.split: 0.chr, :skip-empty -> $full {
             next unless $full;
-            #my $short = self.to-full-commit($_, :short);
+            #my $short = to-full-commit $_, :short;
 
             if %data{$full}:!exists and self.build-exists: $full {
                 %data{$full} = self.stat-for-commit: $type, $full;

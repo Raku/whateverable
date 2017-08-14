@@ -40,8 +40,8 @@ multi method bloaty($sources, %prev, %cur) {
         !! self.run-smth: :backend<moarvm>, %cur<full-commit>, -> $cur-path {
             !“$cur-path/lib/libmoar.so”.IO.e
             ?? “No libmoar.so file in build %cur<short-commit>”
-            !! self.get-output: ‘bloaty’, ‘-d’, $sources, ‘-n’, ‘50’,
-                                “$cur-path/lib/libmoar.so”, ‘--’, “$prev-path/lib/libmoar.so”
+            !! get-output ‘bloaty’, ‘-d’, $sources, ‘-n’, ‘50’,
+                          “$cur-path/lib/libmoar.so”, ‘--’, “$prev-path/lib/libmoar.so”
         }
     }
 }
@@ -50,8 +50,8 @@ multi method bloaty($sources, %prev) {
     self.run-smth: :backend<moarvm>, %prev<full-commit>, -> $prev-path {
         !“$prev-path/lib/libmoar.so”.IO.e
         ?? “No libmoar.so file in build %prev<short-commit>”
-        !! self.get-output: ‘bloaty’, ‘-d’, $sources, ‘-n’, ‘100’,
-                            “$prev-path/lib/libmoar.so”
+        !! get-output ‘bloaty’, ‘-d’, $sources, ‘-n’, ‘100’,
+                      “$prev-path/lib/libmoar.so”
     }
 }
 
@@ -60,7 +60,7 @@ method did-you-mean($out) {
     return if $out<exit-code> == 0;
     return unless $out<output> ~~ /(‘no such data source:’ .*)/;
     $0.tc ~ ‘ (Did you mean one of these: ’
-          ~ self.get-output(‘bloaty’, ‘--list-sources’)<output>.lines.join(‘ ’)
+          ~ get-output(‘bloaty’, ‘--list-sources’)<output>.lines.join(‘ ’)
           ~ ‘ ?)’
 }
 
@@ -72,7 +72,7 @@ method process($msg, $config, $sources is copy) {
         my %prev = @processed.tail if @processed;
         my %cur;
         # convert to real ids so we can look up the builds
-        %cur<full-commit> = self.to-full-commit: $commit, repo => MOARVM;
+        %cur<full-commit> = to-full-commit $commit, repo => MOARVM;
         if not defined %cur<full-commit> {
             %cur<error> = “Cannot find revision $commit”;
             my @options = <HEAD v6.c releases all>;

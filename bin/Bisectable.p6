@@ -42,7 +42,7 @@ method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-out
     my $status;
     my @bisect-log = gather loop {
         my $revision-type = self.test-commit: :$cwd, $code-file, |%_;
-        my $result = self.get-output: :$cwd, ‘git’, ‘bisect’, $revision-type.lc;
+        my $result = get-output :$cwd, ‘git’, ‘bisect’, $revision-type.lc;
         $status = $result<exit-code>;
         last if $result<output> ~~ /^^ \S+ ‘ is the first new commit’ /; # TODO just return this
         last if $result<exit-code> ≠ 0;
@@ -52,7 +52,7 @@ method run-bisect($code-file, *%_ (:$old-exit-code, :$old-exit-signal, :$old-out
 }
 
 method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output, :$cwd) {
-    my $current-commit = self.get-output(:$cwd, ‘git’, ‘rev-parse’, ‘HEAD’)<output>;
+    my $current-commit = get-output(:$cwd, ‘git’, ‘rev-parse’, ‘HEAD’)<output>;
 
     LEAVE take “»»»»» {‘-’ x 73}”; # looks a bit nicer this way
 
@@ -150,7 +150,7 @@ method process($msg, $code is copy, $old, $new) {
 
     # convert to real ids so we can look up the builds
     my @options = <HEAD>;
-    my $full-old = self.to-full-commit: $old;
+    my $full-old = to-full-commit $old;
     without $full-old {
         grumble “Cannot find revision “$old””
         ~ “ (did you mean “{self.get-short-commit: self.get-similar: $old, @options}”?)”
@@ -158,7 +158,7 @@ method process($msg, $code is copy, $old, $new) {
     grumble “No build for revision “$old”” unless self.build-exists: $full-old;
     my $short-old = self.get-short-commit: $old eq $full-old | ‘HEAD’ ?? $full-old !! $old;
 
-    my $full-new = self.to-full-commit: $new;
+    my $full-new = to-full-commit $new;
     without $full-new {
         grumble “Cannot find revision “$new””
         ~ “ (did you mean “{self.get-short-commit: self.get-similar: $new, @options}”?)”
@@ -200,12 +200,12 @@ method process($msg, $code is copy, $old, $new) {
     LEAVE { rmtree $_ with $dir }
     run :out(Nil), :err(Nil), ‘git’, ‘clone’, $RAKUDO, $dir; # TODO check the result
 
-    my $bisect-start = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘start’;
-    my $bisect-old   = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘old’, $full-old;
+    my $bisect-start = get-output cwd => $dir, ‘git’, ‘bisect’, ‘start’;
+    my $bisect-old   = get-output cwd => $dir, ‘git’, ‘bisect’, ‘old’, $full-old;
     grumble ‘Failed to run ｢bisect start｣’  if $bisect-start<exit-code> ≠ 0;
     grumble ‘Failed to run ｢bisect old …”｣’ if $bisect-old<exit-code>   ≠ 0;
 
-    my $init-result = self.get-output: cwd => $dir, ‘git’, ‘bisect’, ‘new’, $full-new;
+    my $init-result = get-output cwd => $dir, ‘git’, ‘bisect’, ‘new’, $full-new;
     if $init-result<exit-code> ≠ 0 {
         $msg.reply: ‘bisect log: ’ ~ self.upload: { query  => $msg.text,
                                                     result => colorstrip($init-result<output>), },
@@ -234,17 +234,17 @@ method process($msg, $code is copy, $old, $new) {
                                               public => !%*ENV<DEBUGGABLE>;
 
     if $bisect-status == 2 {
-        my $good-revs     = self.get-output(cwd => $dir, ‘git’, ‘for-each-ref’,
-                                        ‘--format=%(objectname)’, ‘refs/bisect/old-*’)<output>;
-        my @possible-revs = self.get-output(cwd => $dir, ‘git’, ‘rev-list’,
-                                            ‘refs/bisect/new’, ‘--not’, |$good-revs.lines)<output>.lines;
+        my $good-revs     = get-output(:cwd($dir), ‘git’, ‘for-each-ref’,
+                                       ‘--format=%(objectname)’, ‘refs/bisect/old-*’)<output>;
+        my @possible-revs = get-output(:cwd($dir), ‘git’, ‘rev-list’,
+                                       ‘refs/bisect/new’, ‘--not’, |$good-revs.lines)<output>.lines;
         grumble “There are {+@possible-revs} candidates for the first “new” revision. See the log for more details”
     }
     if $bisect-status ≠ 0 {
         grumble ｢‘bisect run’ failure. See the log for more details｣
     }
-    my $link-msg = self.get-output(cwd => $dir, ‘git’, ‘show’, ‘--quiet’, ‘--date=short’,
-                                   “--pretty=(%cd) {COMMIT-LINK}/%H”, ‘bisect/new’)<output>;
+    my $link-msg = get-output(:cwd($dir), ‘git’, ‘show’, ‘--quiet’, ‘--date=short’,
+                              “--pretty=(%cd) {COMMIT-LINK}/%H”, ‘bisect/new’)<output>;
     $msg.reply: $link-msg;
     if $link-msg.ends-with: ‘07fecb52eb1fd07397659f19a5cf36dc61f84053’ {
         grumble ‘The result looks a bit unrealistic, doesn't it? Most probably the output is different on every commit (e.g. ｢bisect: say rand｣)’

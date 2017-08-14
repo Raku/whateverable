@@ -166,7 +166,7 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
     !! $original-commit
 }
 
-method get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd = $*CWD) {
+sub get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd = $*CWD) is export {
     my @lines;
     my $proc = Proc::Async.new: |@run-args, w => defined $stdin;
     my $s-start = now;
@@ -205,16 +205,16 @@ method build-exists($full-commit-hash, :$backend=‘rakudo-moar’) {
 
 method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
     my @options = @other;
-    my @tags = self.get-output(cwd => $repo, ‘git’, ‘tag’,
-                               ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
-                               ‘--sort=-taggerdate’)<output>.lines
-                               .map(*.split(‘/’))
-                               .grep({ self.build-exists: .[0] || .[1] })
-                               .map(*[2]);
+    my @tags = get-output(cwd => $repo, ‘git’, ‘tag’,
+                          ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
+                          ‘--sort=-taggerdate’)<output>.lines
+                          .map(*.split(‘/’))
+                          .grep({ self.build-exists: .[0] || .[1] })
+                          .map(*[2]);
 
     my $cutoff = $tag-or-hash.chars max 7;
-    my @commits = self.get-output(cwd => $repo, ‘git’, ‘rev-list’,
-                                  ‘--all’, ‘--since=2014-01-01’)<output>
+    my @commits = get-output(cwd => $repo, ‘git’, ‘rev-list’,
+                             ‘--all’, ‘--since=2014-01-01’)<output>
                       .lines.map(*.substr: 0, $cutoff);
 
     # flat(@options, @tags, @commits).min: { sift4($_, $tag-or-hash, 5, 8) }
@@ -265,8 +265,8 @@ method run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$time
         “$path/bin/perl6”.IO !~~ :e
         ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
              exit-code => -1, signal => -1, time => -1,)
-        !! self.get-output: “$path/bin/perl6”, ‘--setting=RESTRICTED’, ‘--’,
-                            $file, :$!stdin, :$timeout, :$ENV
+        !! get-output “$path/bin/perl6”, ‘--setting=RESTRICTED’, ‘--’,
+                      $file, :$!stdin, :$timeout, :$ENV
     }
 }
 
@@ -282,7 +282,8 @@ method get-commits($_, :$repo=$RAKUDO) {
                ‘git’, ‘rev-parse’, ‘--verify’, $<end>).exitcode   ≠ 0 {
             grumble “Bad end, cannot find a commit for “$<end>””
         }
-        my $result = self.get-output: :cwd($repo), ‘git’, ‘rev-list’, ‘--reverse’, “$<start>^..$<end>”; # TODO unfiltered input
+        my $result = get-output :cwd($repo), ‘git’, ‘rev-list’, ‘--reverse’,
+                                “$<start>^..$<end>”; # TODO unfiltered input
         grumble ‘Couldn't find anything in the range’ if $result<exit-code> ≠ 0;
         my @commits = $result<output>.lines;
         if @commits.elems > COMMITS-LIMIT {
@@ -299,8 +300,8 @@ method get-commits($_, :$repo=$RAKUDO) {
 method get-tags($date, :$repo=$RAKUDO) {
     my @tags = <HEAD>;
     my %seen;
-    for self.get-output(cwd => $repo, ‘git’, ‘log’, ‘--pretty="%d"’,
-                        ‘--tags’, ‘--no-walk’, “--since=$date”)<output>.lines -> $tag {
+    for get-output(cwd => $repo, ‘git’, ‘log’, ‘--pretty="%d"’,
+                   ‘--tags’, ‘--no-walk’, “--since=$date”)<output>.lines -> $tag {
         next unless $tag ~~ /:i ‘tag:’ \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) /; # TODO use tag -l
         next if $!bad-releases{$0}:exists;
         next if %seen{$0[0]}++;
@@ -310,13 +311,13 @@ method get-tags($date, :$repo=$RAKUDO) {
     @tags.reverse
 }
 
-method to-full-commit($commit, :$short=False, :$repo=$RAKUDO) {
+sub to-full-commit($commit, :$short=False, :$repo=$RAKUDO) is export {
     return if run(:out(Nil), :err(Nil), :cwd($repo),
                   ‘git’, ‘rev-parse’, ‘--verify’, $commit).exitcode ≠ 0; # make sure that $commit is valid
 
-    my $result = self.get-output: cwd => $repo,
-                                  |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
-                                    ($short ?? ‘--abbrev-commit’ !! Empty), $commit);
+    my $result = get-output cwd => $repo,
+                            |(‘git’, ‘rev-list’, ‘-1’, # use rev-list to handle tags
+                              ($short ?? ‘--abbrev-commit’ !! Empty), $commit);
 
     return if     $result<exit-code> ≠ 0;
     return unless $result<output>;
@@ -330,7 +331,7 @@ method write-code($code) {
     $filename
 }
 
-method process-url($url, $message) {
+sub process-url($url, $msg) is export {
     my $ua = HTTP::UserAgent.new;
     my $response;
     try {
@@ -351,13 +352,14 @@ method process-url($url, $message) {
     }
 
     my $body = $response.decoded-content;
-    $message.reply: ‘Successfully fetched the code from the provided URL.’;
-    return $body
+    .reply: ‘Successfully fetched the code from the provided URL.’ with $msg;
+    sleep 0.02; # https://github.com/perl6/whateverable/issues/163
+    $body
 }
 
-method process-code($code is copy, $message) {
+method process-code($code is copy, $msg) {
     $code ~~ m{^ ( ‘http’ s? ‘://’ \S+ ) }
-    ?? self.process-url(~$0, $message)
+    ?? process-url(~$0, $msg)
     !! $code.subst: :g, ‘␤’, “\n”
 }
 

@@ -68,7 +68,7 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
     my $commit = @commits[0];
 
     # convert to real ids so we can look up the builds
-    my $full-commit = self.to-full-commit: $commit;
+    my $full-commit = to-full-commit $commit;
     if not defined $full-commit {
         $output = ‘Cannot find this revision’;
         my @options = <HEAD>;

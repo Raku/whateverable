@@ -38,7 +38,7 @@ multi method irc-to-me($msg where /^ \s* [ ‘/’ $<regex>=[.*] ‘/’ || $<re
 method process($msg, $query is copy) {
     $query = “/ $query /”;
 
-    my $full-commit = self.to-full-commit: ‘2016.10’; # ‘HEAD’; # Ha, 2016.10 works a bit better for this purpose…
+    my $full-commit = to-full-commit ‘2016.10’; # ‘HEAD’; # Ha, 2016.10 works a bit better for this purpose…
     die ‘No build for the last commit. Oops!’ unless self.build-exists: $full-commit;
 
     my $magic = “\{ last if \$++ >= $LIMIT; print \$_, “\\0” \} for slurp(‘$CACHE-FILE’).split(“\\0”).grep:\n”;
