@@ -54,6 +54,7 @@ method TWEAK {
     # wrap around everything to catch exceptions
     once { # per class
         self.^lookup(‘irc-to-me’).wrap: sub ($self, $msg) {
+            LEAVE sleep 0.02; # https://github.com/perl6/whateverable/issues/163
             try { with (callsame) { return $_ but Reply($msg) } else { return } }
             $self.handle-exception: $!, $msg
         };
