@@ -82,8 +82,9 @@ $t.test(‘unknown format’,
 
 
 tag-last ‘2090.07’;
-my $some-commit = commit ‘.hyper and .race finally re-added’;
+commit ‘.hyper and .race finally re-added’;
 tag-last ‘2090.08’, Nil;
+my $to-be-logged = commit ‘A change that should be logged’, :!log;
 
 $t.test(‘not started yet’,
         “{$t.bot-nick}: status”,
@@ -95,11 +96,10 @@ $t.test(‘not started yet’,
         “{$t.our-nick}, Details: https://whatever.able/fakeupload”);
 
 $t.test-gist(‘commits are listed even without a new section’,
-             %(‘unreviewed.md’ => / $some-commit /) );
+             %(‘unreviewed.md’ => / $to-be-logged /) );
 
 @releases.shift;
 
-my $to-be-logged     = commit ‘A change that should be logged’,     :!log;
 my $to-be-logged-not = commit ‘A change that should not be logged’, :!log;
 my @real = ‘Furious whitespace changes’ xx 4;
 @real.push: ‘Fix nothing’;

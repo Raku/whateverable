@@ -99,7 +99,7 @@ sub changelog-to-stats($changelog) {
     my $summary;
     with $actual-commit {
         $summary = ‘Changelog for this release was not started yet’;
-        $actual-commit-old = $actual-commit-old
+        $actual-commit-old = $actual-commit
     }
     $actual-commit-old //= to-full-commit $version-old;
     die ‘Cannot resolve the tag for the previous release’ without $actual-commit-old;
@@ -111,17 +111,20 @@ sub changelog-to-stats($changelog) {
     my @git-commits = $result.out.slurp-rest.split(0.chr, :skip-empty)
                                             .map: *.substr: 0, $SHA-LENGTH;
     my @warnings;
-    my $commit-mentioned = set gather for @shas {
-        when .chars ≠ $SHA-LENGTH {
-            @warnings.push: “$_ should be $SHA-LENGTH characters in length”
+    my $commits-mentioned = ∅;
+    if not defined $actual-commit { # if changelog was started
+        $commits-mentioned = set gather for @shas {
+            when .chars ≠ $SHA-LENGTH {
+                @warnings.push: “$_ should be $SHA-LENGTH characters in length”
+            }
+            when @git-commits.none {
+                @warnings.push: “$_ was referenced but there is no commit with this id”
+            }
+            default { take $_ }
         }
-        when @git-commits.none {
-            @warnings.push: “$_ was referenced but there is no commit with this id”
-        }
-        default { take $_ }
     }
     my $ignored = set ignored-commits;
-    my @unlogged = @git-commits.grep: * !∈ ($commit-mentioned ∪ $ignored); # ordered
+    my @unlogged = @git-commits.grep: * !∈ ($commits-mentioned ∪ $ignored); # ordered
     $summary //= “{@git-commits - @unlogged} out of {+@git-commits} commits logged”;
     { :$summary, :@unlogged, :@warnings }
 }
@@ -170,13 +173,13 @@ multi method irc-to-me($msg where /^ \s* [changelog|status|release|when]‘?’?
     my $warnings = .join(“\n”) with %stats<warnings>;
     %files<!warnings!> = $warnings if $warnings;
 
-    with %stats<unlogged> {
+    if %stats<unlogged> {
         my $descs = run :out, :cwd($RAKUDO), ‘git’, ‘show’,
                         ‘--format=%s’,
-                        “--abbrev=$SHA-LENGTH”, ‘--quiet’, |$_;
+                        “--abbrev=$SHA-LENGTH”, ‘--quiet’, |%stats<unlogged>;
         my $links = run :out, :cwd($RAKUDO), ‘git’, ‘show’,
                         ‘--format=[<a href="’ ~ $RAKUDO-REPO ~ ‘/commit/%H">%h</a>]’,
-                        “--abbrev=$SHA-LENGTH”, ‘--quiet’, |$_;
+                        “--abbrev=$SHA-LENGTH”, ‘--quiet’, |%stats<unlogged>;
         my $unreviewed = join “\n”, ($descs.out.lines Z $links.out.lines).map:
                          {‘    + ’ ~ escape-html(.[0]) ~ ‘ ’ ~ .[1]};
         %files<unreviewed.md> = ‘<pre>’ ~ $unreviewed ~ ‘</pre>’ if $unreviewed;
