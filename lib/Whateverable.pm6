@@ -201,7 +201,7 @@ sub get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd =
     )
 }
 
-method build-exists($full-commit-hash, :$backend=‘rakudo-moar’) {
+sub build-exists($full-commit-hash, :$backend=‘rakudo-moar’) is export {
     “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”.IO ~~ :e
     or
     “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”.IO ~~ :e # long-term storage (symlink to a large archive)
@@ -213,7 +213,7 @@ method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
                           ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
                           ‘--sort=-taggerdate’)<output>.lines
                           .map(*.split(‘/’))
-                          .grep({ self.build-exists: .[0] || .[1] })
+                          .grep({ build-exists .[0] || .[1] })
                           .map(*[2]);
 
     my $cutoff = $tag-or-hash.chars max 7;
@@ -235,7 +235,7 @@ method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
     $ans
 }
 
-method run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) {
+sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
     my $build-path   = “{  BUILDS-LOCATION}/$backend/$full-commit-hash”;
     my $archive-path = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”;
     my $archive-link = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”;
@@ -264,7 +264,7 @@ method run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) {
     $return
 }
 
-method run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$timeout = $default-timeout, :$ENV) {
+sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$timeout = $default-timeout, :$ENV) {
     self.run-smth: :$backend, $full-commit-hash, -> $path {
         “$path/bin/perl6”.IO !~~ :e
         ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
@@ -328,7 +328,7 @@ sub to-full-commit($commit, :$short=False, :$repo=$RAKUDO) is export {
     $result<output>
 }
 
-method write-code($code) {
+sub write-code($code) is export {
     my ($filename, $filehandle) = tempfile :!unlink;
     $filehandle.print: $code;
     $filehandle.close;

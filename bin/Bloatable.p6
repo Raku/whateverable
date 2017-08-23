@@ -34,10 +34,10 @@ multi method irc-to-me($msg where /^ :r [ [ ‘d=’ | ‘-d’ \s* ] $<sources>
 }
 
 multi method bloaty($sources, %prev, %cur) {
-    self.run-smth: :backend<moarvm>, %prev<full-commit>, -> $prev-path {
+    run-smth :backend<moarvm>, %prev<full-commit>, -> $prev-path {
         !“$prev-path/lib/libmoar.so”.IO.e
         ?? “No libmoar.so file in build %prev<short-commit>”
-        !! self.run-smth: :backend<moarvm>, %cur<full-commit>, -> $cur-path {
+        !! run-smth :backend<moarvm>, %cur<full-commit>, -> $cur-path {
             !“$cur-path/lib/libmoar.so”.IO.e
             ?? “No libmoar.so file in build %cur<short-commit>”
             !! get-output ‘bloaty’, ‘-d’, $sources, ‘-n’, ‘50’,
@@ -47,7 +47,7 @@ multi method bloaty($sources, %prev, %cur) {
 }
 
 multi method bloaty($sources, %prev) {
-    self.run-smth: :backend<moarvm>, %prev<full-commit>, -> $prev-path {
+    run-smth :backend<moarvm>, %prev<full-commit>, -> $prev-path {
         !“$prev-path/lib/libmoar.so”.IO.e
         ?? “No libmoar.so file in build %prev<short-commit>”
         !! get-output ‘bloaty’, ‘-d’, $sources, ‘-n’, ‘100’,
@@ -77,7 +77,7 @@ method process($msg, $config, $sources is copy) {
             %cur<error> = “Cannot find revision $commit”;
             my @options = <HEAD v6.c releases all>;
             %cur<error> ~= “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options, repo => MOARVM}”?)”
-        } elsif not self.build-exists: %cur<full-commit>, :backend<moarvm> {
+        } elsif not build-exists %cur<full-commit>, :backend<moarvm> {
             %cur<error> = ‘No build for this commit’
         }
         %cur<short-commit> = self.get-short-commit: $commit;

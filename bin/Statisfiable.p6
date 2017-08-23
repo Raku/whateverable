@@ -59,7 +59,7 @@ method help($) {
 }
 
 multi method stat-for-commit(‘core’, $full-hash) {
-    self.run-smth: $full-hash, {
+    run-smth $full-hash, {
         my $file = “$_/share/perl6/runtime/CORE.setting.moarvm”.IO;
         $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
     }
@@ -70,7 +70,7 @@ multi method stat-for-commit(‘core’, $full-hash) {
 #}
 
 multi method stat-for-commit(‘install’, $full-hash) {
-    self.run-smth: $full-hash, {
+    run-smth $full-hash, {
         # ↓ scary, but works
         my $result = Rakudo::Internals.DIR-RECURSE($_).map(*.IO.s).sum ÷ 10⁶;
         $result > 10 ?? $result !! Nil
@@ -78,7 +78,7 @@ multi method stat-for-commit(‘install’, $full-hash) {
 }
 
 multi method stat-for-commit(‘libmoar’, $full-hash) {
-    self.run-smth: $full-hash, {
+    run-smth $full-hash, {
         my $file = “$_/lib/libmoar.so”.IO;
         $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
     }
@@ -102,7 +102,7 @@ multi method process($msg, $type, $zeroed) {
             next unless $full;
             #my $short = to-full-commit $_, :short;
 
-            if %data{$full}:!exists and self.build-exists: $full {
+            if %data{$full}:!exists and build-exists $full {
                 %data{$full} = self.stat-for-commit: $type, $full;
                 $let's-save = True
             }

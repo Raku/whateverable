@@ -146,13 +146,13 @@ method process($msg, $query is copy) {
     } elsif $query.starts-with: ‘{’ {
         my $full-commit = to-full-commit ‘HEAD’;
         my $output = ‘’;
-        my $filename = self.write-code: “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
+        my $filename = write-code “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
         LEAVE { unlink $_ with $filename }
 
-        die ‘No build for the last commit. Oops!’ unless self.build-exists: $full-commit;
+        die ‘No build for the last commit. Oops!’ unless build-exists $full-commit;
 
         # actually run the code
-        my $result = self.run-snippet: $full-commit, $filename;
+        my $result = run-snippet $full-commit, $filename;
         $output = $result<output>;
         # numbers less than zero indicate other weird failures ↓
         grumble “Something went wrong ($output)” if $result<signal> < 0;

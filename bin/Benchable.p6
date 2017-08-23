@@ -41,7 +41,7 @@ multi method benchmark-code($full-commit, $filename) {
     my @times;
     my %stats;
     for ^ITERATIONS {
-        my $result = self.run-snippet: $full-commit, $filename;
+        my $result = run-snippet $full-commit, $filename;
         if $result<exit-code> ≠ 0 {
             %stats<err> = “«run failed, exit code = $result<exit-code>, exit signal = $result<signal>»”;
             return %stats
@@ -59,13 +59,13 @@ multi method benchmark-code($full-commit, $filename) {
 }
 
 multi method benchmark-code($full-commit-hash, @code) {
-    my $filename = self.write-code: ‘use Bench; my %subs = ’
+    my $filename = write-code ‘use Bench; my %subs = ’
         ~ @code.kv.map({ $^k => “ => sub \{ $^v \} ” }).join(‘,’) ~ ‘;’
         ~ ‘ my $b = Bench.new; $b.cmpthese(’ ~ ITERATIONS × 2 ~ ‘, %subs)’;
     LEAVE { unlink $_ with $filename }
     my %ENV = %*ENV;
     %ENV<PERL6LIB> = “{LIB-DIR}/perl6-bench/lib,{LIB-DIR}/Perl6-Text--Table--Simple/lib”;
-    self.run-snippet($full-commit-hash, $filename, :%ENV)<output>
+    run-snippet($full-commit-hash, $filename, :%ENV)<output>
 }
 
 multi method irc-to-me($msg where /^ \s* $<config>=([:i compare \s]? <.&commit-list>) \s+ $<code>=.+ /) {
@@ -77,7 +77,7 @@ method process($msg, $config, $code) {
     my $start-time = now;
     my $old-dir = $*CWD;
     my @commits = self.get-commits: $config;
-    my $filename = self.write-code: self.process-code: $code, $msg;
+    my $filename = write-code self.process-code: $code, $msg;
     LEAVE { unlink $_ with $filename }
 
     my %graph;
@@ -96,7 +96,7 @@ method process($msg, $config, $code) {
             %times{$short-commit}<err> = ‘Cannot find this revision’
             ~ “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options}”?)”
             # TODO why $commit is a match here when using compare?
-        } elsif not self.build-exists: $full-commit {
+        } elsif not build-exists $full-commit {
             %times{$short-commit}<err> = ‘No build for this commit’
         } else { # actually run the code
             with $once {
@@ -132,7 +132,7 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
                 my $new-commit = $result<output>;
                 if $result<exit-code> == 0 and defined $new-commit and $new-commit ne ‘’ {
                     my $short-commit = self.get-short-commit: $new-commit;
-                    if not self.build-exists: $new-commit {
+                    if not build-exists $new-commit {
                         %times{$short-commit}<err> = ‘No build for this commit’
                     } elsif %times{$short-commit}:!exists and $short-commit ne @commits[$x] and $short-commit ne @commits[$x + 1] { # actually run the code
                         %times{$short-commit} = self.benchmark-code: $new-commit, $filename;

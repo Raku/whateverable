@@ -57,12 +57,12 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output,
     LEAVE take “»»»»» {‘-’ x 73}”; # looks a bit nicer this way
 
     take “»»»»» Testing $current-commit”;
-    if not self.build-exists: $current-commit {
+    if not build-exists $current-commit {
         take ‘»»»»» Build does not exist, skip this commit’;
         return Skip # skip non-existent builds
     }
 
-    my $result = self.run-snippet: $current-commit, $code-file;
+    my $result = run-snippet $current-commit, $code-file;
     if $result<exit-code> < 0 { # TODO use something different
         take “»»»»» Cannot test this commit. Reason: $result<output>”;
         take ‘»»»»» Therefore, skipping this revision’;
@@ -155,7 +155,7 @@ method process($msg, $code is copy, $old, $new) {
         grumble “Cannot find revision “$old””
         ~ “ (did you mean “{self.get-short-commit: self.get-similar: $old, @options}”?)”
     }
-    grumble “No build for revision “$old”” unless self.build-exists: $full-old;
+    grumble “No build for revision “$old”” unless build-exists $full-old;
     my $short-old = self.get-short-commit: $old eq $full-old | ‘HEAD’ ?? $full-old !! $old;
 
     my $full-new = to-full-commit $new;
@@ -163,14 +163,14 @@ method process($msg, $code is copy, $old, $new) {
         grumble “Cannot find revision “$new””
         ~ “ (did you mean “{self.get-short-commit: self.get-similar: $new, @options}”?)”
     }
-    grumble “No build for revision “$new”” unless self.build-exists: $full-new;
+    grumble “No build for revision “$new”” unless build-exists $full-new;
     my $short-new = self.get-short-commit: $new eq ‘HEAD’ ?? $full-new !! $new;
 
-    my $filename = self.write-code: $code;
+    my $filename = write-code $code;
     LEAVE { unlink $_ with $filename }
 
-    my $old-result = self.run-snippet: $full-old, $filename;
-    my $new-result = self.run-snippet: $full-new, $filename;
+    my $old-result = run-snippet $full-old, $filename;
+    my $new-result = run-snippet $full-new, $filename;
 
     grumble “Problem with $short-old commit: $old-result<output>” if $old-result<signal> < 0;
     grumble “Problem with $short-new commit: $new-result<output>” if $new-result<signal> < 0;

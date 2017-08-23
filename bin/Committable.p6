@@ -74,9 +74,9 @@ method subprocess-commit($commit, $filename, $full-commit, :%ENV) {
           self.get-short-commit(self.get-similar: $commit, <HEAD v6.c releases all>) ~
           ‘”?)’
     }
-    return ‘No build for this commit’ unless self.build-exists: $full-commit;
+    return ‘No build for this commit’ unless build-exists $full-commit;
 
-    $_ = self.run-snippet: $full-commit, $filename, :%ENV; # actually run the code
+    $_ = run-snippet $full-commit, $filename, :%ENV; # actually run the code
     # numbers less than zero indicate other weird failures ↓
     return “Cannot test this commit ($_<output>)” if .<signal> < 0;
     my $output = .<output>;
@@ -94,7 +94,7 @@ method process($msg, $config is copy, $code is copy, :%ENV) {
     }
     my @commits = self.get-commits: $config;
     $code = self.process-code: $code, $msg;
-    my $filename = self.write-code: $code;
+    my $filename = write-code $code;
     LEAVE { unlink $_ with $filename }
 
     my @outputs; # unlike %shas this is ordered

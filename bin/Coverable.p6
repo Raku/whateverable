@@ -59,7 +59,7 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
     grumble ‘Coverable only works with one commit’ if @commits > 1;
     $code = self.process-code: $code, $msg;
 
-    my $filename = self.write-code: $code;
+    my $filename = write-code $code;
     LEAVE { unlink $_ with $filename }
 
     my $result;
@@ -73,14 +73,14 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
         $output = ‘Cannot find this revision’;
         my @options = <HEAD>;
         $output ~= “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options}”?)”
-    } elsif not self.build-exists: $full-commit {
+    } elsif not build-exists $full-commit {
         $output = ‘No build for this commit’
     } else { # actually run the code
         my $log = “coverage_{now.to-posix[0]}.log”;
         LEAVE { unlink $log }
 
         %*ENV<MVM_COVERAGE_LOG> = $log;
-        $result = self.run-snippet: $full-commit, $filename;
+        $result = run-snippet $full-commit, $filename;
         %*ENV<MVM_COVERAGE_LOG>:delete;
 
         my $g = run ‘grep’, ‘-P’, ‘--’, $grep, $log, :out;

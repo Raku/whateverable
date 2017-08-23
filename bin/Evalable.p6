@@ -56,19 +56,19 @@ multi method irc-privmsg-channel($msg) {
 method process($msg, $code is copy) {
     my $commit = ‘HEAD’;
     $code = self.process-code: $code, $msg;
-    my $filename = self.write-code: $code;
+    my $filename = write-code $code;
     LEAVE { unlink $_ with $filename }
 
     # convert to real id so we can look up the build
     my $full-commit  = to-full-commit $commit;
     my $short-commit = to-full-commit $commit, :short;
 
-    if not self.build-exists: $full-commit {
+    if not build-exists $full-commit {
         grumble “No build for $short-commit. Not sure how this happened!”
     }
 
     # actually run the code
-    my $result = self.run-snippet: $full-commit, $filename;
+    my $result = run-snippet $full-commit, $filename;
     my $output = $result<output>;
     my $extra  = ‘’;
     if $result<signal> < 0 { # numbers less than zero indicate other weird failures
