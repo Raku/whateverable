@@ -418,7 +418,8 @@ method selfrun($nick is copy, @alias?) {
         :username($nick.substr(0, 3) ~ ‘-able’)
         :password(?%*ENV<TESTABLE> ?? ‘’ !! from-json(slurp CONFIG)<irc-login irc-password>.join(‘:’))
         :@alias
-        :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! ‘wilhelm.freenode.net’)
+        # IPv4 address of chat.freenode.net is hardcoded so that we can double the limit ↓
+        :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! (‘chat.freenode.net’, ‘185.30.166.38’).pick)
         :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable #zofbot #moarvm>)
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
