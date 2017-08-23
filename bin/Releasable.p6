@@ -49,6 +49,7 @@ sub ignored-commits() {
 
 sub time-left($then) {
     my $time-left = $then.Instant - now;
+    return ‘will happen when it's ready’ if $time-left < 0;
     my ($seconds, $minutes, $hours, $days) = $time-left.polymod: 60, 60, 24;
     return ‘is just a few moments away’ if not $days and not $hours;
     my $answer = ‘in ’;
