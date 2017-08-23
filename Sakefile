@@ -36,4 +36,12 @@ task ‘test’,      { run ‘prove’, ‘--exec’, ‘perl6’, ‘t’ }
 
 task ‘upgrade’ => ‘stop-all’, { run ‘rakudobrew’, ‘build’, ‘moar’ }
 
+my $RSYNC = ‘bisectable@94.23.219.181:/home/bisectable/git/whateverable/’;
+task ‘mothership-pull’, {
+     run ‘rsync’, ‘--archive’, ‘--verbose’, ‘--fuzzy’, ‘--compress’,
+         ‘--human-readable’,
+         ‘--exclude=data’, ‘--exclude=.git’, ‘--exclude=.precomp’,
+         $RSYNC, ‘.’
+}
+
 # vim: expandtab shiftwidth=4 ft=perl6
