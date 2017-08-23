@@ -33,8 +33,9 @@ constant shortcuts = %(
 );
 
 # https://github.com/rakudo/rakudo/wiki/dev-env-vars
-my \ENV-VARS = set <MVM_SPESH_DISABLE MVM_SPESH_NODELAY MVM_SPESH_INLINE_DISABLE
-                    MVM_SPESH_OSR_DISABLE MVM_JIT_DISABLE MVM_SPESH_LOG>;
+my \ENV-VARS = set <MVM_SPESH_DISABLE MVM_SPESH_BLOCKING
+                    MVM_SPESH_NODELAY MVM_SPESH_INLINE_DISABLE
+                    MVM_SPESH_OSR_DISABLE MVM_JIT_DISABLE>;
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: f583f22,HEAD say ‘hello’; say ‘world’”
