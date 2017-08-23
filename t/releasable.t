@@ -76,7 +76,7 @@ commit ‘$!.pending (RT #68320)’;
 $t.test(‘unknown format’,
         “{$t.bot-nick}: when?”,
         /^ <me($t)>‘, Next release in ’\d+‘ day’s?‘ and ≈’\d+‘ hour’s?‘. ’
-           [ \d+‘ blockers’ | ‘No blockers’ ]‘. ’
+           [ \d+‘ blocker’s? | ‘No blockers’ ]‘. ’
            ‘Unknown changelog format’ $/,
         “{$t.our-nick}, Details: https://whatever.able/fakeupload”);
 
@@ -91,7 +91,7 @@ $t.test(‘not started yet’,
         “{$t.our-nick}, Release date for Rakudo 2090.08 is listed in”
             ~ “ “Planned future releases”, but it was already released.”,
         /^ <me($t)>‘, Next release in ’\d+‘ day’s?‘ and ≈’\d+‘ hour’s?‘. ’
-           [ \d+‘ blockers’ | ‘No blockers’ ]‘. ’
+           [ \d+‘ blocker’s? | ‘No blockers’ ]‘. ’
            ‘Changelog for this release was not started yet’ $/,
         “{$t.our-nick}, Details: https://whatever.able/fakeupload”);
 
@@ -124,7 +124,7 @@ $t.test(‘realistic output’,
         “{$t.bot-nick}: release”,
         “{$t.our-nick}, Release manager is not specified yet.”,
         /^ <me($t)>‘, Next release in ’\d+‘ day’s?‘ and ≈’\d+‘ hour’s?‘. ’
-           [ \d+‘ blockers’ | ‘No blockers’ ]‘. ’
+           [ \d+‘ blocker’s? | ‘No blockers’ ]‘. ’
            ‘6 out of 8 commits logged (⚠ 2 warnings)’ $/, # TODO ideally should be 7 out of 8
         “{$t.our-nick}, Details: https://whatever.able/fakeupload”);
 
