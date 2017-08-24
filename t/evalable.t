@@ -148,7 +148,7 @@ $t.test(‘wrong mime type’,
 
 $t.test(‘malformed link (failed to resolve)’,
         ‘eval: https://perl6.or’,
-        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name)”);
+        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name 'perl6.or')”);
 
 $t.test(‘malformed link (could not parse)’,
         ‘eval: https://:P’,
