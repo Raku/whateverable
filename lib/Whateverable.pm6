@@ -51,7 +51,7 @@ constant Message = IRC::Client::Message;
 
 unit role Whateverable[:$default-timeout = 10] does IRC::Client::Plugin does Helpful;
 
-has $!stdin = slurp ‘stdin’;
+my $default-stdin = slurp ‘stdin’;
 has $!bad-releases = set ‘2016.01’, ‘2016.01.1’;
 
 method TWEAK {
@@ -139,13 +139,13 @@ method awesomify-exception($exception) {
 multi method irc-to-me(Message $msg where .text ~~
                        #↓ Matches only one space on purpose (for whitespace-only stdin)
                        /:i^ [stdin] [‘ ’|‘=’] [clear|delete|reset|unset] $/) {
-    $!stdin = slurp ‘stdin’;
+    $default-stdin = slurp ‘stdin’;
     ‘STDIN is reset to the default value’
 }
 
 multi method irc-to-me(Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdin>=.* $/) {
-    $!stdin = self.process-code: ~$<stdin>, $msg;
-    “STDIN is set to «{shorten $!stdin, 200}»” # TODO is 200 a good limit?
+    $default-stdin = self.process-code: ~$<stdin>, $msg;
+    “STDIN is set to «{shorten $default-stdin, 200}»” # TODO is 200 a good limit
 }
 
 multi method irc-to-me(Message $    where .text ~~ /:i^ [source|url] ‘?’? $/ --> SOURCE) {}
@@ -171,30 +171,37 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
 }
 
 sub get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd = $*CWD) is export {
-    my @lines;
-    my $proc = Proc::Async.new: |@run-args, w => defined $stdin;
-    my $s-start = now;
+    my $proc = Proc::Async.new: |@run-args;
+    my $fh-stdin;
+    LEAVE with $fh-stdin {
+        $fh-stdin.close;
+        unlink $fh-stdin.IO;
+    }
+    with $stdin {
+        $fh-stdin = write-code($stdin).IO.open;
+        $proc.bind-stdin: $fh-stdin;
+    }
+
+    my @chunks;
     my $result;
+    my $s-start = now;
     my $s-end;
 
     react {
-        whenever $proc.stdout { @lines.push: $_ }; # RT #131763
-        whenever $proc.stderr { @lines.push: $_ };
+        whenever $proc.stdout { @chunks.push: $_ }; # RT #131763
+        whenever $proc.stderr { @chunks.push: $_ };
         whenever Promise.in($timeout) {
             $proc.kill; # TODO sends HUP, but should kill the process tree instead
-            @lines.push: “«timed out after $timeout seconds»”
+            @chunks.push: “«timed out after $timeout seconds»”
         }
         whenever $proc.start: :$ENV, :$cwd { #: scheduler => BEGIN ThreadPoolScheduler.new { # TODO do we need to set scheduler?
             $result = $_;
             $s-end = now;
             done
         }
-        with $stdin {
-            whenever $proc.print: $_ { $proc.close-stdin }
-        }
     }
     %(
-        output    => @lines.join.chomp,
+        output    => @chunks.join.chomp,
         exit-code => $result.exitcode,
         signal    => $result.signal,
         time      => $s-end - $s-start,
@@ -264,13 +271,14 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
     $return
 }
 
-sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :$timeout = $default-timeout, :$ENV) {
-    self.run-smth: :$backend, $full-commit-hash, -> $path {
+sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :@args=Empty,
+                :$timeout=$default-timeout, :$stdin=$default-stdin, :$ENV) is export {
+    run-smth :$backend, $full-commit-hash, -> $path {
         “$path/bin/perl6”.IO !~~ :e
         ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
              exit-code => -1, signal => -1, time => -1,)
-        !! get-output “$path/bin/perl6”, ‘--setting=RESTRICTED’, ‘--’,
-                      $file, :$!stdin, :$timeout, :$ENV
+        !! get-output “$path/bin/perl6”, ‘--setting=RESTRICTED’, |@args,
+                      ‘--’, $file, :$stdin, :$timeout, :$ENV
     }
 }
 
