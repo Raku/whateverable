@@ -43,6 +43,7 @@ constant BUILDS-LOCATION   = ‘/tmp/whateverable/’.IO.absolute;
 
 constant MESSAGE-LIMIT is export = 260;
 constant COMMITS-LIMIT = 500;
+my $GIST-LIMIT = 10_000;
 constant PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
 
 our $RAKUDO-REPO = ‘https://github.com/rakudo/rakudo’;
@@ -210,6 +211,34 @@ sub get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd =
         signal    => $result.signal,
         time      => $s-end - $s-start,
     )
+}
+
+sub perl6-grep($stdin, $regex is copy, :$timeout = 180) is export {
+    my $full-commit = to-full-commit ‘HEAD’;
+    die “No build for $full-commit. Oops!” unless build-exists $full-commit;
+    $regex = “m⦑ $regex ⦒”;
+    # TODO can we do something smarter?
+    my $magic = ｢INIT $*ARGFILES.nl-in = 0.chr; INIT $*OUT.nl-out = 0.chr;｣
+              ~ ｢ next unless｣ ~ “\n”
+              ~ $regex ~ “;\n”
+              ~ ｢last if $++ > ｣ ~ $GIST-LIMIT;
+    my $filename = write-code $magic;
+    LEAVE unlink $_ with $filename;
+    my $result = run-snippet $full-commit, $filename, :$timeout, :$stdin, args => (‘-np’,);
+    my $output = $result<output>;
+    # numbers less than zero indicate other weird failures ↓
+    grumble “Something went wrong ($output)” if $result<signal> < 0;
+
+    $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
+    $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
+    grumble $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0;
+
+    my @elems = $output.split: “\0”, :skip-empty;
+    if @elems > $GIST-LIMIT {
+        grumble “Cowardly refusing to gist more than $GIST-LIMIT lines”
+    }
+    grumble ‘Found nothing!’ if @elems == 0;
+    @elems
 }
 
 sub build-exists($full-commit-hash, :$backend=‘rakudo-moar’) is export {
