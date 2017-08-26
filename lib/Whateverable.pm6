@@ -172,21 +172,25 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
 
 sub get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd = $*CWD) is export {
     my $proc = Proc::Async.new: |@run-args;
+
     my $fh-stdin;
-    LEAVE with $fh-stdin {
-        $fh-stdin.close;
-        unlink $fh-stdin.IO;
-    }
+    LEAVE .close with $fh-stdin;
+    my $temp-file;
+    LEAVE unlink $_ with $temp-file;
     with $stdin {
-        $fh-stdin = write-code($stdin).IO.open;
-        $proc.bind-stdin: $fh-stdin;
+        if $stdin ~~ IO::Path {
+            $fh-stdin = $stdin.open
+        } else {
+            $temp-file = write-code $stdin;
+            $fh-stdin = $temp-file.IO.open
+        }
+        $proc.bind-stdin: $fh-stdin
     }
 
     my @chunks;
     my $result;
     my $s-start = now;
     my $s-end;
-
     react {
         whenever $proc.stdout { @chunks.push: $_ }; # RT #131763
         whenever $proc.stderr { @chunks.push: $_ };
