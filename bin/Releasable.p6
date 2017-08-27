@@ -27,7 +27,7 @@ unit class Releasable does Whateverable;
 # ↓ when needed
 my $SHA-LENGTH   = 8;
 my $RELEASE-HOUR = 19; # GMT+0
-my $BLOCKERS-URL = ‘https://perl6.fail/release/blockers.json’;
+my $BLOCKERS-URL = ‘https://fail.rakudo.party/release/blockers.json’;
 my $TICKET-URL   = ‘https://rt.perl.org/rt3/Public/Bug/Display.html?id=’;
 
 method help($msg) {
