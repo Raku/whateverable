@@ -30,7 +30,7 @@ unit class Benchable does Whateverable;
 
 constant TOTAL-TIME = 60 × 4;
 constant ITERATIONS = 5;
-constant LIB-DIR    = ‘.’.IO.absolute;
+constant LIB-DIR    = ‘data’.IO.absolute;
 
 method help($msg) {
     ‘Like this: ’ ~ $msg.server.current-nick
