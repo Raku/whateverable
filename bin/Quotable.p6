@@ -24,43 +24,20 @@ use IRC::Client;
 
 unit class Quotable does Whateverable;
 
-constant $CACHE-FILE = ‘data/irc/cache’;
-constant $LIMIT = 5_000;
+my $CACHE-FILE = ‘data/irc/cache’.IO;
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: /^ ‘bisect: ’ /”
 }
 
-multi method irc-to-me($msg where /^ \s* [ ‘/’ $<regex>=[.*] ‘/’ || $<regex>=[.*?] ] \s* $/) {
-    self.process: $msg, ~$<regex>
+multi method irc-to-me($msg where /^ \s* [ || ‘/’ $<regex>=[.*] ‘/’
+                                           || $<regex>=[.*?]       ] \s* $/) {
+    my $answer = perl6-grep($CACHE-FILE, ~$<regex>).join: “\n”;
+    ‘’ but ProperStr($answer)
 }
 
-method process($msg, $query is copy) {
-    $query = “/ $query /”;
-
-    my $full-commit = to-full-commit ‘2016.10’; # ‘HEAD’; # Ha, 2016.10 works a bit better for this purpose…
-    die ‘No build for the last commit. Oops!’ unless self.build-exists: $full-commit;
-
-    my $magic = “\{ last if \$++ >= $LIMIT; print \$_, “\\0” \} for slurp(‘$CACHE-FILE’).split(“\\0”).grep:\n”;
-    my $filename = self.write-code: $magic ~ $query;
-    my $result = self.run-snippet: $full-commit, $filename, :180timeout;
-    my $output = $result<output>;
-    # numbers less than zero indicate other weird failures ↓
-    grumble “Something went wrong ($output)” if $result<signal> < 0;
-
-    $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
-    $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
-    return $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0;
-
-    my $count = 0;
-    $output = $output.split(“\0”).grep({$count++; True}).join: “\n”;
-
-    return “Cowardly refusing to gist more than $LIMIT lines” if $count ≥ $LIMIT; # TODO off by one somewhere
-    return ‘Found nothing!’ unless $output;
-    ‘’ but ProperStr($output)
-}
-
-
+# ⚠ Quotable is currently broken. See issue #24
+#exit 1;
 Quotable.new.selfrun: ‘quotable6’, [ / quote6? <before ‘:’> /,
                                      fuzzy-nick(‘quotable6’, 2) ]
 

@@ -7,6 +7,10 @@ use Test;
 use IRC::Client;
 use Testable;
 
+# ⚠ Quotable is currently broken. See issue #24
+done-testing;
+exit 1;
+
 my $t = Testable.new: bot => ‘Quotable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: /^ ‘bisect: ’ /”;
