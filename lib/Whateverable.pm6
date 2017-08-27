@@ -181,6 +181,8 @@ sub get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd =
     with $stdin {
         if $stdin ~~ IO::Path {
             $fh-stdin = $stdin.open
+        } elsif $stdin ~~ IO::Handle {
+            $fh-stdin = $stdin
         } else {
             $temp-file = write-code $stdin;
             $fh-stdin = $temp-file.IO.open

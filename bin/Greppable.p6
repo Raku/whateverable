@@ -30,7 +30,12 @@ my \ECO-PATH = ‘data/all-modules’;
 method help($msg) {
     “Like this: {$msg.server.current-nick}: password”
 }
-sub process-line($line, %commits) { # 🙈
+
+sub process-ls-line($line) {
+    # TODO markdownify
+    $line
+}
+sub process-grep-line($line, %commits) { # 🙈
     my $backticks = ｢`｣ x (($line.comb(/｢`｣+/) || ｢｣).max.chars + 1);
     my ($path, $line-number, $text) = $line.split: “\x0”, 3;
 
@@ -55,19 +60,28 @@ sub process-line($line, %commits) { # 🙈
     “| $start | <code>{$text}</code> |”
 }
 
+multi method irc-to-me($msg where .args[1].starts-with(‘file’ | ‘tree’) &&
+                                  /^ \s* [ || ‘/’ $<regex>=[.*] ‘/’
+                                           || $<regex>=[.*?]       ] \s* $/) {
+    my $result = run :out, :cwd(ECO-PATH), ‘git’, ‘ls-files’, ‘-z’;
+    my $out = perl6-grep $result.out, $<regex>;
+    ‘’ but ProperStr($out.map({ process-ls-line $_ }).join(“\n”))
+}
+
 multi method irc-to-me($msg) {
+    my @cmd = ‘git’, ‘grep’, ‘--color=always’, ‘-z’, ‘-i’, ‘-I’,
+              ‘--perl-regexp’, ‘--line-number’, ‘--’, $msg;
+
     run :out(Nil), :cwd(ECO-PATH), ‘git’, ‘pull’;
-    my $result = get-output :cwd(ECO-PATH), ‘git’, ‘grep’,
-                                            ‘--color=always’, ‘-z’, ‘-i’, ‘-I’,
-                                            ‘--perl-regexp’, ‘--line-number’,
-                                            ‘--’, $msg;
+    my $result = get-output :cwd(ECO-PATH), |@cmd;
 
     grumble ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 | 1 or $result<signal> ≠ 0;
     grumble ‘Found nothing!’ unless $result<output>;
+
     my %commits = ();
     my $gist = “| File | Code |\n|--|--|\n”
-             ~ $result<output>.lines.map({process-line $_, %commits}).join: “\n”;
-    ‘’ but FileStore({ ‘result.md’ => $gist})
+      ~ $result<output>.lines.map({process-grep-line $_, %commits}).join: “\n”;
+    ‘’ but FileStore({ ‘result.md’ => $gist })
 }
 
 
@@ -75,7 +89,7 @@ if ECO-PATH.IO !~~ :d {
     run ‘git’, ‘clone’, ‘https://github.com/moritz/perl6-all-modules.git’, ECO-PATH
 }
 
-Greppable.new.selfrun: ‘greppable6’, [ / grep6? <before ‘:’> /,
+Greppable.new.selfrun: ‘greppable6’, [ / [file|tree]? grep6? <before ‘:’> /,
                                        fuzzy-nick(‘greppable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6
