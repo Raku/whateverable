@@ -80,7 +80,7 @@ multi method irc-to-me($msg) {
 
     my %commits = ();
     my $gist = “| File | Code |\n|--|--|\n”
-      ~ $result<output>.lines.map({process-grep-line $_, %commits}).join: “\n”;
+      ~ $result<output>.split(“\n”).map({process-grep-line $_, %commits}).join: “\n”;
     ‘’ but FileStore({ ‘result.md’ => $gist })
 }
 

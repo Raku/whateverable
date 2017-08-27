@@ -45,6 +45,13 @@ $t.test-gist(‘Proper format’, # assume that tadzik's modules don't change
                ‘/t/01-file-find.t#L85) | <code>exit 0; # <b>I have no idea</b>’
                ‘ what I'm doing, but I get Non-zero exit status w/o this</code> |’ $$/));
 
+$t.test(‘the output of git grep is split by \n, not something else’,
+        “{$t.bot-nick}: foo”,
+        “{$t.our-nick}, https://whatever.able/fakeupload”);
+
+$t.test-gist(‘“\r” is actually in the output’,
+             %(‘result.md’ => /“\r”/));
+
 # Non-bot tests
 
 my $timestamp = run :out, cwd => ‘data/all-modules’,
