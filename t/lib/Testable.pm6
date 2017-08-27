@@ -16,14 +16,16 @@ class Testable {
 
     has $!first-test;
 
-    submethod BUILD(:$bot, :$!our-nick = ‘testable’) {
+    submethod BUILD(:$bot, :$our-nick = ‘testable’) {
         $!bot = $bot;
         my $ready  = Channel.new;
         $!messages = Channel.new;
 
         my $self = self;
         $!irc-client = IRC::Client.new(
-            :nick($!our-nick) :host<127.0.0.1> :channels<#whateverable>
+            :nick($our-nick ~ (^999999 .pick))
+            :host<127.0.0.1>
+            :channels(“#whateverable_{$bot.lc}6”)
             :plugins(
                 class {
                     method irc-privmsg-channel($m) {
@@ -43,19 +45,21 @@ class Testable {
 
         start { sleep 20; $ready.send: False }
         $!bot-nick = $ready.receive;
-        ok ?$!bot-nick, ‘bot joined the channel’
+        $!our-nick = $!irc-client.servers.values[0].current-nick;
+        ok ?$!bot-nick, ‘bot joined the channel’;
+        is $!bot-nick, “{$bot.lc}6”, ‘bot nickname is expected’
     }
 
     method test(|c ($description, $command, *@expected, :$timeout = 11, :$delay = 0.5)) {
         $!first-test = c without $!first-test;
 
-        my $gists-path = “/tmp/whateverable/tist/”;
+        my $gists-path = “/tmp/whateverable/tist/$!bot-nick”;
         rmtree $gists-path if $gists-path.IO ~~ :d;
 
         my @got;
         my $start = now;
 
-        $!irc-client.send: :where<#whateverable> :text($command);
+        $!irc-client.send: :where(“#whateverable_$!bot-nick”) :text($command);
         sleep $delay if @expected == 0; # make it possible to check for no replies
         for ^@expected {
             my $message = $!messages.poll;
@@ -74,7 +78,7 @@ class Testable {
 
     method test-gist($description, %files) {
         for %files.kv -> $file, $tests {
-            my $path = “/tmp/whateverable/tist/$file”;
+            my $path = “/tmp/whateverable/tist/$!bot-nick/$file”;
             ok $path.IO ~~ :f, “gist file $file exists”;
             cmp-ok slurp($path), &[~~], $_, “gist file {$file}: $description” for @$tests;
         }

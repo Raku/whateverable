@@ -146,7 +146,8 @@ $t.test(‘Answers on ‘.u’ when yoleaux is not around’,
         ‘.u ㊷’,
         /^ <me($t)>‘, U+32B7 CIRCLED NUMBER FORTY TWO [No] (㊷)’ $/);
 
-my $yoleaux = IRC::Client.new(:nick(‘yoleaux’) :host<127.0.0.1> :channels<#whateverable>);
+my $yoleaux = IRC::Client.new(:nick(‘yoleaux’) :host<127.0.0.1>
+                              :channels<#whateverable_unicodable6>);
 start $yoleaux.run;
 sleep 1;
 

@@ -171,7 +171,8 @@ $t.test(‘‘m:’ is not even needed’,
 $t.test(‘autodetection is smart enough’,
         ‘say you actually start your message with “say”’);
 
-my $camelia = IRC::Client.new(:nick(‘camelia’) :host<127.0.0.1> :channels<#whateverable>);
+my $camelia = IRC::Client.new(:nick(‘camelia’) :host<127.0.0.1>
+                              :channels<#whateverable_evalable6>);
 start $camelia.run;
 sleep 1;
 

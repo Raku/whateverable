@@ -439,7 +439,8 @@ multi method filter($text is copy) {
 
 method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
     if %*ENV<TESTABLE> {
-        my $gists-path = “{BUILDS-LOCATION}/tist”;
+        my $nick = $.irc.servers.values[0].current-nick;
+        my $gists-path = “{BUILDS-LOCATION}/tist/$nick”;
         rmtree $gists-path if $gists-path.IO ~~ :d;
         mkdir $gists-path;
         spurt “$gists-path/{.key}”, .value for %files;
@@ -463,7 +464,11 @@ method selfrun($nick is copy, @alias?) {
         :@alias
         # IPv4 address of chat.freenode.net is hardcoded so that we can double the limit ↓
         :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! (‘chat.freenode.net’, ‘185.30.166.38’).pick)
-        :channels(%*ENV<DEBUGGABLE> ?? <#whateverable> !! <#perl6 #perl6-dev #whateverable #zofbot #moarvm>)
+        :channels(%*ENV<DEBUGGABLE>
+                  ?? ‘#whateverable’
+                  !! %*ENV<TESTABLE>
+                     ?? “#whateverable_$nick”
+                     !! <#perl6 #perl6-dev #whateverable #zofbot #moarvm>)
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )
