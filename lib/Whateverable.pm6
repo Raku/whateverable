@@ -284,7 +284,14 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
 
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
-    while run(‘mkdir’, ‘--’, $build-path).exitcode ≠ 0 {
+    while run(:err(Nil), ‘mkdir’, ‘--’, $build-path).exitcode ≠ 0 {
+        if %*ENV<TESTABLE> {
+            use NativeCall;
+            sub kill(int32, int32) is native {*};
+            sub getppid(--> int32) is native {*};
+            kill getppid, 10; # SIGUSR1
+        }
+        say “$build-path is locked. Waiting…”;
         sleep 0.5;
         # Uh, wait! Does it mean that at the same time we can use only one
         # specific build? Yes, and you will have to wait until another bot

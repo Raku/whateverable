@@ -15,11 +15,13 @@ class Testable {
     has $.messages;
 
     has $!first-test;
+    has $!delay-channel;
 
     submethod BUILD(:$bot, :$our-nick = ‘testable’) {
         $!bot = $bot;
         my $ready  = Channel.new;
         $!messages = Channel.new;
+        $!delay-channel = signal(SIGUSR1).Channel;
 
         my $self = self;
         $!irc-client = IRC::Client.new(
@@ -50,7 +52,8 @@ class Testable {
         is $!bot-nick, “{$bot.lc}6”, ‘bot nickname is expected’
     }
 
-    method test(|c ($description, $command, *@expected, :$timeout = 11, :$delay = 0.5)) {
+    method test(|c ($description, $command, *@expected, :$timeout is copy = 11, :$delay = 0.5)) {
+        $timeout ×= 1.5 if %*ENV<HARNESS_ACTIVE>; # expect some load (relevant for parallelized tests)
         $!first-test = c without $!first-test;
 
         my $gists-path = “/tmp/whateverable/tist/$!bot-nick”;
@@ -61,11 +64,13 @@ class Testable {
 
         $!irc-client.send: :where(“#whateverable_$!bot-nick”) :text($command);
         sleep $delay if @expected == 0; # make it possible to check for no replies
+        my $lock-delay = 0;
         for ^@expected {
             my $message = $!messages.poll;
             if not defined $message {
-                if now - $start > $timeout {
-                    diag “Failed to get expected result in $timeout seconds”;
+                $lock-delay += 0.5 while $!delay-channel.poll;
+                if now - $start - $lock-delay > $timeout {
+                    diag “Failed to get expected result in {now - $start} seconds ($timeout nominal)”;
                     last
                 }
                 sleep 0.1;

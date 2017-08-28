@@ -32,14 +32,7 @@ task any(‘debug:’ X~ @bots».extension(‘’)».basename».lc), sub {
 
 task ‘start-all’, { start-stop ‘start-all’ }
 task ‘stop-all’,  { start-stop ‘stop-all’  }
-task ‘test’,      { run ‘prove’, ‘-j’, ‘4’,
-                        ‘--rules=par=t/bloatable.t’,
-                        ‘--rules=par=t/coverable.t’,
-                        ‘--rules=par=t/greppable.t’,
-                        ‘--rules=par=t/nativecallable.t’,
-                        ‘--rules=par=t/releasable.t’,
-                        ‘--rules=par=t/statisfiable.t’,
-                        ‘--rules=seq=**’,
+task ‘test’,      { run ‘prove’, ‘-j’, ‘8’,
                         ‘--exec’, ‘perl6’, ‘t’ }
 
 task ‘upgrade’ => ‘stop-all’, { run ‘rakudobrew’, ‘build’, ‘moar’ }
