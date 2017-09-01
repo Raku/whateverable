@@ -47,6 +47,17 @@ my token commit-list is export {
     [<-[\s] -[‘,’]>+]+ % [‘,’\s*]
 }
 
+sub time-left(Instant() $then, :$already-there?) is export {
+    my $time-left = $then - now;
+    return $already-there if $already-there and $time-left < 0;
+    my ($seconds, $minutes, $hours, $days) = $time-left.polymod: 60, 60, 24;
+    return ‘is just a few moments away’ if not $days and not $hours;
+    my $answer = ‘in ’;
+    $answer ~= “$days day{$days ≠ 1 ?? ‘s’ !! ‘’} and ” if $days;
+    $answer ~= “≈$hours hour{$hours ≠ 1 ?? ‘s’ !! ‘’}”;
+    $answer
+}
+
 class Whateverable::X::HandleableAdHoc is X::AdHoc is export {}
 
 sub grumble(|c) is export {
