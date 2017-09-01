@@ -1,6 +1,15 @@
 {
-    "login": "",
-    "access_token": "",
-    "irc-login": "",
-    "irc-password": ""
+    "github": {
+        "login": "",
+        "access_token": ""
+    },
+    "irc": {
+        "login": "",
+        "password": ""
+    },
+    "squashable": {
+        "host": "",
+        "port": 4243,
+        "secret": ""
+    }
 }

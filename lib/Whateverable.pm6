@@ -457,7 +457,7 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
     state $config = from-json slurp CONFIG;
     %files = %files.pairs.map: { .key => %( ‘content’ => .value ) }; # github format
 
-    my $gist = Pastebin::Gist.new(token => $config<access_token>);
+    my $gist = Pastebin::Gist.new(token => $config<github><access_token>);
     return $gist.paste: %files, desc => $description, public => $public
 }
 
@@ -467,7 +467,7 @@ method selfrun($nick is copy, @alias?) {
         :$nick
         :userreal($nick.tc)
         :username($nick.substr(0, 3) ~ ‘-able’)
-        :password(?%*ENV<TESTABLE> ?? ‘’ !! from-json(slurp CONFIG)<irc-login irc-password>.join(‘:’))
+        :password(?%*ENV<TESTABLE> ?? ‘’ !! from-json(slurp CONFIG)<irc><login password>.join: ‘:’)
         :@alias
         # IPv4 address of chat.freenode.net is hardcoded so that we can double the limit ↓
         :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! (‘chat.freenode.net’, ‘185.30.166.38’).pick)
