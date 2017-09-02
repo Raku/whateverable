@@ -207,7 +207,7 @@ sub process-event($hook is copy, $data) { # TODO refactor
                 }
             }
             my $url = $data<comment><html_url>;
-            notify “$login++ $action a comment on $title: $url”
+            notify “$login++ $action a comment on $title: $url”, :silent($action eq ‘edited’)
         }
         when ‘issues’ {
             my $action = $data<action>;
