@@ -108,7 +108,7 @@ multi method irc-to-me($msg where /^ \s* [ status | log ] \s* $/) {
                     $prev = “{.key}: {.value}”
                 }
             } else {
-                %files<stats> ~= “{.key}: {.value}\n”;
+                %files<stats> ~= “\n{.key}: {.value}\n”;
             }
         }
         %files<stats> .= trim-leading;
