@@ -79,14 +79,24 @@ multi method irc-to-me($msg where /:i [ ‘loud’ | ‘on’ ] /) {
     ‘ALRIGHT, LET'S DO IT!!!’
 }
 
-multi method irc-to-me($msg where /^ \s* [ status | log ] \s* $/) {
-    set-next-squashathon;
-    my $next = $next-event-lock.protect: { $next-event }
+multi method irc-to-me($msg where /^ \s* [ status | log ]
+                                     [ \s+ $<date>=[\d\d\d\d\-\d\d\-\d\d]]?
+                                                                     \s* $/) {
+    my $next;
+    my $date = $<date>;
+    with $date {
+        try $next = Date.new: ~$_;
+        CATCH { grumble ‘Invalid date format’ }
+        grumble “I don't know about SQUASHathon on $_” if not $PATH.add(~$_).d;
+    } else {
+        set-next-squashathon;
+        $next = $next-event-lock.protect: { $next-event }
+    }
     sub utc-hour($secs) { ($secs ≥ 0 ?? ‘+’ !! ‘-’) ~ abs $secs ÷ 60 ÷ 60 }
     my $when = “($next UTC{utc-hour $TIMEZONE-RANGE.min}⌁”
                     ~ “UTC{utc-hour $TIMEZONE-RANGE.max})”;
     my $next-range = squashathon-range $next;
-    if $msg !~~ /‘log’/ {
+    if $msg !~~ /‘log’/ and not $date {
         if now < $next-range.min {
             $msg.reply: “Next SQUASHathon {time-left $next-range.min} $when”
         } else {
