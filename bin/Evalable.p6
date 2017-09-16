@@ -50,10 +50,12 @@ multi method irc-privmsg-channel($msg) {
     ]
     <!after <[.!?]>>
     /;
-    # so it only works on “say”, intentionally omits “say I”, omits
+    # So it only works on “say”, intentionally omits “say I”, omits
     # anything that ends in a period, question mark, or exclamation
     # point, automatically operates on ｢say “…”｣, and otherwise
-    # requires a word/nonword character ratio of 10 or less
+    # requires a word/nonword character ratio of 10 or less.
+    # These rules were created by grepping through IRC history with
+    # Quotable.
     self.irc-to-me: $msg
 }
 
