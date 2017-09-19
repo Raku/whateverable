@@ -155,7 +155,13 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ help ‘?’? $/) {
     self.help($msg) ~ “ # See wiki for more examples: {self.get-wiki-link}”
 }
 multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime $/) {
-    ~denominate now - INIT now
+    use nqp;
+    (denominate now - INIT now) ~ ‘. ’
+    ~ (with nqp::getcomp("perl6") {
+        “This is {.implementation} version {.config<version>} ”
+        ~ “built on {.backend.version_string} ”
+        ~ “implementing {.language_name} {.language_version}.”
+     })
 }
 multi method irc-notice-me( $ --> ‘Sorry, it is too private here’) {} # TODO issue #16
 multi method irc-privmsg-me($ --> ‘Sorry, it is too private here’) {} # TODO issue #16
