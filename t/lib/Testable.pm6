@@ -94,6 +94,10 @@ class Testable {
     }
 
     method end {
+        my $answer;
+        self.test(‘_’, “{$.bot-nick}: uptime”, {$answer=$_; True});
+        “logs/tests/$!bot-nick-{now.DateTime}.log”.IO.spurt: $answer;
+
         $!bot-proc.kill;
         $!irc-client.quit;
         sleep 2

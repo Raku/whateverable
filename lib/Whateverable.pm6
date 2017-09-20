@@ -156,7 +156,8 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ help ‘?’? $/) {
 }
 multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime $/) {
     use nqp;
-    (denominate now - INIT now) ~ ‘. ’
+    (denominate now - INIT now) ~ ‘, ’
+    ~ nqp::atpos_i(nqp::getrusage(), nqp::const::RUSAGE_MAXRSS).fmt(‘%.2f’)/1000 ~ ‘KB maxrss. ’
     ~ (with nqp::getcomp("perl6") {
         “This is {.implementation} version {.config<version>} ”
         ~ “built on {.backend.version_string} ”
