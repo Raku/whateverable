@@ -96,6 +96,7 @@ class Testable {
     method end {
         my $answer;
         self.test(‘_’, “{$.bot-nick}: uptime”, {$answer=$_; True});
+        mkdir ‘logs/tests’;
         “logs/tests/$!bot-nick-{now.DateTime}.log”.IO.spurt: $answer;
 
         $!bot-proc.kill;
