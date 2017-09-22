@@ -97,7 +97,9 @@ class Testable {
         my $answer;
         self.test(‘_’, “{$.bot-nick}: uptime”, {$answer=$_; True});
         mkdir ‘logs/tests’;
-        “logs/tests/$!bot-nick-{now.DateTime}.log”.IO.spurt: $answer;
+        my $logfile = sprintf “%s_uptime_%04d-%02d-%02d_%02d%02d.log”, $.bot.lc,
+                      .year, .month, .day, .hour, .minute with now.DateTime;
+        “logs/tests/$logfile”.IO.spurt: $answer;
 
         $!bot-proc.kill;
         $!irc-client.quit;
