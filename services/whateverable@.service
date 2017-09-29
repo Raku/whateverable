@@ -1,0 +1,45 @@
+# Some settings don't work from user systemd, so you have to install
+# this file under root. See https://github.com/systemd/systemd/issues/3944
+
+[Unit]
+Description=Whateverable bot %i
+PartOf=whateverable-all.service
+
+[Service]
+Type=simple
+User=bisectable
+ExecStart=/home/bisectable/.rakudobrew/bin/perl6 /home/bisectable/git/whateverable/bin/%i.p6
+Environment=PERL6LIB=/home/bisectable/git/whateverable/lib
+#Environment=DEBUGGABLE=1
+WorkingDirectory=/home/bisectable/git/whateverable
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateUsers=yes
+ReadWritePaths=/home/bisectable/git/whateverable/.precomp
+ReadWritePaths=/home/bisectable/git/whateverable/sandbox
+ReadWritePaths=/home/bisectable/git/whateverable/data
+ReadOnlyPaths=/home/bisectable/git/whateverable/data/builds
+
+MemoryMax=3G
+TasksMax=40
+
+Restart=always
+RestartSec=2
+# WatchdogSec is set approximately to ping timeout
+# TODO ... or not. There should be at least one non-ping message in 15 minutes
+WatchdogSec=900
+# TODO is exec the right option here?
+NotifyAccess=exec
+
+# TODO SystemCallFilter
+
+[Install]
+# WantedBy=multi-user.target

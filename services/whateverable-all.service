@@ -1,0 +1,27 @@
+# Some settings don't work from user systemd, so you have to install
+# this file under root. See https://github.com/systemd/systemd/issues/3944
+
+[Unit]
+Description=All Whateverable Bots
+After=network-online.target
+Wants=whateverable@Bisectable.service
+Wants=whateverable@Committable.service
+Wants=whateverable@Benchable.service
+Wants=whateverable@Evalable.service
+Wants=whateverable@Statisfiable.service
+Wants=whateverable@Unicodable.service
+Wants=whateverable@Bloatable.service
+Wants=whateverable@Quotable.service
+Wants=whateverable@Greppable.service
+Wants=whateverable@Coverable.service
+Wants=whateverable@Releasable.service
+Wants=whateverable@Nativecallable.service
+Wants=whateverable@Squashable.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

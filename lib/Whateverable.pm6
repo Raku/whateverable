@@ -170,6 +170,15 @@ multi method irc-to-me($) {
     ‘I cannot recognize this command. See wiki for some examples: ’ ~ self.get-wiki-link
 }
 
+multi method irc-all($) {
+    # TODO https://github.com/zoffixznet/perl6-IRC-Client/issues/50
+    use NativeCall;
+    sub sd_notify(int32, str --> int32) is native(‘systemd’) {*};
+    sd_notify 0, ‘WATCHDOG=1’; # this may be called too often, see TODO above
+    $.NEXT
+}
+
+
 method get-wiki-link { WIKI ~ self.^name }
 
 method get-short-commit($original-commit) { # TODO not an actual solution tbh
@@ -285,10 +294,13 @@ method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
 }
 
 sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
-    my $build-path   = “{  BUILDS-LOCATION}/$backend/$full-commit-hash”;
-    my $archive-path = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”;
-    my $archive-link = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”;
+    my $build-prepath =   “{BUILDS-LOCATION}/$backend/”;
+    my $build-path    =               “$build-prepath/$full-commit-hash”;
+    my $archive-path  = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”;
+    my $archive-link  = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”;
 
+    mkdir $build-prepath; # create all parent directories just in case
+                          # (may be needed for isolated /tmp)
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
     while run(:err(Nil), ‘mkdir’, ‘--’, $build-path).exitcode ≠ 0 {
@@ -299,13 +311,7 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
             kill getppid, 10; # SIGUSR1
         }
         say “$build-path is locked. Waiting…”;
-        sleep 0.5;
-        # Uh, wait! Does it mean that at the same time we can use only one
-        # specific build? Yes, and you will have to wait until another bot
-        # deletes the directory so that you can extract it back again…
-        # There are some ways to make it work, but don't bother. Instead,
-        # we should be doing everything in separate isolated containers (soon),
-        # so this problem will fade away.
+        sleep 0.5 # should never happen if setup correctly
     }
     if $archive-path.IO ~~ :e {
         my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, $archive-path;
@@ -326,7 +332,7 @@ sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :@args=Em
         “$path/bin/perl6”.IO !~~ :e
         ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
              exit-code => -1, signal => -1, time => -1,)
-        !! get-output “$path/bin/perl6”, ‘--setting=RESTRICTED’, |@args,
+        !! get-output “$path/bin/perl6”, |@args,
                       ‘--’, $file, :$stdin, :$timeout, :$ENV
     }
 }
