@@ -42,7 +42,8 @@ task ‘mothership-pull’, {
      run ‘rsync’, ‘--archive’, ‘--verbose’, ‘--fuzzy’, ‘--compress’,
          ‘--human-readable’,
          ‘--exclude=data’, ‘--exclude=.git’, ‘--exclude=.precomp’,
-         $RSYNC, ‘.’
+         $RSYNC, ‘.’;
+     True
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6
