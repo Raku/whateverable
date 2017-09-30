@@ -30,7 +30,7 @@ ReadWritePaths=/home/bisectable/git/whateverable/data
 ReadOnlyPaths=/home/bisectable/git/whateverable/data/builds
 
 MemoryMax=3G
-TasksMax=40
+TasksMax=60
 
 Restart=always
 RestartSec=2
