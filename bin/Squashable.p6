@@ -22,7 +22,8 @@ use IRC::Client;
 
 unit class Squashable does Whateverable;
 
-my $WIKI-PAGE-URL = ‘https://raw.githubusercontent.com/wiki/rakudo/rakudo/Monthly-Bug-Squash-Day.md’;
+my $WIKI-PAGE-URL = ‘https://github.com/rakudo/rakudo/wiki/Monthly-Bug-Squash-Day’;
+my $WIKI-PAGE-URL-RAW = ‘https://raw.githubusercontent.com/wiki/rakudo/rakudo/Monthly-Bug-Squash-Day.md’;
 my $TIMEZONE-RANGE = (-12..14) × 60×60; # in seconds (let's be inclusive?)
 my $CHANNEL = %*ENV<DEBUGGABLE> ?? ‘#whateverable’ !! ‘#perl6’;
 my $PATH = ‘data/squashable’.IO;
@@ -46,7 +47,7 @@ sub squashathon-range(Date $date) {
 sub set-next-squashathon() {
     use HTTP::UserAgent;
     my $ua = HTTP::UserAgent.new;
-    my $response = try { $ua.get: $WIKI-PAGE-URL };
+    my $response = try { $ua.get: $WIKI-PAGE-URL-RAW };
     grumble ‘GitHub is down’ without $response;
     grumble ‘GitHub is down’ unless $response.is-success;
     if $response.content-type ne ‘text/plain; charset=utf-8’ {
@@ -99,10 +100,13 @@ multi method irc-to-me($msg where /^ \s* [log|status|info|when|next]
     my $next-range = squashathon-range $next;
     if $msg !~~ /‘log’/ and not $date {
         if now < $next-range.min {
-            $msg.reply: “Next SQUASHathon {time-left $next-range.min} $when”
+            my $warn = ($next-range.min - now)÷60÷60÷24 < 7 ?? ‘⚠🍕 ’ !! ‘’;
+            $msg.reply: “{$warn}Next SQUASHathon {time-left $next-range.min} $when”
+                            ~ “. See $WIKI-PAGE-URL”
         } else {
-            $msg.reply: “🍕 SQUASHathon is in progress!”
-                      ~ “ The end of the event {time-left $next-range.max}”
+            $msg.reply: “🍕🍕 SQUASHathon is in progress!”
+                         ~ “ The end of the event {time-left $next-range.max}”
+                         ~ “. See $WIKI-PAGE-URL”
         }
     }
     my %files;
