@@ -244,7 +244,6 @@ sub process-event($hook is copy, $data) { # TODO refactor
         }
         when ‘pull_request’ {
             my $action = $data<action>;
-            say $action;
             my $title  = ‘“’ ~ shorten($data<pull_request><title>, 50) ~ ‘”’;
             my $url    = $data<pull_request><html_url>;
             if $action eq ‘assigned’ | ‘unassigned’ {
