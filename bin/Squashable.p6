@@ -80,7 +80,7 @@ multi method irc-to-me($msg where /:i [ ‘loud’ | ‘on’ ] /) {
     ‘ALRIGHT, LET'S DO IT!!!’
 }
 
-multi method irc-to-me($msg where /^ \s* [ status | log ]
+multi method irc-to-me($msg where /^ \s* [log|status|info|when|next]
                                      [ \s+ $<date>=[\d\d\d\d\-\d\d\-\d\d]]?
                                                                      \s* $/) {
     my $next;

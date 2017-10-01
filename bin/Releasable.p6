@@ -148,7 +148,7 @@ sub blockers() {
 }
 
 multi method irc-to-me($msg where /^ :i \s*
-                                    [changelog|status|release|when|next]‘?’?
+                                    [changelog|release|log|status|info|when|next]‘?’?
                                     [\s+ $<url>=[‘http’.*]]? $/) {
     my $changelog = process-url ~$_, $msg        with    $<url>;
     $changelog  //= slurp “$RAKUDO/docs/ChangeLog”;
