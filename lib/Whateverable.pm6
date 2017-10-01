@@ -44,7 +44,8 @@ constant BUILDS-LOCATION   = ‘/tmp/whateverable/’.IO.absolute;
 constant MESSAGE-LIMIT is export = 260;
 constant COMMITS-LIMIT = 500;
 my $GIST-LIMIT = 10_000;
-constant PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
+constant $CAVE    = ‘#whateverable’;
+constant $PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
 
 our $RAKUDO-REPO = ‘https://github.com/rakudo/rakudo’;
 
@@ -87,9 +88,9 @@ method handle-exception($exception, $msg?) {
 
     say $exception;
     with $msg {
-        if .channel ne ‘#whateverable’ {
-            .irc.send-cmd: ‘PRIVMSG’, .channel, “I'm acting stupid on {.channel}. Help me.”,
-                           :server(.server), :prefix(PARENTS.join(‘, ’) ~ ‘: ’)
+        if .channel ne $CAVE {
+            .irc.send-cmd: ‘PRIVMSG’, $CAVE, “I'm acting stupid on {.channel}. Help me.”,
+                           :server(.server), :prefix($PARENTS.join(‘, ’) ~ ‘: ’)
         }
     }
 
@@ -488,7 +489,7 @@ method selfrun($nick is copy, @alias?) {
                   ?? ‘#whateverable’
                   !! %*ENV<TESTABLE>
                      ?? “#whateverable_$nick”
-                     !! <#perl6 #perl6-dev #whateverable #zofbot #moarvm>)
+                     !! (|<#perl6 #perl6-dev #zofbot #moarvm>, $CAVE) )
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )
