@@ -77,7 +77,7 @@ method TWEAK {
 
 method handle-exception($exception, $msg?) {
     CATCH { # exception handling is too fat, so let's do this also…
-        .say; # “say” is exactly what was meant, it's not a debugging leftover
+        .note;
         return ‘Exception was thrown while I was trying to handle another exception…’
              ~ ‘ What are they gonna do to me, Sarge? What are they gonna do⁈’
     }
@@ -86,7 +86,7 @@ method handle-exception($exception, $msg?) {
         return $exception.message
     }
 
-    say $exception; # “say” is exactly what was meant, it's not a debugging leftover
+    note $exception;
     with $msg {
         if .channel ne $CAVE {
             .irc.send-cmd: ‘PRIVMSG’, $CAVE, “I'm acting stupid on {.channel}. Help me.”,
@@ -311,7 +311,7 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
             sub getppid(--> int32) is native {*};
             kill getppid, 10; # SIGUSR1
         }
-        put “$build-path is locked. Waiting…”;
+        note “$build-path is locked. Waiting…”;
         sleep 0.5 # should never happen if setup correctly
     }
     if $archive-path.IO ~~ :e {
