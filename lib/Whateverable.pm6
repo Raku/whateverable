@@ -295,7 +295,7 @@ method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
 }
 
 sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
-    my $build-prepath =   “{BUILDS-LOCATION}/$backend/”;
+    my $build-prepath =   “{BUILDS-LOCATION}/$backend”;
     my $build-path    =               “$build-prepath/$full-commit-hash”;
     my $archive-path  = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”;
     my $archive-link  = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”;
