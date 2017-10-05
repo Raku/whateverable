@@ -139,6 +139,7 @@ use JSON::Fast;
 my %config = from-json slurp CONFIG;
 my $server = HTTP::Server::Async.new: |(%config<squashable><host port>:p).Capture;
 my $channel = Channel.new;
+my $squashable = Squashable.new;
 
 # TODO failures here will blow up (or get ignored) without proper handling
 $server.handler: sub ($request, $response) {
@@ -147,11 +148,6 @@ $server.handler: sub ($request, $response) {
         $response.status = 500; $response.close;
         return
     }
-    if now !~~ squashathon-range $next {
-        $response.status = 200; $response.close;
-        return
-    }
-
     use Digest::SHA;
     use Digest::HMAC;
     my $body = $request.data;
@@ -161,21 +157,31 @@ $server.handler: sub ($request, $response) {
         $response.status = 400; $response.close(‘Signatures didn't match’);
         return
     }
+    my $data = try from-json $body.decode;
+    without $data {
+        $response.status = 400; $response.close(‘Invalid JSON’);
+        return
+    }
+    if $data<zen>:exists {
+        my $text = “Webhook for {$data<repository><full_name>} is now ”
+                 ~ ($data<hook><active>??‘active’!!‘inactive’) ~ ‘! ’
+                 ~ $data<zen>;
+        $squashable.irc.send: :$text, where => $CHANNEL; # TODO race?
+    }
+    if now !~~ squashathon-range $next {
+        $response.status = 200; $response.close;
+        return
+    }
     my $file = $request.headers<X-GitHub-Delivery>;
     mkdir $PATH.add(“$next”);
     spurt $PATH.add(“$next/$file”), $body if $file ~~ /^ [<.xdigit>|‘-’]+ $/;
-    my $data = try from-json $body.decode;
-    without $data {
-        $response.status = 400; $response.close;
-        return
-    }
+
     $channel.send: $request.headers<X-GitHub-Event> => $data;
     $response.headers<Content-Type> = 'text/plain';
     $response.status = 200;
     $response.close
 }
 
-my $squashable = Squashable.new;
 my %state;
 try set-next-squashathon;
 if $next-event.defined and $PATH.add(“$next-event/state”).e {
