@@ -35,8 +35,8 @@ TasksMax=80
 Restart=always
 RestartSec=2
 # WatchdogSec is set approximately to ping timeout
-# TODO ... or not. There should be at least one non-ping message in 15 minutes
-WatchdogSec=900
+# TODO ... or not. There should be at least one non-ping message in 15 minutes + extra time
+WatchdogSec=1200
 # TODO is exec the right option here?
 NotifyAccess=exec
 
