@@ -26,7 +26,6 @@ use Config::INI;
 unit class Greppable does Whateverable;
 
 my $ECO-PATH   = ‘data/all-modules’;
-my $ECO-URL    = ‘Config::INI::parse(slurp $dotgitrepo)<subrepo><commit>’;
 my $ECO-ORIGIN = ‘https://github.com/moritz/perl6-all-modules’;
 
 method help($msg) {
