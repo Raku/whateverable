@@ -25,7 +25,9 @@ use Config::INI;
 
 unit class Greppable does Whateverable;
 
-my \ECO-PATH = ‘data/all-modules’;
+my $ECO-PATH   = ‘data/all-modules’;
+my $ECO-URL    = ‘Config::INI::parse(slurp $dotgitrepo)<subrepo><commit>’;
+my $ECO-ORIGIN = ‘https://github.com/moritz/perl6-all-modules’;
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: password”
@@ -39,16 +41,31 @@ sub process-grep-line($line, %commits) { # 🙈
     my $backticks = ｢`｣ x (($line.comb(/｢`｣+/) || ｢｣).max.chars + 1);
     my ($path, $line-number, $text) = $line.split: “\x0”, 3;
 
-    my $start = $path; # Not a module, unless…
-    if $path ~~ /^ $<repo>=[ <-[/]>+ ‘/’ <-[/]>+ ] ‘/’ $<path>=.* $/ {
+    my $start = “perl6-all-modules/$path”; # Not a module, unless…
+    if $path ~~ /^ $<source>=[<-[/]>+] ‘/’ $<repo>=[ <-[/]>+ ‘/’ <-[/]>+ ]
+                                       ‘/’ $<path>=.* $/ {
+        my $source    = $<source>;
         my $repo      = $<repo>;
         my $long-path = $<path>;
-        my $commit    = %commits{$repo};
+        my $commit    = %commits{“$source/$repo”};
+
         without $commit { # cache it!
-            $commit = Config::INI::parse(slurp “{ECO-PATH}/$repo/.gitrepo”)<subrepo><commit>;
+            $commit = do given $source {
+                my $dotgitrepo = “$ECO-PATH/$source/$repo/.gitrepo”.IO;
+                when ‘github’
+                   | ‘gitlab’ { Config::INI::parse(slurp $dotgitrepo)<subrepo><commit> }
+                when ‘cpan’   { run(:out, :cwd($ECO-PATH),
+                                    ‘git’, ‘rev-parse’, ‘HEAD’).out.slurp.trim }
+                default       { die “Unsupported source “$source”” }
+            }
             %commits{$repo} = $commit;
         }
-        my $link = “https://github.com/$repo/blob/$commit/$long-path#L$line-number”;
+        my $link = do given $source {
+            when ‘github’
+               | ‘gitlab’ { “https://$source.com/$repo/blob/$commit/$long-path#L$line-number” }
+            when ‘cpan’   { “$ECO-ORIGIN/blob/$commit/$source/$repo/$long-path#L$line-number” }
+            default       { die “Unsupported source “$source”” } # already handled anyway
+        }
         my $short-path = $long-path.subst: /^ .*‘/’ /, ‘’;
         $short-path = “…/$short-path”;# if $long-path ne $short-path;
         $start = “[{$repo}<br>``{$short-path}`` :*$line-number*:]($link)”
@@ -63,7 +80,7 @@ sub process-grep-line($line, %commits) { # 🙈
 multi method irc-to-me($msg where .args[1].starts-with(‘file’ | ‘tree’) &&
                                   /^ \s* [ || ‘/’ $<regex>=[.*] ‘/’
                                            || $<regex>=[.*?]       ] \s* $/) {
-    my $result = run :out, :cwd(ECO-PATH), ‘git’, ‘ls-files’, ‘-z’;
+    my $result = run :out, :cwd($ECO-PATH), ‘git’, ‘ls-files’, ‘-z’;
     my $out = perl6-grep $result.out, $<regex>;
     ‘’ but ProperStr($out.map({ process-ls-line $_ }).join(“\n”))
 }
@@ -72,8 +89,8 @@ multi method irc-to-me($msg) {
     my @cmd = ‘git’, ‘grep’, ‘--color=always’, ‘-z’, ‘-I’,
               ‘--perl-regexp’, ‘--line-number’, ‘--’, $msg;
 
-    run :out(Nil), :cwd(ECO-PATH), ‘git’, ‘pull’;
-    my $result = get-output :cwd(ECO-PATH), |@cmd;
+    run :out(Nil), :cwd($ECO-PATH), ‘git’, ‘pull’;
+    my $result = get-output :cwd($ECO-PATH), |@cmd;
 
     grumble ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 | 1 or $result<signal> ≠ 0;
     grumble ‘Found nothing!’ unless $result<output>;
@@ -85,8 +102,8 @@ multi method irc-to-me($msg) {
 }
 
 
-if ECO-PATH.IO !~~ :d {
-    run ‘git’, ‘clone’, ‘https://github.com/moritz/perl6-all-modules.git’, ECO-PATH
+if $ECO-PATH.IO !~~ :d {
+    run ‘git’, ‘clone’, $ECO-ORIGIN, $ECO-PATH
 }
 
 Greppable.new.selfrun: ‘greppable6’, [ / [file|tree]? grep6? <before ‘:’> /,
