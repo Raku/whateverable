@@ -1,0 +1,75 @@
+#!/usr/bin/env perl6
+
+use HTTP::UserAgent;
+use JSON::Fast;
+
+constant $URL = ‘https://irclog.perlgeek.de’;
+constant @CHANNELS = <#perl6-dev #perl6 #p6dev #moarvm>;
+constant $PATH = ‘data/irc’.IO;
+
+my $ua = HTTP::UserAgent.new;
+$ua.timeout = 10;
+
+mkdir $PATH.add: $_ for @CHANNELS;
+
+sub get($channel, $date) {
+    my $file = $PATH.add($channel).add($date);
+    return True if $file.e;
+    loop {
+        my $url = “$URL/{$channel.substr: 1}/$date”;
+        my $response = $ua.get: $url, :bin, :Accept<application/json>;
+        my $data = $response.content.decode;
+        if not $response.is-success {
+            if $data eq ‘{"error":"No such channel or day"}’ {
+                note ‘That's it’;
+                return False
+            }
+            note ‘Failed to get the page, retrying…’;
+            sleep 0.5;
+            redo
+        }
+        spurt $file, $data;
+        return True;
+    }
+}
+
+my $today = now.Date.pred; # always doesn't fetch the current day
+
+note ‘Fetching…’;
+for @CHANNELS -> $channel {
+    note $channel;
+    my $current-date = $today;
+    loop {
+        note $current-date;
+        last unless get $channel, $current-date;
+        $current-date .= pred;
+    }
+}
+
+note ‘Caching…’;
+for @CHANNELS {
+    my @msgs;
+    my $total;
+    my $channel-dir = $PATH.add: $_;
+    for $channel-dir.dir.sort.reverse {
+        .note;
+        my $date = .basename;
+        try {
+            for from-json(slurp $_)<rows>.list {
+                next without .[1];
+                @msgs.push: (
+                    .[3], # what
+                    .[0], # id
+                    # .[1], # who
+                    # .[2], # when (posix)
+                    $date,
+                ).join: “\0”;
+                $total++
+            }
+            CATCH { default { note “Skipping $date because of JSON issues $_” } }
+        }
+    }
+    note “Loaded $total messages”;
+    spurt $channel-dir ~ ‘.total’, $total;
+    spurt $channel-dir ~ ‘.cache’, @msgs.join: “\0\0”
+}

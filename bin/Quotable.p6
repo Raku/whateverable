@@ -24,20 +24,36 @@ use IRC::Client;
 
 unit class Quotable does Whateverable;
 
-my $CACHE-FILE = ‘data/irc/cache’.IO;
+my $CACHE-DIR = ‘data/irc/’.IO;
+my $LINK      = ‘https://irclog.perlgeek.de’;
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: /^ ‘bisect: ’ /”
 }
 
+my atomicint $hack = 0;
 multi method irc-to-me($msg where /^ \s* [ || ‘/’ $<regex>=[.*] ‘/’
                                            || $<regex>=[.*?]       ] \s* $/) {
-    my $answer = perl6-grep($CACHE-FILE, ~$<regex>).join: “\n”;
-    ‘’ but ProperStr($answer)
+    $hack ⚛= 0;
+    my $regex = $<regex>;
+    my $messages = $CACHE-DIR.dir(test => *.ends-with: ‘.total’)».slurp».trim».Int.sum;
+    $msg.reply: “OK, working on it! This may take up to three minutes ($messages messages to process)”;
+    my %channels = await do for $CACHE-DIR.dir(test => *.ends-with: ‘.cache’) {
+        my $channel = .basename.subst(/ ^‘#’ /, ‘’).subst(/ ‘.cache’$ /, ‘’);
+        start “result-#$channel.md” => process-channel $_, $channel, ~$regex
+    }
+    ‘’ but FileStore(%channels)
 }
 
-# ⚠ Quotable is currently broken. See issue #24
-#exit 1;
+sub process-channel($file, $channel, $regex-str) {
+    perl6-grep($file, $regex-str, :complex, hack => $hack⚛++).map({
+        my @parts = .split: “\0”; # text, id, date
+        my $backticks = ｢`｣ x (1 + (@parts[0].comb(/｢`｣+/) || ‘’).max.chars);
+        # TODO proper escaping
+        “[$backticks @parts[0] $backticks]($LINK/$channel/@parts[2]#i_@parts[1])<br>”
+    }).join(“\n”)
+}
+
 Quotable.new.selfrun: ‘quotable6’, [ / quote6? <before ‘:’> /,
                                      fuzzy-nick(‘quotable6’, 2) ]
 

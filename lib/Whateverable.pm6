@@ -232,13 +232,16 @@ sub get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd =
     )
 }
 
-sub perl6-grep($stdin, $regex is copy, :$timeout = 180) is export {
-    my $full-commit = to-full-commit ‘HEAD’;
+sub perl6-grep($stdin, $regex is copy, :$timeout = 180, :$complex = False, :$hack = 0) is export {
+    my $full-commit = to-full-commit ‘HEAD’ ~ (‘^’ x $hack);
     die “No build for $full-commit. Oops!” unless build-exists $full-commit;
     $regex = “m⦑ $regex ⦒”;
     # TODO can we do something smarter?
-    my $magic = ｢INIT $*ARGFILES.nl-in = 0.chr; INIT $*OUT.nl-out = 0.chr;｣
-              ~ ｢ next unless｣ ~ “\n”
+    my $sep   = $complex ?? ｢“\0\0”｣ !! ｢“\0”｣;
+    my $magic = “INIT \$*ARGFILES.nl-in = $sep; INIT \$*OUT.nl-out = $sep;”
+              ~ ｢use nqp;｣
+              ~ ｢ next unless｣
+              ~ ($complex ?? ｢ nqp::substr($_, 0, nqp::index($_, “\0”)) ~~｣ !! ‘’) ~ “\n”
               ~ $regex ~ “;\n”
               ~ ｢last if $++ > ｣ ~ $GIST-LIMIT;
     my $filename = write-code $magic;
@@ -251,8 +254,7 @@ sub perl6-grep($stdin, $regex is copy, :$timeout = 180) is export {
     $output ~= “ «exit code = $result<exit-code>»” if $result<exit-code> ≠ 0;
     $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0;
     grumble $output if $result<exit-code> ≠ 0 or $result<signal> ≠ 0;
-
-    my @elems = $output.split: “\0”, :skip-empty;
+    my @elems = $output.split: ($complex ?? “\0\0” !! “\0”), :skip-empty;
     if @elems > $GIST-LIMIT {
         grumble “Cowardly refusing to gist more than $GIST-LIMIT lines”
     }
