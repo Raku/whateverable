@@ -65,24 +65,12 @@ method process-commit($commit, $filename, :%ENV) {
     my $short-commit = self.get-short-commit: $commit;
     $short-commit ~= “({self.get-short-commit: $full-commit})” if $commit eq ‘HEAD’;
 
-    $short-commit R=> self.subprocess-commit: $commit, $filename, $full-commit, :%ENV;
-}
-
-method subprocess-commit($commit, $filename, $full-commit, :%ENV) {
     without $full-commit {
-        return ‘Cannot find this revision (did you mean “’ ~
+        return $short-commit R=> ‘Cannot find this revision (did you mean “’ ~
           self.get-short-commit(self.get-similar: $commit, <HEAD v6.c releases all>) ~
           ‘”?)’
     }
-    return ‘No build for this commit’ unless build-exists $full-commit;
-
-    $_ = run-snippet $full-commit, $filename, :%ENV; # actually run the code
-    # numbers less than zero indicate other weird failures ↓
-    return “Cannot test this commit ($_<output>)” if .<signal> < 0;
-    my $output = .<output>;
-    $output ~= “ «exit code = $_<exit-code>»” if .<exit-code> ≠ 0;
-    $output ~= “ «exit signal = {Signal($_<signal>)} ($_<signal>)»” if .<signal> ≠ 0;
-    $output
+    $short-commit R=> subprocess-commit $commit, $filename, $full-commit, :%ENV;
 }
 
 method process($msg, $config is copy, $code is copy, :%ENV) {

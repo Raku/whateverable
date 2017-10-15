@@ -171,11 +171,15 @@ multi method irc-to-me($) {
     ‘I cannot recognize this command. See wiki for some examples: ’ ~ self.get-wiki-link
 }
 
-multi method irc-all($) {
-    # TODO https://github.com/zoffixznet/perl6-IRC-Client/issues/50
+sub I'm-alive is export {
     use NativeCall;
     sub sd_notify(int32, str --> int32) is native(‘systemd’) {*};
-    sd_notify 0, ‘WATCHDOG=1’; # this may be called too often, see TODO above
+    sd_notify 0, ‘WATCHDOG=1’; # this may be called too often, see TODO below
+}
+
+multi method irc-all($) {
+    # TODO https://github.com/zoffixznet/perl6-IRC-Client/issues/50
+    I'm-alive;
     $.NEXT
 }
 
@@ -188,7 +192,8 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
     !! $original-commit
 }
 
-sub get-output(*@run-args, :$timeout = $default-timeout, :$stdin, :$ENV, :$cwd = $*CWD) is export {
+# TODO $default-timeout is VNNull when working in non-OOP style. Rakudobug it?
+sub get-output(*@run-args, :$timeout = $default-timeout || 10, :$stdin, :$ENV, :$cwd = $*CWD) is export {
     my $proc = Proc::Async.new: |@run-args;
 
     my $fh-stdin;
@@ -329,8 +334,9 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
     $return
 }
 
+# TODO $default-timeout is VNNull when working in non-OOP style. Rakudobug it?
 sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :@args=Empty,
-                :$timeout=$default-timeout, :$stdin=$default-stdin, :$ENV) is export {
+                :$timeout=$default-timeout||10, :$stdin=$default-stdin, :$ENV) is export {
     run-smth :$backend, $full-commit-hash, -> $path {
         “$path/bin/perl6”.IO !~~ :e
         ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
@@ -496,6 +502,20 @@ method selfrun($nick is copy, @alias?) {
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )
     )
+}
+
+# TODO move somewhere
+# TODO commit unused
+sub subprocess-commit($commit, $filename, $full-commit, :%ENV) is export {
+    return ‘No build for this commit’ unless build-exists $full-commit;
+
+    $_ = run-snippet $full-commit, $filename, :%ENV; # actually run the code
+    # numbers less than zero indicate other weird failures ↓
+    return “Cannot test this commit ($_<output>)” if .<signal> < 0;
+    my $output = .<output>;
+    $output ~= “ «exit code = $_<exit-code>»” if .<exit-code> ≠ 0;
+    $output ~= “ «exit signal = {Signal($_<signal>)} ($_<signal>)»” if .<signal> ≠ 0;
+    $output
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6
