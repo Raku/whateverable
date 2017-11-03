@@ -126,7 +126,8 @@ multi method irc-to-me($msg where /^ \s* [log|status|info|when|next]
                 %files<stats> ~= “\n{.key}: {.value}\n”;
             }
         }
-        %files<stats> .= trim-leading;
+        %files<stats> //= ‘No stats yet. Be the first to contribute!’;
+        %files<stats>  .= trim-leading;
     }
     return ‘Nothing there yet’ if $msg ~~ /‘log’/ and not %files;
     return unless %files;
