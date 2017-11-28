@@ -1,0 +1,65 @@
+#!/usr/bin/env perl
+# Copyright © 2017
+#     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+use v5.10;
+use utf8;
+
+use Error qw(:try);
+use RT::Client::REST;
+use JSON;
+
+$|++;
+binmode STDOUT, ":utf8";
+
+my $rt = RT::Client::REST->new(
+    server => 'https://rt.perl.org/',
+    timeout => 30,
+    );
+
+my $dir  = $ARGV[0];
+my $user = $ARGV[1];
+my $pass = $ARGV[2];
+
+mkdir $dir;
+
+try {
+    $rt->login(username => $user, password => $pass);
+} catch Exception::Class::Base with {
+    die "problem logging in: ", shift->message;
+};
+
+my $json_obj = JSON->new->pretty->utf8;
+try {
+    my @ids = $rt->search(
+        type => 'ticket',
+        query => "Queue = 'perl6'",
+        );
+
+    for (sort @ids) {
+        my ($t) = $rt->show(type => 'ticket', id => $_);
+        #say $_, "\t", $t->{Status}, "\t", $t->{LastUpdated}, "\t", $t->{Subject};
+        my $json = $json_obj->encode($t);
+        my $filename = "$dir/$_";
+        open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
+        print $fh $json;
+        close $fh;
+    }
+} catch RT::Client::REST::Exception with {
+    die 'Dammit.' # TODO proper exception handling
+};

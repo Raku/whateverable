@@ -11,5 +11,11 @@
         "host": "",
         "port": 4243,
         "secret": ""
+    },
+    "reportable": {
+        "RT": {
+            "user": "",
+            "pass": ""
+        }
     }
 }

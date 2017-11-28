@@ -17,6 +17,7 @@ Wants=whateverable@Coverable.service
 Wants=whateverable@Releasable.service
 Wants=whateverable@Nativecallable.service
 Wants=whateverable@Squashable.service
+Wants=whateverable@Reportable.service
 
 [Service]
 Type=oneshot
