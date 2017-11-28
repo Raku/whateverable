@@ -1,40 +1,43 @@
+#!/usr/bin/env perl6
 my @bots = dir ‘bin’, test => / ‘able.p6’ $ /;
 
-task ‘debug:’ ~ @bots».extension(‘’)».basename».lc.any, sub {
-    # TODO https://github.com/perlpilot/p6-sake/issues/7
-    my $bot = @*ARGS.grep({.starts-with: ‘debug:’})[0];
-    return without $bot;
-    $bot .= subst: /^‘debug:’/, ‘’;
-    $bot .= tc;
-    say “Starting $bot…”;
-    run “./bin/$bot.p6”, :env(|%*ENV, PERL6LIB => ‘lib’, DEBUGGABLE => 1)
+task ‘help’, {
+    note ‘Useful commands:’;
+    note ‘  sake debug:botname     (example: ｢sake debug:bisectable｣)’;
+    note ‘  sake kill:botname      (example: ｢sake kill:committable｣)’;
+    note ‘  sake killall’;
+    note ‘  sake test              (run the test suite)’;
+    note ‘  sake mothership-pull   (pulls the current version from the server)’;
+}
+
+sub to-name($_) { .extension(‘’).basename }
+
+for @bots -> $file {
+    my $bot = to-name $file;
+    task ‘debug:’ ~ ( $bot | $bot.lc ), {
+        note “Starting $bot…”;
+        run $file, :env(|%*ENV, PERL6LIB => ‘lib’, DEBUGGABLE => 1);
+        True
+    }
+    task ‘kill:’ ~ ( $bot | $bot.lc ), {
+        note “Killing $bot…”;
+        my $pid = run(:out, ‘systemctl’, ‘--property=MainPID’, ‘--’,
+                      ‘show’, “whateverable@$bot.service”).out.slurp.trim;
+        $pid .= subst: /^‘MainPID=’/, ‘’;
+        run ‘kill’, ‘--’, $pid;
+        True
+    }
 }
 
 task ‘start-all’, {
-    say ‘start-all is no longer needed, ’
-    ~ ‘systemd should start (and restart) the bots automatically’
+    note ‘start-all is no longer needed, ’
+    ~ ‘systemd should start (and restart) the bots automatically’;
+    exit 1
 }
 
-sub kill-bot($bot) {
-    say “Killing $bot…”;
-    my $pid = run(:out, ‘systemctl’, ‘--property=MainPID’, ‘--’,
-                  ‘show’, “whateverable@$bot.service”).out.slurp.trim;
-    $pid .= subst: /^‘MainPID=’/, ‘’;
-    run ‘kill’, ‘--’, $pid;
-}
-
-task ‘kill:’ ~ @bots».extension(‘’)».basename».lc.any, sub {
-    # TODO https://github.com/perlpilot/p6-sake/issues/7
-    my $bot = @*ARGS.grep({.starts-with: ‘kill:’})[0];
-    return without $bot;
-    $bot .= subst: /^‘kill:’/, ‘’;
-    $bot .= tc;
-    kill-bot $bot
-}
-
-task ‘kill-all’ | ‘stop-all’, { kill-bot $_ for @bots».extension(‘’)».basename }
-task ‘test’, { run ‘prove’, ‘-j’, ‘8’, ‘--exec’, ‘perl6’, ‘t’ }
-task ‘upgrade’ => ‘stop-all’, { run ‘rakudobrew’, ‘build’, ‘moar’ }
+task <kill stop>.any ~ <-all all>.any => @bots.map({‘kill:’ ~ to-name $_}), {;}
+task ‘test’, { run ‘prove’, ‘-j’, ‘8’, ‘--exec’, ‘perl6’, ‘t’; True }
+task ‘upgrade’ => ‘stop-all’, { run ‘rakudobrew’, ‘build’, ‘moar’; True }
 
 my $RSYNC = ‘bisectable@94.23.219.181:/home/bisectable/git/whateverable/’;
 task ‘mothership-pull’, {
