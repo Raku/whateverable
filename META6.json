@@ -1,0 +1,35 @@
+{
+    "perl"        : "6.c",
+    "name"        : "Whateverable",
+    "version"     : "0.9.0",
+    "description" : "Different IRC bots that operate on a bunch of prebuilt Rakudo versions",
+    "authors"     : [
+        "Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>",
+        "Daniel Green <ddgreen@gmail.com>"
+    ],
+    "license"     : "AGPL-3.0",
+    "provides"    : { },
+    "depends"     : [
+        "App::GPTrixie",
+        "Config::INI",
+        "Digest",
+        "Digest::HMAC",
+        "File::Directory::Tree",
+        "File::Temp",
+        "HTTP::Server::Async",
+        "HTTP::UserAgent",
+        "IO::Socket::SSL",
+        "IRC::Client",
+        "IRC::TextColor",
+        "JSON::Fast",
+        "Number::Denominate",
+        "Pastebin::Gist",
+        "SVG::Plot",
+        "Sake",
+        "Stats",
+        "Terminal::ANSIColor",
+        "Text::Diff::Sift4"
+    ],
+    "resources"   : [ ],
+    "source-url"  : "https://github.com/perl6/whateverable.git"
+}
