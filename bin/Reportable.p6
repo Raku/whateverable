@@ -109,7 +109,9 @@ sub snapshot($msg?) {
         mkdir “$temp-folder/RT”;
         run ‘maintenance/pull-rt’, “$temp-folder/RT”, |$CONFIG<reportable><RT><user pass>;
 
-        rename $temp-folder, $dir.add: $datetime;
+        # .move does not work with directories and .rename does not
+        # work across devices, so just run ‘mv’
+        run ‘mv’, ‘--’, $temp-folder, $dir.add: $datetime;
         True
     }
 }
