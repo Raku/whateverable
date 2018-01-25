@@ -73,7 +73,7 @@ sub pack-it {
     my $sha-proc = run :out, :in, :bin, ‘sha256sum’, ‘-b’;
     $sha-proc.in.write: Blob.new(@bytes);
     $sha-proc.in.close;
-    my $sha = $sha-proc.out.slurp-rest(:close).words.head; # could also be a random name, doesn't matter
+    my $sha = $sha-proc.out.slurp(:close).decode.words.head; # could also be a random name, doesn't matter
     exit 1 unless $sha;
     my $large-archive-path = “{ARCHIVES-LOCATION}/$sha.lrz”;
 
