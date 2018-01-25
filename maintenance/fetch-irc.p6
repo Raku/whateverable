@@ -46,6 +46,13 @@ for @CHANNELS -> $channel {
     }
 }
 
+my num $jsontime = 0e0;
+my num $totaltime = 0e0;
+
+my num $starttime = now.Num;
+
+my @json_errors;
+
 note ‘Caching…’;
 for @CHANNELS {
     my @msgs;
@@ -55,7 +62,12 @@ for @CHANNELS {
         .note;
         my $date = .basename;
         try {
-            for from-json(slurp $_)<rows>.list {
+            my str $source = slurp $_;
+            my num $start = now.Num;
+            my $jsondata = from-json($source)<rows>;
+            $jsontime += now.Num - $start;
+
+            for $jsondata.list {
                 next without .[1];
                 @msgs.push: (
                     .[3], # what
@@ -66,10 +78,17 @@ for @CHANNELS {
                 ).join: “\0”;
                 $total++
             }
-            CATCH { default { note “Skipping $date because of JSON issues $_” } }
+            CATCH { default { note “Skipping $date because of JSON issues $_”; @json_errors.push: $date.Str => $_.message } }
         }
     }
     note “Loaded $total messages”;
     spurt $channel-dir ~ ‘.total’, $total;
     spurt $channel-dir ~ ‘.cache’, @msgs.join: “\0\0”
 }
+$totaltime = now.Num - $starttime;
+
+try spurt "fetch-irc-json-errors.err", @json_errors.fmt: "%s: %s", "\n";
+
+say "total time spent caching: $totaltime";
+say "total time spent json decoding: $jsontime";
+say "ratio: { $jsontime / $totaltime }";
