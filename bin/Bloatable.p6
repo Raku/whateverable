@@ -60,7 +60,8 @@ method did-you-mean($out) {
     return if $out<exit-code> == 0;
     return unless $out<output> ~~ /(‘no such data source:’ .*)/;
     $0.tc ~ ‘ (Did you mean one of these: ’
-          ~ get-output(‘bloaty’, ‘--list-sources’)<output>.lines.join(‘ ’)
+          ~ get-output(‘bloaty’, ‘--list-sources’
+                       )<output>.lines.map(*.words[0]).join(‘ ’)
           ~ ‘ ?)’
 }
 
