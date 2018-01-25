@@ -137,8 +137,7 @@ multi method irc-to-me($msg where /^ \s* [log|status|info|when|next]
 use HTTP::Server::Async;
 use JSON::Fast;
 
-my %config = from-json slurp CONFIG;
-my $server = HTTP::Server::Async.new: |(%config<squashable><host port>:p).Capture;
+my $server = HTTP::Server::Async.new: |($CONFIG<squashable><host port>:p).Capture;
 my $channel = Channel.new;
 my $squashable = Squashable.new;
 
@@ -153,7 +152,7 @@ $server.handler: sub ($request, $response) {
     use Digest::HMAC;
     my $body = $request.data;
     $body .= subbuf: 0..^($body - 1) if $body[*-1] == 0; # TODO trailing null byte. Why is it there?
-    my $hmac = ‘sha1=’ ~ hmac-hex %config<squashable><secret>, $body, &sha1;
+    my $hmac = ‘sha1=’ ~ hmac-hex $CONFIG<squashable><secret>, $body, &sha1;
     if $hmac ne $request.headers<X-Hub-Signature> {
         $response.status = 400; $response.close(‘Signatures didn't match’);
         return

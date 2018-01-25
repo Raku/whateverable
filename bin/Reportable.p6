@@ -104,12 +104,10 @@ sub snapshot($msg?) {
         my $datetime = now.DateTime.truncated-to: ‘minute’;
         .reply: ‘OK! Working on it. This will take forever, so don't hold your breath.’ with $msg;
 
-        # TODO authenticate on github to get rid of unlikely rate limiting
-        my %config = from-json slurp CONFIG;
         mkdir “$temp-folder/GH”;
-        run ‘maintenance/pull-gh’, “$temp-folder/GH”;
+        run ‘maintenance/pull-gh’, “$temp-folder/GH”; # TODO authenticate on github to get rid of unlikely rate limiting
         mkdir “$temp-folder/RT”;
-        run ‘maintenance/pull-rt’, “$temp-folder/RT”, |%config<reportable><RT><user pass>;
+        run ‘maintenance/pull-rt’, “$temp-folder/RT”, |$CONFIG<reportable><RT><user pass>;
 
         rename $temp-folder, $dir.add: $datetime;
         True
