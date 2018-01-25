@@ -25,7 +25,7 @@ my \PROJECT = do given @*ARGS[0] // ‘’ {
 }
 my \DIR-BASE          = PROJECT.lc;
 my \BUILDS-LOCATION   = “/tmp/whateverable/{DIR-BASE}”;
-my \ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/{DIR-BASE}”.IO.absolute;
+my \ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/data/builds/{DIR-BASE}”.IO.absolute;
 my \REPO-LATEST       = “/tmp/whateverable/{DIR-BASE}-repo”;
 my \CUTOFF-DATE       = ‘2015-12-01’;
 my \TAGS-SINCE        = ‘2014-01-01’;
