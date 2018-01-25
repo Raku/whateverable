@@ -89,6 +89,6 @@ $totaltime = now.Num - $starttime;
 
 try spurt "fetch-irc-json-errors.err", @json_errors.fmt: "%s: %s", "\n";
 
-say "total time spent caching: $totaltime";
-say "total time spent json decoding: $jsontime";
-say "ratio: { $jsontime / $totaltime }";
+note "total time spent caching: $totaltime";
+note "total time spent json decoding: $jsontime";
+note "ratio: { $jsontime / $totaltime }";
