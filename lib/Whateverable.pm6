@@ -34,7 +34,6 @@ our $RAKUDO = (%*ENV<TESTABLE> // ‘’).contains(‘rakudo-mock’)
               ?? ‘./t/data/rakudo’.IO.absolute
               !! ‘./data/rakudo-moar’.IO.absolute;
 constant MOARVM = ‘./data/moarvm’.IO.absolute;
-constant CONFIG = ‘./config.json’.IO.absolute;
 constant SOURCE = ‘https://github.com/perl6/whateverable’;
 constant WIKI   = ‘https://github.com/perl6/whateverable/wiki/’;
 constant WORKING-DIRECTORY = ‘.’.IO.absolute; # TODO not supported yet
@@ -48,6 +47,7 @@ constant $CAVE    = ‘#whateverable’;
 constant $PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
 
 our $RAKUDO-REPO = ‘https://github.com/rakudo/rakudo’;
+our $CONFIG      = from-json slurp;
 
 constant Message = IRC::Client::Message;
 
@@ -477,10 +477,9 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
         return ‘https://whatever.able/fakeupload’;
     }
 
-    state $config = from-json slurp CONFIG;
     %files = %files.pairs.map: { .key => %( ‘content’ => .value ) }; # github format
 
-    my $gist = Pastebin::Gist.new(token => $config<github><access_token>);
+    my $gist = Pastebin::Gist.new(token => $CONFIG<github><access_token>);
     return $gist.paste: %files, desc => $description, public => $public
 }
 
@@ -490,7 +489,7 @@ method selfrun($nick is copy, @alias?) {
         :$nick
         :userreal($nick.tc)
         :username($nick.substr(0, 3) ~ ‘-able’)
-        :password(?%*ENV<TESTABLE> ?? ‘’ !! from-json(slurp CONFIG)<irc><login password>.join: ‘:’)
+        :password(?%*ENV<TESTABLE> ?? ‘’ !! $CONFIG<irc><login password>.join: ‘:’)
         :@alias
         # IPv4 address of chat.freenode.net is hardcoded so that we can double the limit ↓
         :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! (‘chat.freenode.net’, ‘185.30.166.38’).pick)
