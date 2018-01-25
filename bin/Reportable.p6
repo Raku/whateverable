@@ -51,7 +51,7 @@ multi method irc-to-me($msg where ‘list’) {
     ‘’ but ProperStr(report-dirs.reverse.map(*.basename).join: “\n”)
 }
 
-multi method irc-to-me($msg where ‘montly’) {
+multi method irc-to-me($msg where ‘monthly’) {
     ‘You can implement this feature if you need it :)’
     ~ ‘ (meanwhile try to be more specific by using ｢list｣ command)’
 }
