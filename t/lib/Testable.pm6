@@ -42,8 +42,13 @@ class Testable {
         );
         start $!irc-client.run;
 
-        $!bot-proc = Proc::Async.new: ‘./bin/’ ~ $bot ~ ‘.p6’;
-        $!bot-proc.start: :ENV(|%*ENV, PERL6LIB => ‘lib’);
+        $!bot-proc = Proc::Async.new: ‘perl6’, ‘./bin/’ ~ $bot ~ ‘.p6’;
+        $!bot-proc.bind-stdin: ‘config.json’.IO.open;
+        start react {
+            whenever $!bot-proc.start(:ENV(|%*ENV, PERL6LIB => ‘lib’)) {
+                note “Bot process finished (exit code={.exitcode}, signal={.signal})”
+            }
+        }
 
         start { sleep 20; $ready.send: False }
         $!bot-nick = $ready.receive;
