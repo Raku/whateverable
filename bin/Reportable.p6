@@ -242,6 +242,6 @@ sub analyze(IO() $before-dir where .d, IO() $after-dir where .d) {
 }
 
 Reportable.new.selfrun: ‘reportable6’, [ / report6? <before ‘:’> /,
-                                           fuzzy-nick(‘reportable6’, 3) ]
+                                           fuzzy-nick(‘reportable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6
