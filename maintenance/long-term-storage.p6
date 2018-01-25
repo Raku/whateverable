@@ -19,7 +19,10 @@ use File::Directory::Tree;
 
 my \WORKING-DIRECTORY = ‘.’; # TODO not supported yet
 enum Project <Rakudo-Moar Rakudo-JVM Rakudo-JS MoarVM>;
-my \PROJECT           = Rakudo-Moar;
+my \PROJECT = do given @*ARGS[0] // ‘’ {
+    when /:i ^‘moarvm’$ / { MoarVM }
+    default { Rakudo-Moar }
+}
 my \DIR-BASE          = PROJECT.lc;
 my \BUILDS-LOCATION   = “/tmp/whateverable/{DIR-BASE}”;
 my \ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/builds/{DIR-BASE}”.IO.absolute;
