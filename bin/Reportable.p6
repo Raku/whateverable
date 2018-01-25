@@ -189,7 +189,7 @@ sub analyze(IO() $before-dir where .d, IO() $after-dir where .d) {
 
         my $subject = $after<title>;
         $subject .= subst(/^ \s* [‘[’ \w+ ‘]’]* %% \s* /, ‘’);
-        $subject  = “$subject”; # TODO trim long subjects? # TODO escape
+        $subject  = html-escape $subject; # TODO trim long subjects?
         my $link  = “<a href="{.<html_url>}">{sprintf ‘% 9s’, .<uni-id>}</a>”;
         my $str   = “$link $subject”;
         if $before<state> ne $after<state> {

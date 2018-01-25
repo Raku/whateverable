@@ -164,12 +164,11 @@ multi method irc-to-me($msg where /^ :i \s*
     return if none %blockers<tickets>, %stats<unlogged>, %stats<warnings>;
 
     # ↓ And here just to make a pretty gist ↓
-    my &escape-html = { .trans: (‘&’, ‘<’, ‘>’) => (‘&amp;’, ‘&lt;’, ‘&gt;’) };
     my %files;
 
     my $blockers = join “\n”, (%blockers<tickets> // ()).map: { ‘<a href="’
                               ~ $TICKET-URL ~ .<ticket_id> ~ ‘">RT #’
-                              ~ .<ticket_id> ~ ‘</a> ’ ~ escape-html .<subject> };
+                              ~ .<ticket_id> ~ ‘</a> ’ ~ html-escape .<subject> };
     %files<!blockers!.md> = ‘<pre>’ ~ $blockers ~ ‘</pre>’ if %blockers<tickets>;
 
     my $warnings = .join(“\n”) with %stats<warnings>;
@@ -183,7 +182,7 @@ multi method irc-to-me($msg where /^ :i \s*
                         ‘--format=[<a href="’ ~ $RAKUDO-REPO ~ ‘/commit/%H">%h</a>]’,
                         “--abbrev=$SHA-LENGTH”, ‘--quiet’, |%stats<unlogged>;
         my $unreviewed = join “\n”, ($descs.out.lines Z $links.out.lines).map:
-                         {‘    + ’ ~ escape-html(.[0]) ~ ‘ ’ ~ .[1]};
+                         {‘    + ’ ~ html-escape(.[0]) ~ ‘ ’ ~ .[1]};
         %files<unreviewed.md> = ‘<pre>’ ~ $unreviewed ~ ‘</pre>’ if $unreviewed;
     }
     (‘’ but FileStore(%files)) but PrettyLink({“Details: $_”})

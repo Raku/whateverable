@@ -43,6 +43,10 @@ sub markdown-escape($text) is export {
                  (｢\<｣, ｢\>｣, ｢\&｣, ｢\\｣, ｢\`｣, ｢\*｣, ｢\_｣, ｢\~｣); # ｣);
 }
 
+sub html-escape($text) is export {
+    $text.trans: (‘&’, ‘<’, ‘>’) => (‘&amp;’, ‘&lt;’, ‘&gt;’)
+}
+
 my token commit-list is export {
     [<-[\s] -[‘,’]>+]+ % [‘,’\s*]
 }
