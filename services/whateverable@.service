@@ -31,7 +31,7 @@ ReadWritePaths=/home/bisectable/git/whateverable/data
 ReadOnlyPaths=/home/bisectable/git/whateverable/data/builds
 InaccessiblePaths=/home/bisectable/git/whateverable/config.json
 
-MemoryMax=3G
+MemoryMax=1.5G
 TasksMax=80
 
 Restart=always
