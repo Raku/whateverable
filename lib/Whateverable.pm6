@@ -194,7 +194,8 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
 }
 
 # TODO $default-timeout is VNNull when working in non-OOP style. Rakudobug it?
-sub get-output(*@run-args, :$timeout = $default-timeout || 10, :$stdin, :$ENV, :$cwd = $*CWD) is export {
+sub get-output(*@run-args, :$timeout = $default-timeout || 10,
+               :$stdin, :$ENV, :$cwd = $*CWD, :$chomp = True) is export {
     my $proc = Proc::Async.new: |@run-args;
 
     my $fh-stdin;
@@ -230,8 +231,9 @@ sub get-output(*@run-args, :$timeout = $default-timeout || 10, :$stdin, :$ENV, :
             done
         }
     }
+    my $output = @chunks.join;
     %(
-        output    => @chunks.join.chomp,
+        output    => $chomp ?? $output.chomp !! $output,
         exit-code => $result.exitcode,
         signal    => $result.signal,
         time      => $s-end - $s-start,
@@ -343,7 +345,7 @@ sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :@args=Em
         ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
              exit-code => -1, signal => -1, time => -1,)
         !! get-output “$path/bin/perl6”, |@args,
-                      ‘--’, $file, :$stdin, :$timeout, :$ENV
+                      ‘--’, $file, :$stdin, :$timeout, :$ENV, :!chomp
     }
 }
 
