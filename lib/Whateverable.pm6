@@ -266,7 +266,7 @@ sub perl6-grep($stdin, $regex is copy, :$timeout = 180, :$complex = False, :$hac
     if @elems > $GIST-LIMIT {
         grumble “Cowardly refusing to gist more than $GIST-LIMIT lines”
     }
-    grumble ‘Found nothing!’ if @elems == 0;
+    return ‘Found nothing!’ if @elems == 0;
     @elems
 }
 
