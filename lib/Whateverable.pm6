@@ -42,7 +42,7 @@ constant BUILDS-LOCATION   = ‘/tmp/whateverable/’.IO.absolute;
 
 constant MESSAGE-LIMIT is export = 260;
 constant COMMITS-LIMIT = 500;
-my $GIST-LIMIT = 10_000;
+our $GIST-LIMIT = 10_000;
 constant $CAVE    = ‘#whateverable’;
 constant $PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
 
