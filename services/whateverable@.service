@@ -24,8 +24,7 @@ RestrictRealtime=yes
 PrivateTmp=yes
 PrivateDevices=yes
 PrivateUsers=yes
-ReadWritePaths=/home/bisectable/git/whateverable/.precomp
-ReadWritePaths=/home/bisectable/git/whateverable/lib/.precomp
+
 ReadWritePaths=/home/bisectable/git/whateverable/sandbox
 ReadWritePaths=/home/bisectable/git/whateverable/data
 ReadOnlyPaths=/home/bisectable/git/whateverable/data/builds
