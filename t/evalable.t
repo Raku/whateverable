@@ -32,10 +32,10 @@ $t.test(‘“eval6:” shortcut’,
         ‘eval6: say ‘hello’’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
 
-$t.test(‘“commit” shortcut does not work’,
+$t.test(‘“eval” shortcut does not work’,
         ‘eval say ‘hello’’);
 
-$t.test(‘“commit6” shortcut does not work’,
+$t.test(‘“eval6” shortcut does not work’,
         ‘eval6 HEAD say ‘hello’’);
 
 $t.test(‘too long output is uploaded’,
