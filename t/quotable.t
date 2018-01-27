@@ -17,6 +17,7 @@ $t.shortcut-tests: <quote: quote6:>,
 # Basics
 $t.test(‘basic test’,
         “{$t.bot-nick}: /^ ‘bisect: ’ /”,
+        /^ <me($t)>‘, OK, working on it! This may take up to three minutes (’\d+‘ messages to process)’ $/,
         “{$t.our-nick}, https://whatever.able/fakeupload”,
        :150timeout);
 
@@ -29,6 +30,7 @@ $t.test-gist(‘all lines match our regex’,
 
 $t.test(‘invalid regex’,
         “{$t.bot-nick}: ‘foo”,
+        /^ <me($t)>‘, OK, working on it! This may take up to three minutes (’\d+‘ messages to process)’ $/,
         “{$t.our-nick}, https://whatever.able/fakeupload”);
 
 $t.test-gist(‘lots of results’,
