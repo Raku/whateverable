@@ -104,10 +104,12 @@ sub snapshot($msg?) {
         my $datetime = now.DateTime.truncated-to: ‘minute’;
         .reply: ‘OK! Working on it. This will take forever, so don't hold your breath.’ with $msg;
 
+        my $env = %*ENV.clone;
+        $env<PATH> = ‘/home/bisectable/.rakudobrew/bin/’ ~ ‘:’ ~ $env<PATH>; # TODO any better solution?
         mkdir “$temp-folder/GH”;
-        run ‘maintenance/pull-gh’, “$temp-folder/GH”; # TODO authenticate on github to get rid of unlikely rate limiting
+        run :$env, ‘maintenance/pull-gh’, “$temp-folder/GH”; # TODO authenticate on github to get rid of unlikely rate limiting
         mkdir “$temp-folder/RT”;
-        run ‘maintenance/pull-rt’, “$temp-folder/RT”, |$CONFIG<reportable><RT><user pass>;
+        run :$env, ‘maintenance/pull-rt’, “$temp-folder/RT”, |$CONFIG<reportable><RT><user pass>;
 
         # .move does not work with directories and .rename does not
         # work across devices, so just run ‘mv’
