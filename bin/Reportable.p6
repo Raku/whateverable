@@ -35,7 +35,7 @@ if !%*ENV<DEBUGGABLE> and !%*ENV<TESTABLE> {
         next if $next-date < now.DateTime;
         await Promise.at: $next-date.Instant;
         $semaphore.acquire; # released in the snapshot sub
-        snapshot;
+        await snapshot
     }
 }
 
