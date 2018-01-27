@@ -31,7 +31,7 @@ my $next-date = now.DateTime.truncated-to: ‘day’;
 
 if !%*ENV<DEBUGGABLE> and !%*ENV<TESTABLE> {
     start loop {
-        $next-date .= later(:6hour);
+        $next-date .= later: :6hours;
         next if $next-date < now.DateTime;
         await Promise.at: $next-date.Instant;
         $semaphore.acquire; # released in the snapshot sub
