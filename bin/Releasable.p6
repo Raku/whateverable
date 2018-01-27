@@ -142,7 +142,8 @@ sub blockers() {
     my %data = from-json $response.decoded-content;
     return { summary => ‘R6 is weird’ } unless %data<tickets>:exists;
     my @tickets = %data<tickets>.list;
-    return { summary => ‘No blockers’ } unless @tickets;
+    my $link = ｢https://github.com/rakudo/rakudo/issues?q=is:issue+is:open+label:%22%E2%9A%A0+blocker+%E2%9A%A0%22｣;
+    return { summary => “Blockers: $link” } unless @tickets;
     my $summary = “{+@tickets} blocker{@tickets ≠ 1 ?? ‘s’ !! ‘’}”;
     {:$summary, :@tickets}
 }
