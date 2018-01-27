@@ -18,19 +18,19 @@ $t.shortcut-tests: <e: e6: eval: eval6: what:>,
 
 $t.test(‘basic “nick:” query’,
         “{$t.bot-nick}: say ‘hello’”,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello␤»’ $/);
 
 $t.test(‘basic “nick,” query’,
         “{$t.bot-nick}, say ‘hello’”,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello␤»’ $/);
 
 $t.test(‘“eval:” shortcut’,
         ‘eval: say ‘hello’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello␤»’ $/);
 
 $t.test(‘“eval6:” shortcut’,
         ‘eval6: say ‘hello’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello␤»’ $/);
 
 $t.test(‘“eval” shortcut does not work’,
         ‘eval say ‘hello’’);
@@ -48,7 +48,7 @@ $t.test(‘too long output is uploaded’,
 
 $t.test(‘exit code’,
         ‘eval: say ‘foo’; exit 42’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(exit code 42) foo»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(exit code 42) foo␤»’ $/);
 
 
 $t.test(‘exit signal’,
@@ -59,7 +59,7 @@ $t.test(‘exit signal’,
 
 $t.test(‘stdin’,
         ‘eval: say lines[0]’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «♥🦋 ꒛㎲₊⼦🂴⧿⌟ⓜ≹℻ 😦⦀🌵 🖰㌲⎢➸ 🐍💔 🗭𐅹⮟⿁ ⡍㍷⽐»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «♥🦋 ꒛㎲₊⼦🂴⧿⌟ⓜ≹℻ 😦⦀🌵 🖰㌲⎢➸ 🐍💔 🗭𐅹⮟⿁ ⡍㍷⽐␤»’ $/);
 
 $t.test(‘set custom stdin’,
         ‘eval: stdIN custom string␤another line’,
@@ -67,7 +67,7 @@ $t.test(‘set custom stdin’,
 
 $t.test(‘test custom stdin’,
         ‘eval: dd lines’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «("custom string", "another line").Seq»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «("custom string", "another line").Seq␤»’ $/);
 
 $t.test(‘reset stdin’,
         ‘eval: stdIN rESet’,
@@ -75,35 +75,35 @@ $t.test(‘reset stdin’,
 
 $t.test(‘test stdin after reset’,
         ‘eval: say lines[0]’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «♥🦋 ꒛㎲₊⼦🂴⧿⌟ⓜ≹℻ 😦⦀🌵 🖰㌲⎢➸ 🐍💔 🗭𐅹⮟⿁ ⡍㍷⽐»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «♥🦋 ꒛㎲₊⼦🂴⧿⌟ⓜ≹℻ 😦⦀🌵 🖰㌲⎢➸ 🐍💔 🗭𐅹⮟⿁ ⡍㍷⽐␤»’ $/);
 
 $t.test(‘stdin line count’,
         ‘eval: say +lines’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «10»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «10␤»’ $/);
 
 $t.test(‘stdin word count’,
         ‘eval: say +$*IN.words’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «100»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «100␤»’ $/);
 
 $t.test(‘stdin char count’,
         ‘eval: say +slurp.chars’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «500»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «500␤»’ $/);
 
 $t.test(‘stdin numbers’,
         ‘eval: say slurp().comb(/\d+/)’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(4𝟮)»’/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(4𝟮)␤»’/);
 
 $t.test(‘stdin words’,
         ‘eval: say slurp().comb(/\w+/)’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(hello world 4𝟮)»’/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(hello world 4𝟮)␤»’/);
 
 $t.test(‘stdin No’,
         ‘eval: say slurp().comb(/<:No>+/)’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(½)»’/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(½)␤»’/);
 
 $t.test(‘stdin Nl’,
         ‘eval: say slurp().comb(/<:Nl>+/)’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(Ⅵ)»’/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(Ⅵ)␤»’/);
 
 $t.test(‘huge stdin is not replied back fully’,
         ‘eval: stdin https://raw.githubusercontent.com/perl6/mu/master/misc/camelia.txt’,
@@ -114,11 +114,11 @@ $t.test(‘huge stdin is not replied back fully’,
 #`{ What should we do with colors?
 $t.test(‘special characters’,
         ‘eval: say (.chr for ^128).join’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡␤»’ $/);
 
 $t.test(‘␤ works like an actual newline’,
         ‘eval: # This is a comment ␤ say ｢hello world!｣’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello world!»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello world!␤»’ $/);
 }
 
 # URLs
@@ -126,17 +126,17 @@ $t.test(‘␤ works like an actual newline’,
 $t.test(‘fetching code from urls’,
         ‘eval: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test␤»’ $/);
 
 $t.test(‘comment after a url’,
         ‘eval: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 # this is a comment’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test␤»’ $/);
 
 $t.test(‘comment after a url (without #)’,
         ‘eval: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 ← like this!’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «url test␤»’ $/);
 
 $t.test(‘wrong url’,
         ‘eval: http://github.com/sntoheausnteoahuseoau’,
@@ -158,15 +158,15 @@ $t.test(‘malformed link (could not parse)’,
 
 $t.test(‘Answers on ‘m: ’ when camelia is not around’,
         ‘m: say ‘42’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
 
 $t.test(‘‘m:’ without space is also fine’,
         ‘m:say ‘42’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
 
 $t.test(‘‘m:’ is not even needed’,
         ‘say ‘42’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
 
 $t.test(‘autodetection is smart enough’,
         ‘say you actually start your message with “say”’);
@@ -184,7 +184,7 @@ sleep 1;
 
 $t.test(‘Answers on ‘m:’ when camelia is not around again’,
         ‘m: say ‘44’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «44»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «44␤»’ $/);
 
 # Timeouts
 

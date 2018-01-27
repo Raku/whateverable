@@ -48,7 +48,7 @@ $t.test(‘inverted exit signal’,
 $t.test(‘nothing to bisect’,
         ‘bisect: say ‘hello world’; exit 42’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 42 and the output is identical as well’ $/,
-        “{$t.our-nick}, Output on both points: «hello world»”);
+        “{$t.our-nick}, Output on both points: «hello world␤»”);
 
 $t.test(‘nothing to bisect, segmentation fault everywhere’,
         ‘bisect: old=2016.02 new=2016.03 Buf.new(0xFE).decode(‘utf8-c8’)’,
@@ -116,13 +116,13 @@ $t.test(‘mixed term styles’,
 $t.test(‘special characters’,
         ‘bisect: say (.chr for ^128).join’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
-        “{$t.our-nick}, Output on both points: ” ~ ‘«␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡»’);
+        “{$t.our-nick}, Output on both points: ” ~ ‘«␀␁␂␃␄␅␆␇␈␉␤␋␌␍␎␏␐␑␒␓␔␕␖␗␘␙␚␛␜␝␞␟ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~␡␤»’);
 }
 
 $t.test(‘␤ works like an actual newline’,
         ‘bisect: # newline test ␤ say ‘hello world’; exit 42’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 42 and the output is identical as well’ $/,
-        “{$t.our-nick}, Output on both points: «hello world»”);
+        “{$t.our-nick}, Output on both points: «hello world␤»”);
 
 # URLs
 
@@ -130,19 +130,19 @@ $t.test(‘fetching code from urls’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
-        “{$t.our-nick}, Output on both points: «url test»”);
+        “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(‘comment after a url’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 # this is a comment’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
-        “{$t.our-nick}, Output on both points: «url test»”);
+        “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(‘comment after a url (without #)’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 ← like this!’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
-        “{$t.our-nick}, Output on both points: «url test»”);
+        “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(‘wrong url’,
         ‘bisect: http://github.com/sntoheausnteoahuseoau’,
