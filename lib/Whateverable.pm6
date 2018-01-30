@@ -341,11 +341,14 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
 sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :@args=Empty,
                 :$timeout=$default-timeout||10, :$stdin=$default-stdin, :$ENV) is export {
     run-smth :$backend, $full-commit-hash, -> $path {
-        “$path/bin/perl6”.IO !~~ :e
+        my $binary-path = $path.IO.add: ‘bin/perl6’;
+        my %tweaked-env = $ENV // ();
+        %tweaked-env<PATH> = join ‘:’, $binary-path.parent, (%tweaked-env<PATH> // Empty);
+        $binary-path.IO !~~ :e
         ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
              exit-code => -1, signal => -1, time => -1,)
-        !! get-output “$path/bin/perl6”, |@args,
-                      ‘--’, $file, :$stdin, :$timeout, :$ENV, :!chomp
+        !! get-output $binary-path, |@args,
+                      ‘--’, $file, :$stdin, :$timeout, ENV => %tweaked-env, :!chomp
     }
 }
 
