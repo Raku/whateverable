@@ -342,7 +342,7 @@ sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :@args=Em
                 :$timeout=$default-timeout||10, :$stdin=$default-stdin, :$ENV) is export {
     run-smth :$backend, $full-commit-hash, -> $path {
         my $binary-path = $path.IO.add: ‘bin/perl6’;
-        my %tweaked-env = $ENV // ();
+        my %tweaked-env = $ENV // %*ENV;
         %tweaked-env<PATH> = join ‘:’, $binary-path.parent, (%tweaked-env<PATH> // Empty);
         $binary-path.IO !~~ :e
         ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
