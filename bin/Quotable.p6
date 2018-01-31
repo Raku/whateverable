@@ -50,7 +50,8 @@ sub process-channel($file, $channel, $regex-str) {
         my @parts = .split: “\0”; # text, id, date
         my $backticks = ｢`｣ x (1 + (@parts[0].comb(/｢`｣+/) || ‘’).max.chars);
         # TODO proper escaping
-        “[$backticks @parts[0] $backticks]($LINK/$channel/@parts[2]#i_@parts[1])<br>”
+        @parts ≤ 1 ?? $_
+        !! “[$backticks @parts[0] $backticks]($LINK/$channel/@parts[2]#i_@parts[1])<br>”
     }).join(“\n”)
 }
 
