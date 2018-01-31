@@ -22,10 +22,10 @@ $t.test(‘basic test’,
        :150timeout);
 
 $t.test-gist(‘lots of results’,
-             %(‘result’ => { .lines > 390 }));
+             %(‘result-#perl6.md’ => { 370 < .lines < 10_000 }));
 
 $t.test-gist(‘all lines match our regex’,
-             %(‘result’ => { so .lines.all.starts-with(‘bisect:’) }));
+             %(‘result-#perl6.md’ => { so .lines.all.starts-with(‘[` bisect:’) }));
 
 
 $t.test(‘invalid regex’,
@@ -33,24 +33,24 @@ $t.test(‘invalid regex’,
         /^ <me($t)>‘, OK, working on it! This may take up to three minutes (’\d+‘ messages to process)’ $/,
         “{$t.our-nick}, https://whatever.able/fakeupload”);
 
-$t.test-gist(‘lots of results’,
+$t.test-gist(‘error message gisted’,
              %(‘result’ => /^ ‘===SORRY!=== Error while compiling’ /));
 
-
 # Non-bot tests
-todo ‘outdated data (issue #192)’, 2;
 subtest ‘all channels have recent data’, {
     my @tracked-channels = dir ‘data/irc’, test => { .starts-with(‘#’) && “data/irc/$_”.IO.d };
     ok @tracked-channels > 0, ‘at least one channel is tracked’;
     for @tracked-channels {
+        dd $_;
         my $exists = “$_/{DateTime.now.earlier(:2days).Date}”.IO.e;
+        todo ‘outdated data (issue #192)’, 3;
         ok $exists, “{.basename} is up-to-date (or was up-to-date 2 days ago)”;
+        cmp-ok “$_.cache”.IO.modified.DateTime, &[>], DateTime.now.earlier(:2days),
+               “$_ cache file was recently updated”;
+        cmp-ok “$_.total”.IO.modified.DateTime, &[>], DateTime.now.earlier(:2days),
+               “$_ cache file was recently updated”;
     }
 }
-
-cmp-ok ‘data/irc/cache’.IO.modified.DateTime, &[>], DateTime.now.earlier(:2days),
-       ‘cache file was recently updated’;
-
 
 $t.last-test;
 done-testing;
