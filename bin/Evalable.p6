@@ -41,25 +41,14 @@ multi method irc-to-me($msg) {
 
 #↓ Detect if somebody accidentally forgot “m:” or other command prefix
 multi method irc-privmsg-channel($msg) {
-    nextsame if $msg.args[1] !~~ /
-    ^ ‘say’ \s+
-    <!before ‘I’ [\s | ‘'’]>
-    [
-        || [ [<:Uppercase> || ‘'’ || ‘"’ || ｢“｣ || ｢‘｣ ] .* $ ]
-        || [ (.*) $ <?{$0.chars / $0.comb(/<-alpha -space>/) ≤ 10 }> ]
-    ]
-    <!after <[.!?]>>
-    /;
-    # So it only works on “say”, intentionally omits “say I”, omits
-    # anything that ends in a period, question mark, or exclamation
-    # point, automatically operates on ｢say “…”｣, and otherwise
-    # requires a word/nonword character ratio of 10 or less.
-    # These rules were created by grepping through IRC history with
-    # Quotable.
-    self.irc-to-me: $msg
+    my $nonword-ratio = $msg.args[1].comb(/<-alpha -space>/) ÷ $msg.args[1].chars;
+    nextsame if $nonword-ratio < 0.1; # skip if doesn't look like code at all
+    nextsame if $msg.args[1] ~~ /^ \w+‘:’ /; # skip messages to other bots
+
+    self.process: $msg, $msg.args[1], :good-only
 }
 
-method process($msg, $code is copy) {
+method process($msg, $code is copy, :$good-only?) {
     my $commit = ‘HEAD’;
     $code = self.process-code: $code, $msg;
     my $filename = write-code $code;
@@ -70,12 +59,19 @@ method process($msg, $code is copy) {
     my $short-commit = to-full-commit $commit, :short;
 
     if not build-exists $full-commit {
+        return if $good-only;
         grumble “No build for $short-commit. Not sure how this happened!”
     }
 
     # actually run the code
     my $result = run-snippet $full-commit, $filename;
     my $output = $result<output>;
+    if $good-only {
+        return if $result<exit-code> ≠ 0 or $result<signal> ≠ 0;
+        return if !$output;
+        return if $output ~~ /^‘WARNINGS for ’\N*\n‘Useless use’/;
+        return if $output ~~ /^‘Use of uninitialized value of type Any in string context.’/;
+    }
     my $extra  = ‘’;
     if $result<signal> < 0 { # numbers less than zero indicate other weird failures
         $output = “Cannot test $full-commit ($output)”
