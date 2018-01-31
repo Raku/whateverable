@@ -76,7 +76,7 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
     } elsif not build-exists $full-commit {
         $output = ‘No build for this commit’
     } else { # actually run the code
-        my $log = “coverage_{now.to-posix[0]}.log”;
+        my $log = $*TMPDIR.add: “coverage_{now.to-posix[0]}.log”; # TODO proper temp file name
         LEAVE { unlink $log }
 
         %*ENV<MVM_COVERAGE_LOG> = $log;
