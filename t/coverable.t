@@ -24,7 +24,7 @@ $t.test(‘basic query on HEAD’,
 $t.test-gist(‘basic gist test’, # let's assume say proto is not going to change
              %(‘result.md’ =>
                /^^ ｢| [src/core/io_operators.pm#L｣ (\d+) ｢](https://github.com/rakudo/rakudo/blob/｣
-               <:hex>**40 ｢/src/core/io_operators.pm#L｣ $0 ｢) | ```proto sub say(\|) { * }``` |｣ $$/));
+               <:hex>**40 ｢/src/core/io_operators.pm#L｣ $0 ｢) | ```proto sub say(\|) {*}``` |｣ $$/));
 
 $t.test(‘using grep option’,
         “{$t.bot-nick}: 2017.06 grep=SETTING say ‘hi’”,
