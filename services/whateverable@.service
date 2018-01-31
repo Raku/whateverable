@@ -13,6 +13,8 @@ Environment=PERL6LIB=/home/bisectable/git/whateverable/lib
 #Environment=DEBUGGABLE=1
 WorkingDirectory=/home/bisectable/git/whateverable
 StandardInput=file:/home/bisectable/git/whateverable/config.json
+StandardOutput=journal
+StandardError=journal
 
 NoNewPrivileges=yes
 ProtectSystem=strict
