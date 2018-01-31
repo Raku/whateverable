@@ -54,7 +54,6 @@ constant Message = IRC::Client::Message;
 unit role Whateverable[:$default-timeout = 10] does IRC::Client::Plugin does Helpful;
 
 my $default-stdin = slurp ‘stdin’;
-has $!bad-releases = set ‘2016.01’, ‘2016.01.1’;
 
 method TWEAK {
     # wrap around everything to catch exceptions
@@ -385,7 +384,6 @@ method get-tags($date, :$repo=$RAKUDO) {
     for get-output(cwd => $repo, ‘git’, ‘log’, ‘--pretty="%d"’,
                    ‘--tags’, ‘--no-walk’, “--since=$date”)<output>.lines -> $tag {
         next unless $tag ~~ /:i ‘tag:’ \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) /; # TODO use tag -l
-        next if $!bad-releases{$0}:exists;
         next if %seen{$0[0]}++;
         @tags.push($0)
     }
