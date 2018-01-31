@@ -18,7 +18,10 @@ $t.shortcut-tests: <grep: grep6:>,
 
 $t.test(‘basic query’,
         “{$t.bot-nick}: password”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”);
+        /^ <me($t)>‘, ’(\d+)‘ lines, ’(\d+)‘ modules:’
+           { cmp-ok +~$0, &[>], +~$1, ‘more lines than modules’ }
+          ‘ https://whatever.able/fakeupload’ $/);
+
 
 $t.test-gist(‘something was found’,
              %(‘result.md’ => /‘password’/));
@@ -35,7 +38,7 @@ $t.test-gist(‘“…” is not added to root files’,
 
 $t.test(‘another query’,
         “{$t.bot-nick}: I have no idea”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”);
+        /^ <me($t)>‘, ’\d+‘ lines, ’\d+‘ modules: https://whatever.able/fakeupload’ $/);
 
 $t.test-gist(‘Proper format’, # assume that tadzik's modules don't change
              %(‘result.md’ =>
@@ -47,7 +50,7 @@ $t.test-gist(‘Proper format’, # assume that tadzik's modules don't change
 
 $t.test(:40timeout, ‘the output of git grep is split by \n, not something else’,
         “{$t.bot-nick}: foo”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”);
+        /^ <me($t)>‘, ’\d+‘ lines, ’\d+‘ modules: https://whatever.able/fakeupload’ $/);
 
 $t.test-gist(‘“\r” is actually in the output’,
              %(‘result.md’ => /“\r”/));

@@ -67,7 +67,9 @@ sub process-grep-line($line, %commits) { # 🙈
         }
         my $short-path = $long-path.subst: /^ .*‘/’ /, ‘’;
         $short-path = “…/$short-path”;# if $long-path ne $short-path;
-        $start = “[{$repo}<br>``{$short-path}`` :*$line-number*:]($link)”
+        $start = “[{$repo}<br>``{$short-path}`` :*$line-number*:]($link)”;
+
+        take ~$repo # used for stats in PrettyLink
     }
     $text = shorten $text, 300; # do not print too long lines
     $text = markdown-escape $text;
@@ -95,9 +97,14 @@ multi method irc-to-me($msg) {
     grumble ‘Found nothing!’ unless $result<output>;
 
     my %commits = ();
-    my $gist = “| File | Code |\n|--|--|\n”
-      ~ $result<output>.split(“\n”).map({process-grep-line $_, %commits}).join: “\n”;
-    ‘’ but FileStore({ ‘result.md’ => $gist })
+    my $gist = “| File | Code |\n|--|--|\n”;
+    my $stats = gather {
+        $gist ~= $result<output>.split(“\n”).map({process-grep-line $_, %commits}).join: “\n”;
+    }
+    my $total   = $stats.elems;
+    my $modules = $stats.Set.elems;
+    (‘’ but FileStore({ ‘result.md’ => $gist }))
+    but PrettyLink({“$total lines, $modules modules: $_”})
 }
 
 
