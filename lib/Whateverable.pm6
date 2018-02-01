@@ -172,6 +172,7 @@ multi method irc-to-me($) {
 }
 
 sub I'm-alive is export {
+    return if %*ENV<TESTABLE> or %*ENV<DEBUGGABLE>;
     use NativeCall;
     sub sd_notify(int32, str --> int32) is native(‘systemd’) {*};
     sd_notify 0, ‘WATCHDOG=1’; # this may be called too often, see TODO below
