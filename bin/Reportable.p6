@@ -48,7 +48,9 @@ method help($msg) {
 }
 
 multi method irc-to-me($msg where ‘list’) {
-    ‘’ but ProperStr(report-dirs.reverse.map(*.basename).join: “\n”)
+    my $list = report-dirs.reverse.map(*.basename).join: “\n”;
+    return ‘No snapshots yet!’ unless $list;
+    ‘’ but ProperStr($list)
 }
 
 multi method irc-to-me($msg where ‘monthly’) {
