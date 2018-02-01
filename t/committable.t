@@ -10,9 +10,9 @@ my $t = Testable.new: bot => ‘Committable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: f583f22,HEAD say ‘hello’; say ‘world’”;
 
-$t.shortcut-tests: <c: c6: commit: commit6: what:
-                   mc: ec: mch: ech: ma: all: what: 6c: v6c: v6.c: 6.c:>,
-                   <c c, c6 c6, commit commit, commit6 commit6, what what,
+$t.shortcut-tests: <c: c6: commit: commit6:
+                   mc: ec: mch: ech: ma: all: 6c: v6c: v6.c: 6.c:>,
+                   <c c, c6 c6, commit commit, commit6 commit6, what:
                    mc  ec  mch  ech  ma  all  what  6c  v6c  v6.c  6.c
                    mc, ec, mch, ech, ma, all, what, 6c, v6c, v6.c, 6.c,>;
 
@@ -144,14 +144,6 @@ $t.test(‘“6c” query’,
         ‘commit: 6c say $*PERL’,
         /^ $($t.our-nick) ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)␤»’ $/,
         :20timeout);
-
-$t.test(‘“what:” query’,
-        ‘what: say $*PERL’,
-        /^ $($t.our-nick) ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)␤»’ $/,
-        :20timeout);
-
-$t.test(‘“what,” does not work’,
-        ‘what, say ‘what, is actually working…’’);
 
 $t.test(‘“6c,” does not work’,
         ‘6c, say ‘6c, is actually working…’’);

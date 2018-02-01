@@ -59,6 +59,9 @@ method TWEAK {
     # wrap around everything to catch exceptions
     once { # per class
         self.^lookup(‘irc-to-me’).wrap: sub ($self, $msg) {
+            return if $msg.channel ne $CAVE and $msg.args[1].starts-with: ‘what:’;
+            # ↑ ideally this check shouldn't be here, but it's much harder otherwise
+
             LEAVE sleep 0.02; # https://github.com/perl6/whateverable/issues/163
             try { with (callsame) { return $_ but Reply($msg) } else { return } }
             $self.handle-exception: $!, $msg
