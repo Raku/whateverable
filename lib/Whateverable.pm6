@@ -483,7 +483,7 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
 
     %files = %files.pairs.map: { .key => %( ‘content’ => .value ) }; # github format
 
-    my $gist = Pastebin::Gist.new(token => $CONFIG<github><access_token>);
+    my $gist = Pastebin::Gist.new(token => $CONFIG<github><access_token> || Nil);
     return $gist.paste: %files, desc => $description, public => $public
 }
 
