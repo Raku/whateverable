@@ -156,28 +156,43 @@ $t.test(‘malformed link (could not parse)’,
 
 # Camelia replacement
 
-$t.test(‘Answers on ‘m: ’ when camelia is not around’,
-        ‘m: say ‘42’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
+$t.test(‘answers on ‘m: ’ when camelia is not around’,
+        ‘m: say ‘41’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «41␤»’ $/);
 
-$t.test(‘‘m:’ without space is also fine’,
+$t.test(‘answers on ‘m:’ without a space when camelia is not around’,
         ‘m:say ‘42’’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
+
+$t.test(‘answers on ‘ m: ’ with an extra space when camelia is not around’,
+        ‘ m: say ‘43’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «43␤»’ $/);
 
 my $camelia = IRC::Client.new(:nick(‘camelia’) :host<127.0.0.1>
                               :channels<#whateverable_evalable6>);
 start $camelia.run;
 sleep 1;
 
-$t.test(‘Camelia is back, be silent’,
-        ‘m: say ‘43’’);
+$t.test(‘camelia is back, be silent (‘m: ’)’,
+        ‘m: say ‘44’’);
+
+$t.test(‘camelia is back, be silent (‘ m: ’)’,
+        ‘ m: say ‘45’’);
+
+$t.test(‘answers on ‘m:’ without a space in front of camelia’,
+        ‘m:say ‘46’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «46␤»’ $/);
 
 $camelia.quit;
 sleep 1;
 
-$t.test(‘Answers on ‘m:’ when camelia is not around again’,
-        ‘m: say ‘44’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «44␤»’ $/);
+$t.test(‘answers on ‘m: ’ when camelia is not around again’,
+        ‘m: say ‘47’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «47␤»’ $/);
+
+$t.test(‘answers on ‘ m: ’ with an extra space when camelia is not around again’,
+        ‘ m: say ‘48’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «48␤»’ $/);
 
 # Code autodetection
 
