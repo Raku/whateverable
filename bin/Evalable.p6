@@ -66,8 +66,10 @@ method process($msg, $code is copy, :$good-only?) {
     # actually run the code
     my $result = run-snippet $full-commit, $filename;
     my $output = $result<output>;
-    if $good-only {
-        return if $result<exit-code> ≠ 0 or $result<signal> ≠ 0;
+    if $good-only and ($result<signal> ≤ 0 or $result<signal> == SIGHUP) {
+        # forcefully proceed ↑ with non-zero signals (except sighupped timeouts)
+        return if $result<signal>    ≠ 0;
+        return if $result<exit-code> ≠ 0;
         return if !$output;
         return if $output ~~ /^‘WARNINGS for ’\N*\n‘Useless use’/;
         return if $output ~~ /^‘Use of uninitialized value of type Any in string context.’/;

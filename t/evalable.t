@@ -164,13 +164,6 @@ $t.test(‘‘m:’ without space is also fine’,
         ‘m:say ‘42’’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
 
-$t.test(‘‘m:’ is not even needed’,
-        ‘say ‘42’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
-
-$t.test(‘autodetection is smart enough’,
-        ‘say you actually start your message with “say”’);
-
 my $camelia = IRC::Client.new(:nick(‘camelia’) :host<127.0.0.1>
                               :channels<#whateverable_evalable6>);
 start $camelia.run;
@@ -185,6 +178,38 @@ sleep 1;
 $t.test(‘Answers on ‘m:’ when camelia is not around again’,
         ‘m: say ‘44’’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «44␤»’ $/);
+
+# Code autodetection
+
+$t.test(‘‘m:’ is not even needed’,
+        ‘say ‘42’’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
+
+$t.test(‘autodetection is smart enough’,
+        ‘say you actually start your message with “say”’);
+
+$t.test(‘advanced autodetection’,
+        ‘42 . note; my $x = 50’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
+
+$t.test(‘invalid code is ignored’,
+        ‘42 .note∞ my $x = 50’);
+
+$t.test(‘useless stuff is ignored’,
+        ‘42’);
+
+$t.test(‘whitespace-only stuff is ignored’,
+        ‘    ’);
+
+$t.test(‘empty output is ignored’,
+        ‘my $x = 42’);
+
+$t.test(‘timeouts are ignored’,
+        ‘sleep ∞’);
+
+$t.test(‘segfaults are not ignored’,
+        ‘use NativeCall; sub strdup(int64) is native(Str) {*}; strdup(0)’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(signal SIGSEGV) »’ $/);
 
 # Timeouts
 
