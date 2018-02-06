@@ -72,6 +72,7 @@ method process($msg, $code is copy, :$good-only?) {
         return if $result<exit-code> ≠ 0;
         return if !$output;
         return if $output ~~ /^‘WARNINGS for ’\N*\n‘Useless use’/;
+        return if $output ~~ /^‘Potential difficulties:’/;
         return if $output ~~ /^‘Use of uninitialized value of type Any in string context.’/;
     }
     my $extra  = ‘’;

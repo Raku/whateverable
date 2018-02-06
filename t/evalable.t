@@ -222,6 +222,9 @@ $t.test(‘empty output is ignored’,
 $t.test(‘timeouts are ignored’,
         ‘sleep ∞’);
 
+$t.test(‘s/…/…/ is ignored’,
+        ‘s/each block/each comp unit/;’);
+
 $t.test(‘segfaults are not ignored’,
         ‘use NativeCall; sub strdup(int64) is native(Str) {*}; strdup(0)’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(signal SIGSEGV) »’ $/);
