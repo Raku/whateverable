@@ -16,7 +16,8 @@ for @bots -> $file {
     my $bot = to-name $file;
     task ‘debug:’ ~ ( $bot | $bot.lc ), {
         note “Starting $bot…”;
-        run $file, :in(‘config.json’.IO.open),
+        my $config = ‘config.json’.IO.open || ‘config-default.json’.IO.open;
+        run $file, :in($config),
                    :env(|%*ENV, PERL6LIB => ‘lib’, DEBUGGABLE => 1);
         True
     }
