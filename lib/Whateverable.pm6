@@ -460,6 +460,7 @@ multi method filter($response where (.encode.elems > MESSAGE-LIMIT
     if $response ~~ Reply {
         $description = $response.msg.server.current-nick;
         %files<query> = $_ with $response.?msg.text;
+        %files<query>:delete unless %files<query>;
     }
     my $url = self.upload: %files, public => !%*ENV<DEBUGGABLE>, :$description;
     $url = $response.link-msg()($url) if $response ~~ PrettyLink;
