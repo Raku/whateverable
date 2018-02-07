@@ -150,8 +150,8 @@ class Testable {
                       ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
 
 
-        self.test(‘typo-ed name’,
-                  “bl{$.bot-nick.substr: 1}: source”, # mangle it just a little bit
+        self.test(‘typoed name’,
+                  “z{$.bot-nick.substr: 1}: source”, # mangle it just a little bit
                   “$.our-nick, https://github.com/perl6/whateverable”);
 
         self.test(‘no space after name (semicolon delimiter)’,
