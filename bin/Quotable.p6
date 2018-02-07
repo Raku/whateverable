@@ -56,6 +56,6 @@ sub process-channel($file, $channel, $regex-str) {
 }
 
 Quotable.new.selfrun: ‘quotable6’, [ / quote6? <before ‘:’> /,
-                                     fuzzy-nick(‘quotable6’, 2) ]
+                                     fuzzy-nick(‘quotable6’, 1) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6
