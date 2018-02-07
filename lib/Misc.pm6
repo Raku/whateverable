@@ -37,6 +37,10 @@ sub signal-to-text($signal) is export {
     “$signal ({Signal($signal) // ‘None’})”
 }
 
+sub s($count, $word) is export {
+    +$count ~ ‘ ’ ~ $word ~ ($count == 1 ?? ‘’ !! ‘s’)
+}
+
 sub markdown-escape($text) is export {
     # TODO is it correct? No, that's an ugly hack…
     $text.trans: (｢<｣,   ｢>｣,  ｢&｣,  ｢\｣,  ｢`｣,  ｢*｣,  ｢_｣,  ｢~｣) =>
