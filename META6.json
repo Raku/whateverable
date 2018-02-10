@@ -12,6 +12,7 @@
     "depends"     : [
         "App::GPTrixie",
         "Config::INI",
+        "Cro",
         "Digest",
         "Digest::HMAC",
         "File::Directory::Tree",
