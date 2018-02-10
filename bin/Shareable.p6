@@ -64,6 +64,6 @@ multi method irc-to-me($msg where /^ $<build>=[\S+] $/) {
     “https://whateverable.6lang.org/$<build>”
 }
 
-Shareable.new.selfrun: ‘shareable’, [ fuzzy-nick(‘shareable6’, 2) ]
+Shareable.new.selfrun: ‘shareable6’, [ fuzzy-nick(‘shareable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6
