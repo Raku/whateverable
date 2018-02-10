@@ -273,10 +273,48 @@ sub perl6-grep($stdin, $regex is copy, :$timeout = 180, :$complex = False, :$hac
     @elems
 }
 
+sub fetch-build($full-commit-hash, :$backend!) {
+    my $ua = HTTP::UserAgent.new;
+    $ua.timeout = 10;
+
+    my $arch = $*KERNEL.name ~ ‘-’ ~ $*KERNEL.hardware;
+    my $link = “{$CONFIG<mothership>}/$full-commit-hash?type=$backend&arch=$arch”;
+    note “Attempting to fetch $full-commit-hash…”;
+
+    my $response = $ua.get: :bin, $link;
+    return unless $response.is-success;
+
+    my $disposition = $response.header.field(‘Content-Disposition’).values[0];
+    return unless $disposition ~~ /‘filename=’\s*(<.xdigit>+[‘.zst’|‘.lrz’])/;
+
+    my $location = ARCHIVES-LOCATION.IO.add: $backend;
+    my $archive  = $location.add: ~$0;
+    spurt $archive, $response.content, :bin;
+
+    if $archive.ends-with: ‘.lrz’ { # populate symlinks
+        my $proc = run :out, :bin, <lrzip -dqo - -->, $archive;
+        my $list = run :in($proc.out), :out, <tar --list --absolute-names>;
+        my @builds = gather for $list.out.lines { # TODO assumes paths without newlines, dumb but I don't see another way
+            take ~$0 if /^‘/tmp/whateverable/’$backend‘/’(<.xdigit>+)‘/’/;
+        }
+        for @builds.unique {
+            my $symlink = $location.add: $_;
+            $symlink.unlink if $symlink.e; # remove existing (just in case)
+            $archive.IO.symlink: $symlink;
+        }
+    }
+
+    return $archive
+}
+
 sub build-exists($full-commit-hash, :$backend=‘rakudo-moar’) is export {
-    “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”.IO ~~ :e
-    or
-    “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”.IO ~~ :e # long-term storage (symlink to a large archive)
+    my $archive     = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”.IO;
+    my $archive-lts = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”.IO;
+    # ↑ long-term storage (symlink to a large archive)
+
+    my $answer = ($archive, $archive-lts).any.e.so;
+    return so fetch-build $full-commit-hash, :$backend if !$answer && $CONFIG<mothership>;
+    $answer
 }
 
 method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
