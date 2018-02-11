@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-# Copyright © 2016-2017
+# Copyright © 2016-2018
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 # Copyright © 2016
 #     Daniel Green <ddgreen@gmail.com>
@@ -33,7 +33,8 @@ method help($msg) {
 }
 
 multi method irc-to-me($msg) {
-    return self.process: $msg, $msg.text if $msg.args[1] !~~ / ^ \s*‘m:’\s /;
+    return self.process: $msg, $msg.text if $msg.args[1] !~~
+                                /^ \s*[master|rakudo|r|‘r-m’|m|p6|perl6]‘:’\s /;
     self.make-believe: $msg, (‘camelia’,), {
         self.process: $msg, $msg.text
     }
@@ -43,7 +44,7 @@ multi method irc-to-me($msg) {
 multi method irc-privmsg-channel($msg) {
     my $nonword-ratio = $msg.args[1].comb(/<-alpha -space>/) ÷ $msg.args[1].chars;
     nextsame if $nonword-ratio < 0.1; # skip if doesn't look like code at all
-    nextsame if $msg.args[1] ~~ /^ \s*\w+‘:’ /; # skip messages to other bots
+    nextsame if $msg.args[1] ~~ /^ \s*<[\w-]>+‘:’ /; # skip messages to other bots
 
     self.process: $msg, $msg.args[1], :good-only
 }
@@ -101,7 +102,8 @@ method process($msg, $code is copy, :$good-only?) {
     (‘’ but ProperStr($gist)) but PrettyLink({ “Full output: $_” })
 }
 
-Evalable.new.selfrun: ‘evalable6’, [/ [ \s*m | e[val]?6? | what ] <before ‘:’> /,
+Evalable.new.selfrun: ‘evalable6’, [/ [ | \s*[master|rakudo|r|‘r-m’|m|p6|perl6]
+                                        | e[val]?6? | what ] <before ‘:’> /,
                                     fuzzy-nick(‘evalable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

@@ -156,43 +156,38 @@ $t.test(‘malformed link (could not parse)’,
 
 # Camelia replacement
 
-$t.test(‘answers on ‘m: ’ when camelia is not around’,
-        ‘m: say ‘41’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «41␤»’ $/);
+my @alts = <master rakudo r r-m m p6 perl6>;
 
-$t.test(‘answers on ‘m:’ without a space when camelia is not around’,
-        ‘m:say ‘42’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤»’ $/);
-
-$t.test(‘answers on ‘ m: ’ with an extra space when camelia is not around’,
-        ‘ m: say ‘43’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «43␤»’ $/);
+for (‘’, ‘ ’) X~ (@alts X~ ‘: ’, ‘:’) {
+    $t.test(“answers on ‘$_’ when camelia is not around”,
+            $_ ~ “say ‘$_’”,
+            /^ <me($t)>‘, rakudo-moar ’<sha>“: OUTPUT: «$_␤»” $/)
+}
 
 my $camelia = IRC::Client.new(:nick(‘camelia’) :host<127.0.0.1>
                               :channels<#whateverable_evalable6>);
 start $camelia.run;
 sleep 1;
 
-$t.test(‘camelia is back, be silent (‘m: ’)’,
-        ‘m: say ‘44’’);
+for (‘’, ‘ ’) X~ (@alts X~ ‘: ’) {
+    $t.test(“camelia is back, be silent (‘$_’)”,
+            $_ ~ “say ‘$_’”)
+}
 
-$t.test(‘camelia is back, be silent (‘ m: ’)’,
-        ‘ m: say ‘45’’);
-
-$t.test(‘answers on ‘m:’ without a space in front of camelia’,
-        ‘m:say ‘46’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «46␤»’ $/);
+for (‘’, ‘ ’) X~ (@alts X~ ‘:’) {
+    $t.test(:30timeout, “but answers on ‘$_’ without a space”,
+            $_ ~ “say ‘$_’”,
+            /^ <me($t)>‘, rakudo-moar ’<sha>“: OUTPUT: «$_␤»” $/)
+}
 
 $camelia.quit;
 sleep 1;
 
-$t.test(‘answers on ‘m: ’ when camelia is not around again’,
-        ‘m: say ‘47’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «47␤»’ $/);
-
-$t.test(‘answers on ‘ m: ’ with an extra space when camelia is not around again’,
-        ‘ m: say ‘48’’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «48␤»’ $/);
+for (‘’, ‘ ’) X~ (@alts X~ ‘: ’, ‘:’) {
+    $t.test(“answers on ‘$_’ when camelia is not around again”,
+            $_ ~ “say ‘$_’”,
+            /^ <me($t)>‘, rakudo-moar ’<sha>“: OUTPUT: «$_␤»” $/)
+}
 
 # Code autodetection
 
