@@ -28,12 +28,33 @@ my $host-arch = $*KERNEL.hardware;
 $host-arch = ‘amd64’|‘x86_64’ if $host-arch eq ‘amd64’|‘x86_64’;
 $host-arch = $*KERNEL.name ~ ‘-’ ~ $host-arch;
 
+sub cached-archive($build where ‘HEAD.tar.gz’, :$backend=‘rakudo-moar’, :$arch) {
+    my $repo = $backend eq ‘rakudo-moar’ ?? $RAKUDO !! MOARVM;
+    my $full-commit = to-full-commit ‘HEAD’, :$repo; # TODO that's slightly repetitive
+    my $file = “/tmp/whateverable/shareable/$backend/$full-commit.tar.gz”.IO;
+    if not $file.e {
+        run-smth :$backend, $full-commit, sub ($build-path) {
+            # can only be in this block once because
+            # it locks on the build while it's used
+            return if $file.e;
+            mkdir $file.IO.parent; # for the first run
+            .unlink for $file.IO.parent.dir; # TODO any way to be more selective?
+            my $proc = run <tar --create --gzip --absolute-names --file>, $file, ‘--’, $build-path;
+            # TODO what if it failed? Can it fail?
+            # TODO Some race-ness is still not handled
+        }
+    }
+    header ‘Content-Disposition’, “attachment; filename="{$file.IO.basename}"”;
+    static ~$file
+}
+
 my $application = route {
     get sub ($build, :$type=‘rakudo-moar’, :$arch) {
         return not-found if $arch and $arch ne $host-arch;
         my $backend = $type; # “backend” is used internally but sounds weird
         # TODO change once resolved: https://github.com/croservices/cro-http/issues/21
         return bad-request unless $backend ~~ <rakudo-moar moarvm>.any;
+        return cached-archive $build, :$backend, :$arch if $build eq ‘HEAD.tar.gz’;
         my $repo = $backend eq ‘rakudo-moar’ ?? $RAKUDO !! MOARVM;
         my $full-commit = to-full-commit $build, :$repo;
         return not-found unless $full-commit;
