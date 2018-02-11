@@ -43,8 +43,8 @@ sub s($count, $word) is export {
 
 sub markdown-escape($text) is export {
     # TODO is it correct? No, that's an ugly hack…
-    $text.trans: (｢<｣,   ｢>｣,  ｢&｣,  ｢\｣,  ｢`｣,  ｢*｣,  ｢_｣,  ｢~｣) =>
-                 (｢\<｣, ｢\>｣, ｢\&｣, ｢\\｣, ｢\`｣, ｢\*｣, ｢\_｣, ｢\~｣); # ｣);
+    $text.trans: (｢<｣,   ｢>｣,  ｢&｣,  ｢\｣,  ｢`｣,  ｢*｣,  ｢_｣,  ｢~｣,  ｢|｣) =>
+                 (｢\<｣, ｢\>｣, ｢\&｣, ｢\\｣, ｢\`｣, ｢\*｣, ｢\_｣, ｢\~｣, ｢\|｣); # ｣);
 }
 
 sub html-escape($text) is export {
