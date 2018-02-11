@@ -11,10 +11,12 @@ my $t = Testable.new: bot => ‘Committable’;
 $t.common-tests: help => “Like this: {$t.bot-nick}: f583f22,HEAD say ‘hello’; say ‘world’”;
 
 $t.shortcut-tests: <c: c6: commit: commit6:
-                   mc: ec: mch: ech: ma: all: 6c: v6c: v6.c: 6.c:>,
+                   mc: ec: mch: ech: ma: all: 6c: v6c: v6.c: 6.c:
+                   releases:>,
                    <c c, c6 c6, commit commit, commit6 commit6, what:
                    mc  ec  mch  ech  ma  all  what  6c  v6c  v6.c  6.c
-                   mc, ec, mch, ech, ma, all, what, 6c, v6c, v6.c, 6.c,>;
+                   mc, ec, mch, ech, ma, all, what, 6c, v6c, v6.c, 6.c,
+                   releases releases,>;
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,
