@@ -30,7 +30,7 @@ constant shortcuts = %(
     mch => ‘2015.12,HEAD’, ech => ‘2015.12,HEAD’,
     ma  => ‘all’, all => ‘all’,
     what => ‘6c’, ‘6c’ => ‘6c’, ‘v6c’ => ‘6c’, ‘v6.c’ => ‘6c’, ‘6.c’ => ‘6c’,
-    releases => ‘6c’,
+    releases => ‘releases’,
 );
 
 # https://github.com/rakudo/rakudo/wiki/dev-env-vars
