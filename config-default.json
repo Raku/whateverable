@@ -18,5 +18,9 @@
             "user": "",
             "pass": ""
         }
+    },
+    "shareable": {
+        "host": "localhost",
+        "port": 42434
     }
 }

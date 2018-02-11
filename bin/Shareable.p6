@@ -48,8 +48,8 @@ my $application = route {
     }
 }
 
-my Cro::Service $share = Cro::HTTP::Server.new:
-    :host<localhost>, :port<42434>, :$application;
+my Cro::Service $share = Cro::HTTP::Server.new: :$application,
+    :host($CONFIG<shareable><host>), :port($CONFIG<shareable><port>);
 $share.start; # TODO handle exceptions
 
 unit class Shareable does Whateverable;
@@ -61,7 +61,8 @@ method help($msg) {
 multi method irc-to-me($msg where /^ $<build>=[\S+] $/) {
     my $full-commit = to-full-commit ~$<build>;
     return ‘No build for this commit’ unless build-exists $full-commit;
-    “https://whateverable.6lang.org/$<build>”
+    my $link = $CONFIG<mothership>;
+    “$link/$<build>”
 }
 
 Shareable.new.selfrun: ‘shareable6’, [ fuzzy-nick(‘shareable6’, 2) ]
