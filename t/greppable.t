@@ -55,6 +55,13 @@ $t.test(:40timeout, ‘the output of git grep is split by \n, not something else
 $t.test-gist(‘“\r” is actually in the output’,
              %(‘result.md’ => /“\r”/));
 
+
+# treegrep
+
+$t.test(‘treegrep finds nothing’,
+        ‘treegrep: theoauneoahushoauesnhoaesuheoasheoa’,
+        “{$t.our-nick}, Found nothing!”);
+
 # Non-bot tests
 
 my $timestamp = run :out, cwd => ‘data/all-modules’,

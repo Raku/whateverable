@@ -83,7 +83,9 @@ multi method irc-to-me($msg where .args[1].starts-with(‘file’ | ‘tree’) 
                                            || $<regex>=[.*?]       ] \s* $/) {
     my $result = run :out, :cwd($ECO-PATH), ‘git’, ‘ls-files’, ‘-z’;
     my $out = perl6-grep $result.out, $<regex>;
-    ‘’ but ProperStr($out.map({ process-ls-line $_ }).join(“\n”))
+    my $gist = $out.map({ process-ls-line $_ }).join(“\n”);
+    return ‘Found nothing!’ unless $gist;
+    ‘’ but ProperStr($gist)
 }
 
 multi method irc-to-me($msg) {

@@ -38,21 +38,37 @@ multi method irc-to-me($msg where /^ \s* [ || ‘/’ $<regex>=[.*] ‘/’
     my $regex = $<regex>;
     my $messages = $CACHE-DIR.dir(test => *.ends-with: ‘.total’)».slurp».trim».Int.sum;
     $msg.reply: “OK, working on it! This may take up to three minutes ($messages messages to process)”;
-    my %channels = await do for $CACHE-DIR.dir(test => *.ends-with: ‘.cache’) {
+    my @processed = await do for $CACHE-DIR.dir(test => *.ends-with: ‘.cache’) {
         my $channel = .basename.subst(/ ^‘#’ /, ‘’).subst(/ ‘.cache’$ /, ‘’);
-        start “result-#$channel.md” => process-channel $_, $channel, ~$regex
+        start process-channel $_, $channel, ~$regex
     }
-    ‘’ but FileStore(%channels)
+    my $date-min = @processed»<date-min>.min;
+    my $date-max = @processed»<date-max>.max;
+    my $count    = @processed»<count>.sum;
+    my %channels = @processed.map: {“result-#{.<channel>}.md” => .<gist>};
+    return ‘Found nothing!’ unless $count;
+    my $peek = $count > 1 ?? “$count messages ($date-min⌁$date-max)”
+                          !! “$count message ($date-min)”;
+    (‘’ but FileStore(%channels)) but PrettyLink({“$peek: $_”})
 }
 
 sub process-channel($file, $channel, $regex-str) {
-    perl6-grep($file, $regex-str, :complex, hack => $hack⚛++).map({
-        my @parts = .split: “\0”; # text, id, date
-        my $backticks = ｢`｣ x (1 + (@parts[0].comb(/｢`｣+/) || ‘’).max.chars);
+    my $count = 0;
+    my $date-min;
+    my $date-max;
+    my $gist = perl6-grep($file, $regex-str, :complex, hack => $hack⚛++).map({
+        my ($text, $id, $date) = .split: “\0”;
+        $count++;
+        $date-min min= $date;
+        $date-max max= $date;
+        my $backticks = ｢`｣ x (1 + ($text.comb(/｢`｣+/) || ‘’).max.chars);
         # TODO proper escaping
-        @parts ≤ 1 ?? $_
-        !! “[$backticks @parts[0] $backticks]($LINK/$channel/@parts[2]#i_@parts[1])<br>”
-    }).join(“\n”)
+        $id.defined.not || $date.defined.not
+        ?? $_ !! “[$backticks $text $backticks]($LINK/$channel/$date#i_$id)<br>”
+    }).join(“\n”);
+    $gist = ‘Found nothing!’ unless $gist;
+
+    %(:$channel, :$count, :$date-min, :$date-max, :$gist)
 }
 
 Quotable.new.selfrun: ‘quotable6’, [ / quote6? <before ‘:’> /,

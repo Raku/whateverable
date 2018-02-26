@@ -18,8 +18,8 @@ $t.shortcut-tests: <quote: quote6:>,
 $t.test(‘basic test’,
         “{$t.bot-nick}: /^ ‘bisect: ’ /”,
         /^ <me($t)>‘, OK, working on it! This may take up to three minutes (’\d+‘ messages to process)’ $/,
-        “{$t.our-nick}, https://whatever.able/fakeupload”,
-       :150timeout);
+        /^ <me($t)>‘, ’\d+‘ messages (2016-05-20⌁’\d\d\d\d‘-’\d\d‘-’\d\d‘): https://whatever.able/fakeupload’/,
+        :150timeout);
 
 $t.test-gist(‘lots of results’,
              %(‘result-#perl6.md’ => { 370 < .lines < 10_000 }));
@@ -35,6 +35,13 @@ $t.test(‘invalid regex’,
 
 $t.test-gist(‘error message gisted’,
              %(‘result’ => /^ ‘===SORRY!=== Error while compiling’ /));
+
+
+$t.test(‘one message only, please’,
+        “{$t.bot-nick}: /^ ‘pre-GLR is, like, a different language...’ /”,
+        /^ <me($t)>‘, OK, working on it! This may take up to three minutes (’\d+‘ messages to process)’ $/,
+        “{$t.our-nick}, 1 message (2015-12-26): https://whatever.able/fakeupload”,
+        :150timeout);
 
 # Non-bot tests
 subtest ‘all channels have recent data’, {
