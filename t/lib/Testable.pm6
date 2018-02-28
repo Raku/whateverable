@@ -107,17 +107,17 @@ class Testable {
     }
 
     method last-test {
-        self.test(|$!first-test)
-    }
+        self.test(|$!first-test);
 
-    method end {
         my $answer;
         self.test(‘_’, “{$.bot-nick}: uptime”, {$answer=$_; True});
         mkdir ‘logs/tests’;
         my $logfile = sprintf “%s_uptime_%04d-%02d-%02d_%02d%02d.log”, $.bot.lc,
                       .year, .month, .day, .hour, .minute with now.DateTime;
         “logs/tests/$logfile”.IO.spurt: $answer;
+    }
 
+    method end {
         $!bot-proc.kill;
         $!irc-client.quit;
         sleep 2;
