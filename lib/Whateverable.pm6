@@ -152,12 +152,12 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’
     “STDIN is set to «{shorten $default-stdin, 200}»” # TODO is 200 a good limit
 }
 
-multi method irc-to-me(Message $    where .text ~~ /:i^ [source|url] ‘?’? $/ --> SOURCE) {}
-multi method irc-to-me(Message $    where .text ~~ /:i^ wiki ‘?’? $/) { self.get-wiki-link }
-multi method irc-to-me(Message $msg where .text ~~ /:i^ help ‘?’? $/) {
+multi method irc-to-me(Message $    where .text ~~ /:i^ [source|url] ‘?’? \s* $/ --> SOURCE) {}
+multi method irc-to-me(Message $    where .text ~~ /:i^ wiki ‘?’? \s* $/) { self.get-wiki-link }
+multi method irc-to-me(Message $msg where .text ~~ /:i^ help ‘?’? \s* $/) {
     self.help($msg) ~ “ # See wiki for more examples: {self.get-wiki-link}”
 }
-multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime $/) {
+multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime \s* $/) {
     use nqp;
     use Telemetry;
     (denominate now - INIT now) ~ ‘, ’
