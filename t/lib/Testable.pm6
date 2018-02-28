@@ -179,7 +179,7 @@ class Testable {
 
         self.test(‘uptime’,
                   “{$.bot-nick}: uptime”,
-                  /^“{$.our-nick}”‘, ’\d+‘ seconds, ’\d+[‘.’\d+]?
+                  /^“{$.our-nick}”‘, ’\d+‘ second’s?‘, ’\d+[‘.’\d+]?
                     ‘MiB maxrss. This is Rakudo version ’
                     <[\dabcdefg.-]>+‘ built on MoarVM version ’
                     <[\dabcdefg.-]>+‘ implementing Perl 6.’\w‘.’$/);
