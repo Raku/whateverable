@@ -58,7 +58,7 @@ class Testable {
         $!bot-proc.bind-stdin: ‘config.json’.IO.open;
         start react {
             whenever $!bot-proc.start(:ENV(|%*ENV, PERL6LIB => ‘lib’)) {
-                note “Bot process finished (exit code={.exitcode}, signal={.signal})”
+                note “# Bot process finished (exit code={.exitcode}, signal={.signal})”
             }
         }
 
