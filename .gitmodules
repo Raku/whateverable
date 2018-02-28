@@ -1,0 +1,3 @@
+[submodule "3rdparty/miniircd"]
+	path = 3rdparty/miniircd
+	url = https://github.com/jrosdahl/miniircd.git
