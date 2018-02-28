@@ -121,7 +121,7 @@ method process($msg, $query is copy) {
             @all.push: $_;
             $msg.reply: self.get-description: $_ if @all [<] MESSAGE-LIMIT
         }
-    } elsif $query ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $ && .*? \S / {
+    } elsif $query.trim-trailing ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $ && .*? \S / {
         my @words;
         my @props;
         for $query.words {
