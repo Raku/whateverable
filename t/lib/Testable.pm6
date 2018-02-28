@@ -110,7 +110,7 @@ class Testable {
         self.test(|$!first-test);
 
         my $answer;
-        self.test(‘_’, “{$.bot-nick}: uptime”, {$answer=$_; True});
+        self.test(‘total uptime’, “{$.bot-nick}: uptime”, {$answer=$_; True});
         mkdir ‘logs/tests’;
         my $logfile = sprintf “%s_uptime_%04d-%02d-%02d_%02d%02d.log”, $.bot.lc,
                       .year, .month, .day, .hour, .minute with now.DateTime;
