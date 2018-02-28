@@ -164,7 +164,8 @@ for (‘’, ‘ ’) X~ (@alts X~ ‘: ’, ‘:’) {
             /^ <me($t)>‘, rakudo-moar ’<sha>“: OUTPUT: «$_␤»” $/)
 }
 
-my $camelia = IRC::Client.new(:nick(‘camelia’) :host<127.0.0.1>
+my $camelia = IRC::Client.new(:nick(‘camelia’)
+                              :host<127.0.0.1> :port(%*ENV<TESTABLE_PORT>)
                               :channels<#whateverable_evalable6>);
 start $camelia.run;
 sleep 1;

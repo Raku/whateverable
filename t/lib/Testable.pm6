@@ -10,6 +10,7 @@ class Testable {
     has $.our-nick;
     has $.bot-nick;
 
+    has $!server-proc;
     has $!bot-proc;
     has $!irc-client;
     has $.messages;
@@ -24,9 +25,19 @@ class Testable {
         $!delay-channel = signal(SIGUSR1).Channel;
 
         my $self = self;
+
+        my $port = (1024..65535).pick; # will do for now
+        $!server-proc = Proc::Async.new: <3rdparty/miniircd/miniircd --listen=localhost>,
+                                         “--ports=$port”;
+        END .kill with $!server-proc;
+        %*ENV<TESTABLE_PORT> = $port;
+        $!server-proc.start;
+        sleep 1;
+
         $!irc-client = IRC::Client.new(
             :nick($our-nick ~ (^999999 .pick))
             :host<127.0.0.1>
+            :$port
             :channels(“#whateverable_{$bot.lc}6”)
             :plugins(
                 class {
@@ -43,6 +54,7 @@ class Testable {
         start $!irc-client.run;
 
         $!bot-proc = Proc::Async.new: ‘perl6’, ‘./bin/’ ~ $bot ~ ‘.p6’;
+        END .kill with $!bot-proc;
         $!bot-proc.bind-stdin: ‘config.json’.IO.open;
         start react {
             whenever $!bot-proc.start(:ENV(|%*ENV, PERL6LIB => ‘lib’)) {
@@ -108,7 +120,9 @@ class Testable {
 
         $!bot-proc.kill;
         $!irc-client.quit;
-        sleep 2
+        sleep 2;
+        $!server-proc.kill;
+        sleep 1
     }
 
     method common-tests(:$help) {

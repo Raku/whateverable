@@ -538,6 +538,7 @@ method selfrun($nick is copy, @alias?) {
         :@alias
         # IPv4 address of chat.freenode.net is hardcoded so that we can double the limit ↓
         :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! (‘chat.freenode.net’, ‘185.30.166.38’).pick)
+        :port(%*ENV<TESTABLE> ?? %*ENV<TESTABLE_PORT> !! 6667)
         :channels(%*ENV<DEBUGGABLE>
                   ?? ‘#whateverable’
                   !! %*ENV<TESTABLE>
