@@ -531,6 +531,9 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
 method selfrun($nick is copy, @alias?) {
     $CONFIG = from-json slurp;
 
+    use Whateverable::Builds;
+    ensure-cloned-repos;
+
     $nick ~= ‘test’ if %*ENV<DEBUGGABLE>;
     .run with IRC::Client.new(
         :$nick

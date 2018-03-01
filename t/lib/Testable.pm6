@@ -24,6 +24,9 @@ class Testable {
         $!messages = Channel.new;
         $!delay-channel = signal(SIGUSR1).Channel;
 
+        use Whateverable::Builds;
+        ensure-cloned-repos;
+
         my $self = self;
 
         my $port = (1024..65535).pick; # will do for now
