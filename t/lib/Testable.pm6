@@ -56,7 +56,9 @@ class Testable {
         );
         start $!irc-client.run;
 
-        $!bot-proc = Proc::Async.new: ‘perl6’, ‘./bin/’ ~ $bot ~ ‘.p6’;
+        my $executable = ‘./bin/’ ~ $bot ~ ‘.p6’;
+        run :env(|%*ENV, PERL6LIB => ‘lib’), <perl6 -c -->, $executable; # precompahead
+        $!bot-proc = Proc::Async.new: <perl6 -->, $executable;
         END .kill with $!bot-proc;
         $!bot-proc.bind-stdin: ‘config.json’.IO.open || ‘config-default.json’.IO.open;
         start react {
