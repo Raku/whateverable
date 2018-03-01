@@ -47,7 +47,7 @@ constant $CAVE    = ‘#whateverable’;
 constant $PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
 
 our $RAKUDO-REPO = ‘https://github.com/rakudo/rakudo’;
-our $CONFIG      = from-json slurp;
+our $CONFIG;
 
 constant Message = IRC::Client::Message;
 
@@ -529,6 +529,8 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
 }
 
 method selfrun($nick is copy, @alias?) {
+    $CONFIG = from-json slurp;
+
     $nick ~= ‘test’ if %*ENV<DEBUGGABLE>;
     .run with IRC::Client.new(
         :$nick
