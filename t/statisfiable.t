@@ -2,7 +2,7 @@
 BEGIN %*ENV<PERL6_TEST_DIE_ON_FAIL> = 1;
 %*ENV<TESTABLE> = 1;
 
-use lib ‘t/lib’;
+use lib <lib t/lib>;
 use Test;
 use IRC::Client;
 use Testable;

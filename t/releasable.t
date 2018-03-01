@@ -2,7 +2,7 @@
 BEGIN %*ENV<PERL6_TEST_DIE_ON_FAIL> = 1;
 %*ENV<TESTABLE> = ‘rakudo-mock’;
 
-use lib ‘t/lib’;
+use lib <lib t/lib>;
 use File::Directory::Tree;
 use IRC::Client;
 use Test;
