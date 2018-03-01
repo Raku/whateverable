@@ -55,7 +55,7 @@ class Testable {
 
         $!bot-proc = Proc::Async.new: ‘perl6’, ‘./bin/’ ~ $bot ~ ‘.p6’;
         END .kill with $!bot-proc;
-        $!bot-proc.bind-stdin: ‘config.json’.IO.open;
+        $!bot-proc.bind-stdin: ‘config.json’.IO.open || ‘config-default.json’.IO.open;
         start react {
             whenever $!bot-proc.start(:ENV(|%*ENV, PERL6LIB => ‘lib’)) {
                 note “# Bot process finished (exit code={.exitcode}, signal={.signal})”
