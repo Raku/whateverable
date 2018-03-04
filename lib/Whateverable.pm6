@@ -280,7 +280,11 @@ sub fetch-build($full-commit-hash, :$backend!) {
     my $link = “{$CONFIG<mothership>}/$full-commit-hash?type=$backend&arch=$arch”;
     note “Attempting to fetch $full-commit-hash…”;
 
-    my $response = $ua.get: :bin, $link;
+    my $response;
+    react {
+        whenever start $ua.get: :bin, $link { $response = $_; done }
+        whenever Supply.interval: 0.5       { test-delay           }
+    }
     return unless $response.is-success;
 
     my $disposition = $response.header.field(‘Content-Disposition’).values[0];
@@ -344,6 +348,14 @@ method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
     $ans
 }
 
+#| Asks the test suite to delay the test failure (for 0.5s)
+sub test-delay {
+    use NativeCall;
+    sub kill(int32, int32) is native {*};
+    sub getppid(--> int32) is native {*};
+    kill getppid, 10; # SIGUSR1
+}
+
 sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
     my $build-prepath =   “{BUILDS-LOCATION}/$backend”;
     my $build-path    =               “$build-prepath/$full-commit-hash”;
@@ -355,14 +367,9 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
     while run(:err(Nil), ‘mkdir’, ‘--’, $build-path).exitcode ≠ 0 {
-        if %*ENV<TESTABLE> {
-            use NativeCall;
-            sub kill(int32, int32) is native {*};
-            sub getppid(--> int32) is native {*};
-            kill getppid, 10; # SIGUSR1
-        }
+        test-delay if %*ENV<TESTABLE>;
         note “$build-path is locked. Waiting…”;
-        sleep 0.5 # should never happen if setup correctly
+        sleep 0.5 # should never happen if configured correctly (kinda)
     }
     if $archive-path.IO ~~ :e {
         my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, $archive-path;
