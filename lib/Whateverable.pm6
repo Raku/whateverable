@@ -529,6 +529,8 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
 }
 
 method selfrun($nick is copy, @alias?) {
+    note “Bot pid: $*PID” if %*ENV<TESTABLE>;
+
     $CONFIG = from-json slurp;
 
     use Whateverable::Builds;
