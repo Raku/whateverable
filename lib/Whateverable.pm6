@@ -372,11 +372,19 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
         sleep 0.5 # should never happen if configured correctly (kinda)
     }
     if $archive-path.IO ~~ :e {
-        my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, $archive-path;
-        run :in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’;
+        if run :err(Nil), <pzstd --version> { # check that pzstd is available
+            my $proc = run :out, :bin, <pzstd --decompress --quiet --stdout -->, $archive-path;
+            run :in($proc.out), :bin, <tar --extract --absolute-names>;
+        } else {
+            die ‘zstd is not installed’ unless run :out(Nil), <unzstd --version>;
+            # OK we are using zstd from the Mesozoic Era
+            my $proc = run :out, :bin, <unzstd -qc -->, $archive-path;
+            run :in($proc.out), :bin, <tar --extract --absolute-names>;
+        }
     } else {
-        my $proc = run :out, :bin, ‘lrzip’, ‘-dqo’, ‘-’, ‘--’, $archive-link;
-        run :in($proc.out), :bin, ‘tar’, ‘--extract’, ‘--absolute-names’, ‘--’, $build-path;
+        die ‘lrzip is not installed’ unless run :err(Nil), <lrzip --version>; # check that lrzip is available
+        my $proc = run :out, :bin, <lrzip -decompress --quiet --outfile - -->, $archive-link;
+        run :in($proc.out), :bin, <tar --extract --absolute-names -->, $build-path;
     }
 
     my $return = $code($build-path); # basically, we wrap around $code
