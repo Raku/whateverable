@@ -48,6 +48,7 @@ constant $PARENTS = ‘AlexDaniel’, ‘MasterDuke’;
 
 our $RAKUDO-REPO = ‘https://github.com/rakudo/rakudo’;
 our $CONFIG;
+sub ensure-config is export { $CONFIG //= from-json slurp; }
 
 constant Message = IRC::Client::Message;
 
@@ -546,7 +547,7 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
 method selfrun($nick is copy, @alias?) {
     note “Bot pid: $*PID” if %*ENV<TESTABLE>;
 
-    $CONFIG = from-json slurp;
+    ensure-config;
 
     use Whateverable::Builds;
     ensure-cloned-repos;

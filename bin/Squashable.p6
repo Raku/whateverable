@@ -137,6 +137,7 @@ multi method irc-to-me($msg where /^ \s* [log|status|info|when|next]
 use HTTP::Server::Async;
 use JSON::Fast;
 
+ensure-config;
 my $server = HTTP::Server::Async.new: |($CONFIG<squashable><host port>:p).Capture;
 my $channel = Channel.new;
 my $squashable = Squashable.new;

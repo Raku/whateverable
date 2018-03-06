@@ -25,6 +25,8 @@ unit class Reportable does Whateverable;
 my $dir = ‘data/reportable’.IO;
 mkdir $dir;
 
+ensure-config;
+
 my $semaphore = Semaphore.new: 1;
 
 my $next-date = now.DateTime.truncated-to: ‘day’;

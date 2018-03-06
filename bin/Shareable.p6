@@ -69,6 +69,7 @@ my $application = route {
     }
 }
 
+ensure-config;
 my Cro::Service $share = Cro::HTTP::Server.new: :$application,
     :host($CONFIG<shareable><host>), :port($CONFIG<shareable><port>);
 $share.start; # TODO handle exceptions
