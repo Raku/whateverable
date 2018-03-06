@@ -142,6 +142,33 @@ $t.test(‘note something big (shortcut)’,
         “weekly: {‘Z’ x 300}”,
         “{$t.our-nick}, Noted!”);
 
+# DWIM
+
+$t.test(‘clear …’,
+        “{$t.bot-nick}: clear DWIM”,
+        “{$t.our-nick}, No notes for “DWIM””);
+
+$t.test(‘reset …’,
+        “{$t.bot-nick}: reset DWIM”,
+        “{$t.our-nick}, No notes for “DWIM””);
+
+$t.test(‘delete …’,
+        “{$t.bot-nick}: delete DWIM”,
+        “{$t.our-nick}, No notes for “DWIM””);
+
+
+$t.test(‘… clear’,
+        “{$t.bot-nick}: DWIM clear”,
+        “{$t.our-nick}, No notes for “DWIM””);
+
+$t.test(‘… reset’,
+        “{$t.bot-nick}: DWIM reset”,
+        “{$t.our-nick}, No notes for “DWIM””);
+
+$t.test(‘… delete’,
+        “{$t.bot-nick}: DWIM delete”,
+        “{$t.our-nick}, No notes for “DWIM””);
+
 # TODO adapt test once the format is changed to markdown
 
 $t.test(‘gist’,

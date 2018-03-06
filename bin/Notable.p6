@@ -59,9 +59,17 @@ multi method irc-to-me($msg where
      but PrettyLink({“{s +@notes, ‘note’}: $_”})
 }
 
-multi method irc-to-me($msg where
-                       { m:r/^ \s* ‘clear’ [ || <?{.args[1].starts-with: @shortcuts.any ~ ‘:’}> \s*
-                                             || \s+ <topic> ] $/ }) {
+my &clearish = {
+    do if .args[1].starts-with: @shortcuts.any ~ ‘:’ {
+        m/^ \s* [clear|reset|delete] \s* $/
+    } else {
+        m/^ \s* [clear|reset|delete] \s+ <topic> \s* $/
+        ||
+        m/^ \s* <topic> \s+ [clear|reset|delete] \s* $/
+    }
+}
+multi method irc-to-me($msg where &clearish) {
+    $/ = $msg ~~ &clearish;
     my $topic = ~($<topic> // $msg.args[1].split(‘:’)[0]);
     my $data = read;
     return “No notes for “$topic”” if $data{$topic}:!exists;
