@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-# Copyright © 2017
+# Copyright © 2017-2018
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -214,7 +214,11 @@ sub analyze(IO() $before-dir where .d, IO() $after-dir where .d) {
                         @new.push: “[$after<state>] $str”
                     }
                 } else {
-                    @updated.push: “[$before<state>→$after<state>] $str”
+                    if is-half-resolved($before, $after) {
+                        @half-resolved.push: “[testneeded] $str”;
+                    } else {
+                        @updated.push: “[$before<state>→$after<state>] $str”
+                    }
                 }
             }
         } elsif is-half-resolved($before, $after) {
