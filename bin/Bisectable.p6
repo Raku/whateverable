@@ -135,14 +135,27 @@ my regex bisect-cmd { :i
         [ [new|bad]  <&spaceeq> $<new>=<-[\s,]>+ <&delim> ]?
         [ [old|good] <&spaceeq> $<old>=\S+       \s*      ]?
     ]
-    $<code>=.*
+    $<code>=[
+        [ [ $<maybe-rev>=<-[\s,]>+
+            <?{so to-full-commit $<maybe-rev>.tail}> ]**1..2 % <&delim>
+          \s+
+        ]?
+        $<maybe-code>=.*
+    ]
     $
 }
 
 multi method irc-to-me($msg where .text ~~ &bisect-cmd) {
-    self.process: $msg, ~$<code>,
-                  ~($<old> // ‘2015.12’),
-                  ~($<new> // ‘HEAD’)
+    my $old  = $<old> // ‘2015.12’;
+    my $new  = $<new> // ‘HEAD’;
+    my $code = $<code>;
+    if ($<maybe-rev> without $<old> // $<new>) {
+        $old  =         $<maybe-rev>[0];
+        $new  = $_ with $<maybe-rev>[1];
+        $code = $<maybe-code>;
+        $msg.reply: “Using old=$old new=$new in an attempt to DWIM”
+    }
+    self.process: $msg, ~$code, ~$old, ~$new
 }
 
 method process($msg, $code is copy, $old, $new) {
