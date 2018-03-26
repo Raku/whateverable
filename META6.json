@@ -15,6 +15,7 @@
         "Cro",
         "Digest",
         "Digest::HMAC",
+        "Digest::SHA256::Native",
         "File::Directory::Tree",
         "File::Temp",
         "HTTP::Server::Async",

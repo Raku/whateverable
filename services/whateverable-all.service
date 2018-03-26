@@ -20,6 +20,7 @@ Wants=whateverable@Squashable.service
 Wants=whateverable@Reportable.service
 Wants=whateverable@Notable.service
 Wants=whateverable@Shareable.service
+Wants=whateverable@Undersightable.service
 
 [Service]
 Type=oneshot
