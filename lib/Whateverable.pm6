@@ -443,8 +443,8 @@ method get-commits($_, :$repo=$RAKUDO) {
     return $_
 }
 
-method get-tags($date, :$repo=$RAKUDO) {
-    my @tags = <HEAD>;
+method get-tags($date, :$repo=$RAKUDO, :$dups=False, :@default=(‘HEAD’,)) {
+    my @tags = @default;
     my %seen;
     for get-output(cwd => $repo, ‘git’, ‘log’, ‘--pretty="%d"’,
                    ‘--tags’, ‘--no-walk’, “--since=$date”)<output>.lines -> $tag {
