@@ -140,7 +140,7 @@ my @files = # TODO uncomment rakudo.org when it stops being so slow,
 ),
 ;
 
-unit class Undersightable6 does Whateverable;
+unit class Undersightable does Whateverable;
 
 also does Replaceable; # steal the logic to track online users
 
@@ -246,6 +246,6 @@ multi method irc-to-me($msg where /check|status|info|test|log/) {
 }
 
 
-Undersightable6.new.selfrun: ‘undersightable6’, [ fuzzy-nick(‘undersightable6’, 3) ]
+Undersightable.new.selfrun: ‘undersightable6’, [ fuzzy-nick(‘undersightable6’, 3) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6
