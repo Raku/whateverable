@@ -64,7 +64,15 @@ method TWEAK {
             # ↑ ideally this check shouldn't be here, but it's much harder otherwise
 
             LEAVE sleep 0.02; # https://github.com/perl6/whateverable/issues/163
-            try { with (callsame) { return $_ but Reply($msg) } else { return } }
+            try {
+                my $result = callsame;
+                return without $result;
+                return $result but Reply($msg) if $result !~~ Promise;
+                return start sub {
+                    try return (await $result) but Reply($msg);
+                    $self.handle-exception: $!, $msg
+                }()
+            }
             $self.handle-exception: $!, $msg
         };
 
