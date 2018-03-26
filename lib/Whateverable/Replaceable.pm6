@@ -44,6 +44,19 @@ method make-believe($msg, @nicks, &play, :$timeout = 4) {
     Nil
 }
 
+method list-users($msg, $channel=$msg.channel, :$timeout = 4) {
+    my $update-promise = Promise.new;
+    $!update-promise-channel.send: $update-promise;
+    $msg.irc.send-cmd: ‘NAMES’, $msg.channel;
+    start {
+        await Promise.anyof: $update-promise, Promise.in: $timeout;
+        $!users-lock.protect: {
+            %!users{$channel}.clone
+        }
+    }
+}
+
+
 method irc-n353($e) { # one or more messages
     my $irc-channel = $e.args[2];
     # Try to filter out privileges ↓
