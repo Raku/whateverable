@@ -4,23 +4,23 @@
 [Unit]
 Description=All Whateverable Bots
 After=network-online.target
-Wants=whateverable@Bisectable.service
-Wants=whateverable@Committable.service
 Wants=whateverable@Benchable.service
-Wants=whateverable@Evalable.service
-Wants=whateverable@Statisfiable.service
-Wants=whateverable@Unicodable.service
+Wants=whateverable@Bisectable.service
 Wants=whateverable@Bloatable.service
-Wants=whateverable@Quotable.service
-Wants=whateverable@Greppable.service
+Wants=whateverable@Committable.service
 Wants=whateverable@Coverable.service
-Wants=whateverable@Releasable.service
+Wants=whateverable@Evalable.service
+Wants=whateverable@Greppable.service
 Wants=whateverable@Nativecallable.service
-Wants=whateverable@Squashable.service
-Wants=whateverable@Reportable.service
 Wants=whateverable@Notable.service
+Wants=whateverable@Quotable.service
+Wants=whateverable@Releasable.service
+Wants=whateverable@Reportable.service
 Wants=whateverable@Shareable.service
+Wants=whateverable@Squashable.service
+Wants=whateverable@Statisfiable.service
 Wants=whateverable@Undersightable.service
+Wants=whateverable@Unicodable.service
 
 [Service]
 Type=oneshot
