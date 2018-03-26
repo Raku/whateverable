@@ -236,8 +236,7 @@ multi method irc-to-me($msg where /check|status|info|test|log/) {
             { gather self.check-releases },
             { gather self.check-bots($msg) },
         );
-        # my @results = @jobs.hyper(:1batch).map({ .().cache }).flat; # TODO Rakudo R#1656
-        my @results = @jobs.map({ .().cache }).flat;                  # TODO Rakudo R#1656
+        my @results = @jobs.hyper(:1batch).map({ .().eager }).flat;
         my $warnings = +@results.grep: Warning;
         my $errors   = +@results.grep: Error;
         my $peek     = “{s $errors, ‘error’}, {s $warnings, ‘warning’}”;
