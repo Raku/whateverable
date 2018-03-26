@@ -446,13 +446,12 @@ method get-commits($_, :$repo=$RAKUDO) {
 method get-tags($date, :$repo=$RAKUDO, :$dups=False, :@default=(‘HEAD’,)) {
     my @tags = @default;
     my %seen;
-    for get-output(cwd => $repo, ‘git’, ‘log’, ‘--pretty="%d"’,
-                   ‘--tags’, ‘--no-walk’, “--since=$date”)<output>.lines -> $tag {
-        next unless $tag ~~ /:i ‘tag:’ \s* ((\d\d\d\d\.\d\d)[\.\d\d?]?) /; # TODO use tag -l
-        next if %seen{$0[0]}++;
-        @tags.push($0)
+    for get-output(cwd => $repo, <git tag -l>)<output>.lines.reverse -> $tag {
+        next unless $tag ~~ /^(\d\d\d\d\.\d\d)[\.\d\d?]?$/;
+        next if Date.new($date) after Date.new($0.trans(‘.’=>‘-’)~‘-20’);
+        next if $dups.not && %seen{~$0}++;
+        @tags.push(~$tag)
     }
-
     @tags.reverse
 }
 
