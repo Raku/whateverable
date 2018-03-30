@@ -213,8 +213,6 @@ $t.test(‘malformed link (could not parse)’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Could not parse URI: https://:P)”);
 
 # Did you mean … ?
-#`｢ TODO broken, unfortunately :(
-# https://github.com/rakudo/rakudo/issues/1259
 $t.test(‘Did you mean “HEAD” (new)?’,
         ‘bisect: new=DEAD say 42’,
         “{$t.our-nick}, Cannot find revision “DEAD” (did you mean “HEAD”?)”);
@@ -233,7 +231,6 @@ $t.test(‘Did you mean some commit? (new)’,
 $t.test(‘Did you mean some commit? (old)’,
         ‘bisect: old=a7L479b49dbd1 say 42’,
         “{$t.our-nick}, Cannot find revision “a7L479b49dbd1” (did you mean “a71479b”?)”);
-｣
 
 $t.test(:30timeout, ‘Result is different on every revision’,
         ‘bisect: say rand’,

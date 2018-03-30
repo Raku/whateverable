@@ -138,7 +138,6 @@ $t.test(‘malformed link (could not parse)’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Could not parse URI: https://:P)”);
 
 # Did you mean … ?
-#`｢ TODO broken, unfortunately :(
 $t.test(‘Did you mean “all”?’,
         ‘bench: balls say 42’,
         “{$t.our-nick}, ¦balls: «Cannot find this revision (did you mean “all”?)»”);
@@ -158,7 +157,7 @@ $t.test(‘Both commits are wrong (did you mean … ?)’,
         ‘bench: 2015.12^,2015.13,69fecb52eb2 say 42’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
         /^ <me($t)>‘, ¦2015.12^: «’ \d+\.\d+ ‘» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “c9ebfc2”?)»’ $/);
-｣
+
 # Timeouts
 
 # TODO See issue #99
