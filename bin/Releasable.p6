@@ -234,6 +234,40 @@ multi method irc-to-me($msg where /^ :i \s*
     (‘’ but FileStore(%files)) but PrettyLink({“Details: $_”})
 }
 
+sub remind($msg, @channels) {
+    my $datetime = parse-next-release $msg;
+    return without $datetime;
+    my $time-left = time-left $datetime;
+    my $text = “Next release $time-left”;
+    $text ~= ‘. ’ ~ blockers<summary>;
+    $text ~= ‘. Please log your changes in the ChangeLog’;
+    for @channels {
+        $msg.irc.send-cmd: ‘PRIVMSG’, $_, $text, :server($msg.server)
+    }
+}
+
+multi method keep-reminding($msg) {
+    # TODO multi-server setup not supported (this will be irrelevant after #284)
+    loop {
+        my &bail = { sleep $CONFIG<releasable><spam-exception-delay> ÷ 100000; next }
+        my $datetime = parse-next-release $msg;
+        bail without $datetime;
+        my $diff = $datetime - DateTime.now;
+        bail if $diff < 0; # past the deadline
+        bail if $diff > $CONFIG<releasable><spam-before>; # not close enough
+        my $every = $CONFIG<releasable><spam-every>;
+        bail if $diff < $every; # too close to the release
+        my $left = $diff % $every;
+        sleep 15;#$left;
+        remind $msg, $CONFIG<releasable><spammed-channels>
+    }
+    CATCH { default { self.handle-exception: $_, $msg } }
+}
+
+multi method irc-connected($msg) {
+    once start self.keep-reminding: $msg
+}
+
 Releasable.new.selfrun: ‘releasable6’, [ / release6? <before ‘:’> /,
                                          fuzzy-nick(‘releasable6’, 2) ]
 
