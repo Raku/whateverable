@@ -25,10 +25,10 @@ unit class Releasable does Whateverable;
 # ↓ Git itself suggests 9 characters, and 12 characters may be a better
 # ↓ choice for the hundred-year language… but let's increase it only
 # ↓ when needed
-my $SHA-LENGTH   = 8;
-my $RELEASE-HOUR = 19; # GMT+0
-my $BLOCKERS-URL = ‘https://fail.rakudo.party/release/blockers.json’;
-my $TICKET-URL   = ‘https://rt.perl.org/rt3/Public/Bug/Display.html?id=’;
+my $SHA-LENGTH       = 8;
+my $RELEASE-HOUR     = 19; # GMT+0
+my $BLOCKERS-URL-RT  = ‘https://fail.rakudo.party/release/blockers.json’;
+my $BLOCKERS-URL-GH  = ‘https://api.github.com/repos/rakudo/rakudo/issues?state=open&labels=%E2%9A%A0%20blocker%20%E2%9A%A0’;
 my $DRAFT-URL        = ‘https://raw.github.com/wiki/rakudo/rakudo/ChangeLog-Draft.md’;
 
 method help($msg) {
@@ -131,22 +131,53 @@ sub changelog-to-stats($changelog) {
     { :$summary, :@unlogged, :@warnings }
 }
 
-sub blockers() {
+sub blockers-rt() {
     use HTTP::UserAgent;
-    my $ua = HTTP::UserAgent.new;
-    my $response = try { $ua.get: $BLOCKERS-URL };
-    return { summary => ‘R6 is down’ } without $response;
-    return { summary => ‘R6 is down’ } unless $response.is-success;
+    my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
+    my $response = try { $ua.get: $BLOCKERS-URL-RT };
+    return ‘R6 is down’ without $response;
+    return ‘R6 is down’ unless $response.is-success;
     if $response.content-type ne ‘application/json;charset=UTF-8’ {
-        return { summary => ‘R6 is weird’ }
+        return ‘Cannot parse the data from R6’
     }
     my %data = from-json $response.decoded-content;
-    return { summary => ‘R6 is weird’ } unless %data<tickets>:exists;
-    my @tickets = %data<tickets>.list;
-    my $link = ｢https://github.com/rakudo/rakudo/issues?q=is:issue+is:open+label:%22%E2%9A%A0+blocker+%E2%9A%A0%22｣;
-    return { summary => “Blockers: $link” } unless @tickets;
-    my $summary = “{+@tickets} blocker{@tickets ≠ 1 ?? ‘s’ !! ‘’}”;
-    {:$summary, :@tickets}
+    return ‘Cannot parse the data from R6’ unless %data<tickets>:exists;
+    %data<tickets>.List
+}
+
+sub blockers-github() {
+    use HTTP::UserAgent;
+    my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
+    my $response = try { $ua.get: $BLOCKERS-URL-GH };
+    return ‘GitHub is down’ without $response;
+    return ‘GitHub is down’ unless $response.is-success;
+    if $response.content-type ne ‘application/json; charset=utf-8’ {
+        return ‘Cannot parse the data from GitHub’
+    }
+    from-json($response.decoded-content).List
+}
+
+sub blockers {
+    my @tickets;
+    my $summary = ‘’;
+    for (blockers-rt(), blockers-github()) {
+        when Str        { $summary ~= ‘, ’ if $summary; $summary ~= $_ }
+        when Positional { @tickets.append: $_ }
+        default         { die “Expected Str or Positional but got {.^name}” }
+    }
+    $summary ~= ‘. At least ’ if $summary; # TODO could say “At least 0 blockers” 😂
+    $summary ~= “{+@tickets} blocker{@tickets ≠ 1 ?? ‘s’ !! ‘’}”;
+    # TODO share some logic with reportable
+
+    my $list = join ‘’, @tickets.map: {
+        my $url   = .<html_url> // .<url>;
+        my $id    = .<number>   // .<ticket_id>;
+        my $title = .<title>    // .<subject>;
+        $id = (.<html_url> ?? ‘GH#’ !! ‘RT#’) ~ $id; # ha-ha 🙈
+        $id .= fmt: ‘% 9s’;
+        “<a href="$url">” ~ $id ~ “</a> {html-escape $title}\n”
+    }
+    %(:$summary, :$list)
 }
 
 multi method irc-to-me($msg where /^ :i \s*
@@ -154,7 +185,6 @@ multi method irc-to-me($msg where /^ :i \s*
                                     [\s+ $<url>=[‘http’.*]]? $/) {
     my $changelog = process-url ~$_, $msg with $<url>;
     $changelog  //= slurp “$RAKUDO/docs/ChangeLog”;
-    my $answer    = time-to-release($msg) ~ ‘. ’ without $<url>;
     without $<url> {
         use HTTP::UserAgent;
         my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
@@ -167,22 +197,24 @@ multi method irc-to-me($msg where /^ :i \s*
         }
     }
     my %stats     = changelog-to-stats $changelog;
-    my %blockers  = blockers                     without $<url>;
+
+    my $answer;
+    my %blockers;
+    without $<url> {
+        $answer       = time-to-release($msg) ~ ‘. ’;
+        %blockers     = blockers;
+    }
 
     # ↓ All code here just to make the message pretty ↓
     $answer ~= “$_. ” with %blockers<summary>;
     $answer ~= %stats<summary>;
     $answer ~= “ (⚠ {+%stats<warnings>} warnings)” if %stats<warnings>;
     $msg.reply: $answer;
-    return if none %blockers<tickets>, %stats<unlogged>, %stats<warnings>;
+    return if none %blockers<list>, %stats<unlogged>, %stats<warnings>;
 
     # ↓ And here just to make a pretty gist ↓
     my %files;
-
-    my $blockers = join “\n”, (%blockers<tickets> // ()).map: { ‘<a href="’
-                              ~ $TICKET-URL ~ .<ticket_id> ~ ‘">RT #’
-                              ~ .<ticket_id> ~ ‘</a> ’ ~ html-escape .<subject> };
-    %files<!blockers!.md> = ‘<pre>’ ~ $blockers ~ ‘</pre>’ if %blockers<tickets>;
+    %files<!blockers!.md> = ‘<pre>’ ~ %blockers<list> ~ ‘</pre>’ if %blockers<list>;
 
     my $warnings = .join(“\n”) with %stats<warnings>;
     %files<!warnings!> = $warnings if $warnings;
