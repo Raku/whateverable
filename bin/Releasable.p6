@@ -59,7 +59,7 @@ sub time-left($then) {
     $answer
 }
 
-sub time-to-release($msg) {
+sub parse-next-release($msg) {
     my $guide = slurp “$RAKUDO/docs/release_guide.pod”;
     die ‘Unable to parse the release guide’ unless $guide ~~ /
     ^^ ‘=head2 Planned future releases’ $$
@@ -68,7 +68,7 @@ sub time-to-release($msg) {
     /;
     my @dates = $0.map: { %(date => Date.new(~.[0]), id => +.[1], manager => (.Str with .[2])) };
     my $important-date;
-    my $annoying-warning = False;
+    my $annoying-warning = False; # only one annoying message can printed (so far none)
     for @dates {
         my $release = .<date>.yyyy-mm-dd.split(‘-’)[0,1].join: ‘.’;
         if not to-full-commit $release {
@@ -85,9 +85,8 @@ sub time-to-release($msg) {
         }
     }
     die ‘Release date not found’ without $important-date;
-    my $time-left = time-left DateTime.new(date => $important-date<date>,
-                                           hour => $RELEASE-HOUR);
-    “Next release $time-left”
+    DateTime.new: date => $important-date<date>,
+                  hour => $RELEASE-HOUR;
 }
 
 sub changelog-to-stats($changelog) {
@@ -201,7 +200,9 @@ multi method irc-to-me($msg where /^ :i \s*
     my $answer;
     my %blockers;
     without $<url> {
-        $answer       = time-to-release($msg) ~ ‘. ’;
+        my $datetime  = parse-next-release $msg;
+        my $time-left = time-left $datetime;
+        $answer       = “Next release $time-left. ”;
         %blockers     = blockers;
     }
 
