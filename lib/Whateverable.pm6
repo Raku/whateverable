@@ -56,6 +56,8 @@ unit role Whateverable[:$default-timeout = 10] does IRC::Client::Plugin does Hel
 
 my $default-stdin = slurp ‘stdin’;
 
+my role Enough { } # to prevent recursion in exception handling
+
 method TWEAK {
     # wrap around everything to catch exceptions
     once { # per class
@@ -79,6 +81,7 @@ method TWEAK {
         self.^lookup(‘filter’).wrap: sub ($self, $response) {
             my &filter = nextcallee;
             try { return filter $self, $response }
+            return ‘Ow! Where's a camcorder when ya need one?’ if $response ~~ Enough;
             try { return filter $self, $self.handle-exception($!, $response.?msg) }
             ‘Sorry kid, that's not my department.’
         };
@@ -86,7 +89,7 @@ method TWEAK {
     # TODO roles should not have TWEAK method
 }
 
-method handle-exception($exception, $msg?) {
+method handle-exception($exception, $msg?) is export {
     CATCH { # exception handling is too fat, so let's do this also…
         .note;
         return ‘Exception was thrown while I was trying to handle another exception…’
@@ -98,10 +101,17 @@ method handle-exception($exception, $msg?) {
     }
 
     note $exception;
-    with $msg {
-        if .channel ne $CAVE {
-            .irc.send-cmd: ‘PRIVMSG’, $CAVE, “I'm acting stupid on {.channel}. Help me.”,
-                           :server(.server), :prefix($PARENTS.join(‘, ’) ~ ‘: ’)
+    given $msg {
+        # TODO handle other types
+        when IRC::Client::Message::Privmsg::Channel {
+            if .channel ne $CAVE {
+                .irc.send-cmd: ‘PRIVMSG’, $CAVE, “I'm acting stupid on {.channel}. Help me.”,
+                               :server(.server), :prefix($PARENTS.join(‘, ’) ~ ‘: ’)
+            }
+        }
+        default {
+            .irc.send-cmd: ‘PRIVMSG’, $CAVE, ‘Unhandled exception somewhere!’,
+                           :server(.server), :prefix($PARENTS.join(‘, ’) ~ ‘: ’);
         }
     }
 
@@ -114,6 +124,11 @@ method handle-exception($exception, $msg?) {
       but PrettyLink({“No! It wasn't me! It was the one-armed man! Backtrace: $_”});
     # https://youtu.be/MC6bzR9qmxM?t=97
     $return = $return but Reply($_) with $msg;
+    if $msg !~~ IRC::Client::Message::Privmsg::Channel {
+        $msg.irc.send-cmd: ‘PRIVMSG’, $CAVE, $return but Enough,
+                           :server($msg.server), :prefix($PARENTS.join(‘, ’) ~ ‘: ’);
+        return
+    }
     $return
 }
 
@@ -519,7 +534,7 @@ multi method filter($response where (.encode.elems > MESSAGE-LIMIT
 
     if $response ~~ Reply {
         $description = $response.msg.server.current-nick;
-        %files<query> = $_ with $response.?msg.text;
+        %files<query> = $_ with $response.?msg.?text;
         %files<query>:delete unless %files<query>;
     }
     my $url = self.upload: %files, public => !%*ENV<DEBUGGABLE>, :$description;
