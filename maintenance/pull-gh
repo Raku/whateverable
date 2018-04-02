@@ -22,7 +22,7 @@ my $LINK = ‘https://api.github.com/repos/rakudo/rakudo/issues?per_page=60&dire
 my $RETRY = 5;
 
 my $dir;
-my $ua = HTTP::UserAgent.new: :useragent<firefox_linux>; # TODO better useragent?
+my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
 $ua.timeout = 10;
 
 sub process($data) {
