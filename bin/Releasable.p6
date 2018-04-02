@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-# Copyright © 2017
+# Copyright © 2017-2018
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -53,7 +53,7 @@ sub time-left($then) {
     my ($seconds, $minutes, $hours, $days) = $time-left.polymod: 60, 60, 24;
     return ‘is just a few moments away’ if not $days and not $hours;
     my $answer = ‘in ’;
-    $answer ~= “$days day{$days ≠ 1 ?? ‘s’ !! ‘’} and ” if $days;
+    $answer ~= “≈$days day{$days ≠ 1 ?? ‘s’ !! ‘’} and ” if $days;
     $answer ~= “≈$hours hour{$hours ≠ 1 ?? ‘s’ !! ‘’}”;
     $answer
 }
