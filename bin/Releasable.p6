@@ -29,6 +29,7 @@ my $SHA-LENGTH   = 8;
 my $RELEASE-HOUR = 19; # GMT+0
 my $BLOCKERS-URL = ‘https://fail.rakudo.party/release/blockers.json’;
 my $TICKET-URL   = ‘https://rt.perl.org/rt3/Public/Bug/Display.html?id=’;
+my $DRAFT-URL        = ‘https://raw.github.com/wiki/rakudo/rakudo/ChangeLog-Draft.md’;
 
 method help($msg) {
     “status | status link”
@@ -151,9 +152,20 @@ sub blockers() {
 multi method irc-to-me($msg where /^ :i \s*
                                     [changelog|release|log|status|info|when|next]‘?’?
                                     [\s+ $<url>=[‘http’.*]]? $/) {
-    my $changelog = process-url ~$_, $msg        with    $<url>;
+    my $changelog = process-url ~$_, $msg with $<url>;
     $changelog  //= slurp “$RAKUDO/docs/ChangeLog”;
     my $answer    = time-to-release($msg) ~ ‘. ’ without $<url>;
+    without $<url> {
+        use HTTP::UserAgent;
+        my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
+        my $response = try { $ua.get: $DRAFT-URL };
+        if $response and $response.is-success {
+            my $wiki = $response.decoded-content;
+            temp $/;
+            $wiki .= subst: /^ .*? ^^<before New>/, ‘’;
+            $changelog = $wiki ~ “\n” ~ $changelog;
+        }
+    }
     my %stats     = changelog-to-stats $changelog;
     my %blockers  = blockers                     without $<url>;
 
