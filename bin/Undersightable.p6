@@ -264,11 +264,11 @@ multi method irc-to-me($msg where /check|status|info|test|log/) {
             { gather self.check-bots($msg) },
             { gather self.check-version-mentions },
         );
-        my @results = @jobs.hyper(:1batch).map({ .().eager }).flat;
+        my @results  = @jobs.hyper(:1batch).map({ .().eager }).flat;
         my $warnings = +@results.grep: Warning;
         my $errors   = +@results.grep: Error;
         my $peek     = “{s $errors, ‘error’}, {s $warnings, ‘warning’}”;
-        my $gist = join “\n”, @results;
+        my $gist     = join “\n”, @results;
         (‘’ but FileStore(‘result.md’ => $gist)) but PrettyLink({“$peek: $_”})
     }
 }
