@@ -249,7 +249,7 @@ method check-version-mentions() {
             if await($resp.body).match: / ‘#’\d+ \s ‘"’$last-tag‘"’ / {
                 take “| $url | {.status} | $last-tag release is mentioned |” ;
             } else {
-                take “| $url | {.status} | No mention of $last-tag release found |” does Error;
+                take “| $url | {.status} | **☠ No mention of $last-tag release found** |” does Error;
             }
         }
     }
