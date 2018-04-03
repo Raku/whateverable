@@ -224,6 +224,37 @@ method check-bots($msg) {
     }
 }
 
+method check-version-mentions() {
+    take “\n## Release announcements\n”;
+    take ‘| URL | Status code | Message |’;
+    take ‘|-----|-------------|---------|’;
+
+    {
+        my $url = ‘https://moarvm.org/’;
+        my $last-tag = self.get-tags(‘2009-02-01’, :default(), repo => ‘./data/moarvm’).tail;
+        my $resp = get $url;
+        with $resp {
+            if await($resp.body).contains: “The MoarVM team is proud to release version $last-tag” {
+                take “| $url | {.status} | $last-tag release is mentioned |” ;
+            } else {
+                take “| $url | {.status} | No mention of $last-tag release found |” does Error;
+            }
+        }
+    }
+    {
+        my $url = ‘https://en.wikipedia.org/wiki/Rakudo_Perl_6’;
+        my $last-tag = self.get-tags(‘2009-02-01’, :default(), repo => ‘./data/rakudo-moar’).tail;
+        my $resp = get $url;
+        with $resp {
+            if await($resp.body).match: / ‘#’\d+ \s ‘"’$last-tag‘"’ / {
+                take “| $url | {.status} | $last-tag release is mentioned |” ;
+            } else {
+                take “| $url | {.status} | No mention of $last-tag release found |” does Error;
+            }
+        }
+    }
+}
+
 multi method irc-to-me($msg where /check|status|info|test|log/) {
     $msg.reply: ‘OK! Working on it…’;
     start {
@@ -231,6 +262,7 @@ multi method irc-to-me($msg where /check|status|info|test|log/) {
             { gather check-websites },
             { gather self.check-releases },
             { gather self.check-bots($msg) },
+            { gather self.check-version-mentions },
         );
         my @results = @jobs.hyper(:1batch).map({ .().eager }).flat;
         my $warnings = +@results.grep: Warning;
