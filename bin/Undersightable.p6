@@ -203,10 +203,6 @@ method check-files(:$title, :$url-pattern, :$path-pattern, :$start-tag-date, :$r
 }
 
 method check-releases {
-    take “\n## Release tarballs (skipped)\n”;
-    take “\n**⚠ Can't check release tarballs without segfaulting. Skipping.⚠**” does Warning;
-    return; # TODO issue #24
-
     my $debug-date = Date.today.earlier(:5month);
     for @files {
         self.check-files: |$_, |(%*ENV<DEBUGGABLE>
