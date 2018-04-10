@@ -249,7 +249,7 @@ sub remind($msg, @channels) {
 multi method keep-reminding($msg) {
     # TODO multi-server setup not supported (this will be irrelevant after #284)
     loop {
-        my &bail = { sleep $CONFIG<releasable><spam-exception-delay> ÷ 100000; next }
+        my &bail = { sleep $CONFIG<releasable><spam-exception-delay>; next }
         my $datetime = parse-next-release $msg;
         bail without $datetime;
         my $diff = $datetime - DateTime.now;
@@ -258,7 +258,7 @@ multi method keep-reminding($msg) {
         my $every = $CONFIG<releasable><spam-every>;
         bail if $diff < $every; # too close to the release
         my $left = $diff % $every;
-        sleep 15;#$left;
+        sleep $left;
         remind $msg, $CONFIG<releasable><spammed-channels>
     }
     CATCH { default { self.handle-exception: $_, $msg } }
