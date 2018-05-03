@@ -31,6 +31,8 @@ ReadWritePaths=/home/bisectable/git/whateverable/sandbox
 ReadWritePaths=/home/bisectable/git/whateverable/data
 ReadOnlyPaths=/home/bisectable/git/whateverable/data/builds
 InaccessiblePaths=/home/bisectable/git/whateverable/config.json
+TemporaryFileSystem=/home/bisectable/git/whateverable/lib/.precomp
+TemporaryFileSystem=/home/bisectable/git/whateverable/lib/Whateverable/.precomp
 
 MemoryMax=1.5G
 TasksMax=80
