@@ -238,10 +238,10 @@ sub process-event($hook is copy, $data) { # TODO refactor
             if $action eq ‘assigned’ | ‘unassigned’ {
                 my $assignee = $data<assignee><login>;
                 if $assignee eq $login {
-                    notify “$login++ self-$action issue $title: $url”
+                    notify :silent, “$login++ self-$action issue $title: $url”
                 } else {
                     my $where = $action eq ‘assigned’ ?? ‘to’ !! ‘from’;
-                    notify “$login++ $action issue $title $where $assignee: $url”
+                    notify :silent, “$login++ $action issue $title $where $assignee: $url”
                 }
             } else {
                 notify “$login++ $action issue $title: $url”
