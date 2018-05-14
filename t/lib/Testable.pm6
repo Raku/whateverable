@@ -167,6 +167,16 @@ class Testable {
                   “$.bot-nick,   HElp?  ”,
                   “$.our-nick, $help # See wiki for more examples: ”
                       ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
+                      
+        self.test(‘usage message’,
+                  “$.bot-nick, usage”,
+                  “$.our-nick, $help # See wiki for more examples: ”
+                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
+
+        self.test(‘usage message’,
+                  “$.bot-nick,   usage?  ”,
+                  “$.our-nick, $help # See wiki for more examples: ”
+                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
 
 
         self.test(‘typoed name’,
