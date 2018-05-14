@@ -178,7 +178,7 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’
 
 multi method irc-to-me(Message $    where .text ~~ /:i^ [source|url] ‘?’? \s* $/ --> SOURCE) {}
 multi method irc-to-me(Message $    where .text ~~ /:i^ wiki ‘?’? \s* $/) { self.get-wiki-link }
-multi method irc-to-me(Message $msg where .text ~~ /:i^ help ‘?’? \s* $/) {
+multi method irc-to-me(Message $msg where .text ~~ /:i^ [help|usage] ‘?’? \s* $/) {
     self.help($msg) ~ “ # See wiki for more examples: {self.get-wiki-link}”
 }
 multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime \s* $/) {
