@@ -57,7 +57,7 @@ sub set-next-squashathon() {
     grumble ‘Can't parse the wiki page’ unless
     $page ~~ / ^^ ‘## Dates’                              \N*\n
                ^^ ‘|’ \s* ‘Date’ \s* ‘|’                  \N*\n
-              [^^ ‘|-’                                    \N*\n]?
+              [^^ ‘|’[‘-’|‘:’]                            \N*\n]?
               [^^ ‘|’ \s* [‘🍕’|‘<br>’|‘[’|‘*’|‘~’]*
                    \s* $<dates>=[\d\d\d\d\-\d\d\-\d\d] >> \N*\n]+ /;
     my @dates = $<dates>.list.map: { Date.new: ~$_ };
