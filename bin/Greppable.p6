@@ -105,8 +105,20 @@ multi method irc-to-me($msg) {
     }
     my $total   = $stats.elems;
     my $modules = $stats.Set.elems;
-    (‘’ but FileStore({ ‘result.md’ => $gist }))
-    but PrettyLink({“$total lines, $modules modules: $_”})
+    if $total == 1 and $modules == 1 {
+      (‘’ but FileStore({ ‘result.md’ => $gist }))
+      but PrettyLink({“$total line, $modules module: $_”})
+    } elsif $total == 1 {
+      (‘’ but FileStore({ ‘result.md’ => $gist }))
+      but PrettyLink({“$total line, $modules modules: $_”})
+    } elsif $modules == 1 {
+      (‘’ but FileStore({ ‘result.md’ => $gist }))
+      but PrettyLink({“$total lines, $modules module: $_”})
+    }
+    else {
+      (‘’ but FileStore({ ‘result.md’ => $gist }))
+      but PrettyLink({“$total lines, $modules modules: $_”})
+    }
 }
 
 

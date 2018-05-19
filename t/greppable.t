@@ -35,6 +35,9 @@ $t.test-gist(‘“…” is added to long paths’,
 $t.test-gist(‘“…” is not added to root files’,
              %(‘result.md’ => none /‘``…/README.md``’/));
 
+$t.test(‘single line/module returned’,
+      “{$t.bot-nick}: 6lang”,
+      /^ <me($t)>‘, ’\d+‘ line, ’\d+‘ module: https://whatever.able/fakeupload’ $/);
 
 $t.test(‘another query’,
         “{$t.bot-nick}: I have no idea”,
