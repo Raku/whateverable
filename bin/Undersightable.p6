@@ -242,6 +242,18 @@ method check-version-mentions() {
         }
     }
     {
+        my $url = ‘https://en.wikipedia.org/wiki/MoarVM’;
+        my $last-tag = self.get-tags(‘2009-02-01’, :default(), repo => ‘./data/moarvm’).tail;
+        my $resp = get $url;
+        with $resp {
+            if await($resp.body).match: / $last-tag / { # TODO better pattern
+                take “| $url | {.status} | $last-tag release is mentioned |” ;
+            } else {
+                take “| $url | {.status} | **☠ No mention of $last-tag release found** |” does Error;
+            }
+        }
+    }
+    {
         my $url = ‘https://en.wikipedia.org/wiki/Rakudo_Perl_6’;
         my $last-tag = self.get-tags(‘2009-02-01’, :default(), repo => ‘./data/rakudo-moar’).tail;
         my $resp = get $url;
