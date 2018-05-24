@@ -152,14 +152,15 @@ role Error   {}
 role Warning {}
 role Info    {}
 
-sub get($url) {
+sub get($url, $type? = Warning) {
+    my $chr = $type ~~ Warning ?? ‘⚠’ !! ‘☠’;
     my $resp = await Cro::HTTP::Client.get: $url;
     CATCH {
         when X::Cro::HTTP::Error {
-            take “| **$url** | **{.response.status}** | **⚠ {.message}** |” does Warning
+            take “| **$url** | **{.response.status}** | **$chr {.message}** |” does $type
         }
         default {
-            take “| **$url** | **N/A** | **⚠ {.message}** |” does Warning
+            take “| **$url** | **N/A** | **$chr {.message}** |” does $type
         }
     }
     $resp
@@ -181,7 +182,7 @@ method check-files(:$title, :$url-pattern, :$path-pattern, :$start-tag-date, :$r
     take ‘|-----|-------------|---------|’;
     for reverse self.get-tags: $start-tag-date, :dups, :default(), :$repo {
         my $url =  $url-pattern($_);
-        my $resp = get $url;
+        my $resp = get $url, Error;
         if $resp {
             my $path = $path-pattern($_).IO;
             mkdir $path.parent;
