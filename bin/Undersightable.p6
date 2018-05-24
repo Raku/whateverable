@@ -246,7 +246,7 @@ method check-version-mentions() {
         my $last-tag = self.get-tags(‘2009-02-01’, :default(), repo => ‘./data/rakudo-moar’).tail;
         my $resp = get $url;
         with $resp {
-            if await($resp.body).match: / ‘#’\d+ \s ‘"’$last-tag‘"’ / {
+            if await($resp.body).match: / [‘#’\d+ \s]? ‘"’$last-tag‘"’ / {
                 take “| $url | {.status} | $last-tag release is mentioned |” ;
             } else {
                 take “| $url | {.status} | **☠ No mention of $last-tag release found** |” does Error;
