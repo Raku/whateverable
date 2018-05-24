@@ -192,7 +192,7 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime \s* $/) {
         ~ “implementing {.language_name} {.language_version}.”
      })
 }
-multi method irc-notice-me( $ --> ‘Sorry, it is too private here’) {} # TODO issue #16
+multi method irc-notice-me( $ --> Nil)                             {} # Issue #321
 multi method irc-privmsg-me($ --> ‘Sorry, it is too private here’) {} # TODO issue #16
 multi method irc-to-me($) {
     ‘I cannot recognize this command. See wiki for some examples: ’ ~ self.get-wiki-link
