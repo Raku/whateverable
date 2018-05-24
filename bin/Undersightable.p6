@@ -98,6 +98,8 @@ modules.6lang.org
 rakudo.6lang.org
 tablets.6lang.org
 testers.6lang.org
+
+perlfoundation.org
 >; # TODO replace “6lang” if another name is chosen
 
 
