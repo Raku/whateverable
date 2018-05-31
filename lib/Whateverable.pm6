@@ -297,6 +297,16 @@ sub perl6-grep($stdin, $regex is copy, :$timeout = 180, :$complex = False, :$hac
 }
 
 sub fetch-build($full-commit-hash, :$backend!) {
+    my $done;
+    if %*ENV<TESTABLE> { # keep asking for more time
+        $done = Promise.new;
+        start react {
+            whenever $done { done }
+            whenever Supply.interval: 0.5 { test-delay }
+        }
+    }
+    LEAVE { $done.keep } if $done.defined && %*ENV<TESTABLE>;
+
     my $ua = HTTP::UserAgent.new;
     $ua.timeout = 10;
 
@@ -304,11 +314,7 @@ sub fetch-build($full-commit-hash, :$backend!) {
     my $link = “{$CONFIG<mothership>}/$full-commit-hash?type=$backend&arch=$arch”;
     note “Attempting to fetch $full-commit-hash…”;
 
-    my $response;
-    react {
-        whenever start $ua.get: :bin, $link { $response = $_; done }
-        whenever Supply.interval: 0.5       { test-delay           }
-    }
+    my $response = $ua.get: :bin, $link;
     return unless $response.is-success;
 
     my $disposition = $response.header.field(‘Content-Disposition’).values[0];
