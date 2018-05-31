@@ -34,7 +34,7 @@ sub fuzzy-nick($nick, $distance) is export {
 }
 
 sub signal-to-text($signal) is export {
-    “$signal ({Signal($signal) // ‘None’})”
+    “$signal ({$signal ?? Signal($signal) !! ‘None’})”
 }
 
 sub s($count, $word) is export {
