@@ -377,7 +377,10 @@ sub test-delay {
     use NativeCall;
     sub kill(int32, int32) is native {*};
     sub getppid(--> int32) is native {*};
-    kill getppid, 10; # SIGUSR1
+    my $sig-compat = SIGUSR1;
+    # ↓ Fragile platform-specific hack
+    $sig-compat = 10 if $*PERL.compiler.version ≤ v2018.05;
+    kill getppid, +$sig-compat; # SIGUSR1
 }
 
 sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {

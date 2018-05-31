@@ -22,7 +22,11 @@ class Testable {
         $!bot = $bot;
         my $ready  = Channel.new;
         $!messages = Channel.new;
-        $!delay-channel = signal(SIGUSR1).Channel;
+
+        my $sig-compat = SIGUSR1;
+        # ↓ Fragile platform-specific hack
+        $sig-compat = SIGBUS if v2018.04 ≤ $*PERL.compiler.version ≤ v2018.05;
+        $!delay-channel = signal($sig-compat).Channel;
 
         use Whateverable::Builds;
         ensure-cloned-repos;
