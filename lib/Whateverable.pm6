@@ -340,13 +340,17 @@ sub fetch-build($full-commit-hash, :$backend!) {
     return $archive
 }
 
-sub build-exists($full-commit-hash, :$backend=‘rakudo-moar’) is export {
+sub build-exists($full-commit-hash,
+                 :$backend=‘rakudo-moar’,
+                 :$force-local=False) is export {
     my $archive     = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash.zst”.IO;
     my $archive-lts = “{ARCHIVES-LOCATION}/$backend/$full-commit-hash”.IO;
     # ↑ long-term storage (symlink to a large archive)
 
     my $answer = ($archive, $archive-lts).any.e.so;
-    return so fetch-build $full-commit-hash, :$backend if !$answer && $CONFIG<mothership>;
+    if !$force-local && !$answer && $CONFIG<mothership> {
+        return so fetch-build $full-commit-hash, :$backend
+    }
     $answer
 }
 
@@ -356,7 +360,8 @@ method get-similar($tag-or-hash, @other?, :$repo=$RAKUDO) {
                           ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
                           ‘--sort=-taggerdate’)<output>.lines
                           .map(*.split(‘/’))
-                          .grep({ build-exists .[0] || .[1] })
+                          .grep({ build-exists .[0] || .[1],
+                                               :force-local })
                           .map(*[2]);
 
     my $cutoff = $tag-or-hash.chars max 7;
