@@ -410,7 +410,7 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
         }
     } else {
         die ‘lrzip is not installed’ unless run :err(Nil), <lrzip --version>; # check that lrzip is available
-        my $proc = run :out, :bin, <lrzip -decompress --quiet --outfile - -->, $archive-link;
+        my $proc = run :out, :bin, <lrzip --decompress --quiet --outfile - -->, $archive-link;
         run :in($proc.out), :bin, <tar --extract --absolute-names -->, $build-path;
     }
 
