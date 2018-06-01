@@ -220,10 +220,10 @@ $t.test(‘last basic query, just in case’,
 # https://github.com/perl6/whateverable/issues/234
 $t.test(｢\U lookup by code｣,
         “{$t.bot-nick}: \\U0010ffff”,
-        /^ <me($t)>‘U+10FFFF <illegal> [] (�)’ $/);
+        /^ <me($t)>‘, U+10FFFF <noncharacter-10FFFF> [Cn] (􏿿)’ $/);
 $t.test(｢\U lookup by code｣,
         “{$t.bot-nick}: \\U2665”,
-        /^ <me($t)>‘U+2665 BLACK HEART SUIT [So] (♥)’ $/);
+        /^ <me($t)>‘, U+2665 BLACK HEART SUIT [So] (♥)’ $/);
 
 
 $t.last-test;
