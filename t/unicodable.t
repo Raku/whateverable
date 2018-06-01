@@ -68,6 +68,15 @@ $t.test(‘Search by codepoint number’,
         “{$t.our-nick}, U+1F40F RAM [So] (🐏)”,
         “{$t.our-nick}, U+1F40B WHALE [So] (🐋)”);
 
+# https://github.com/perl6/whateverable/issues/234
+$t.test(｢\U lookup by code｣,
+        “{$t.bot-nick}: \\U0010ffff”,
+        /^ <me($t)>‘, U+10FFFF <noncharacter-10FFFF> [Cn] (􏿿)’ $/);
+$t.test(｢\U lookup by code｣,
+        “{$t.bot-nick}: \\U2665”,
+        /^ <me($t)>‘, U+2665 BLACK HEART SUIT [So] (♥)’ $/);
+
+
 $t.test(‘Search using the code block’,
         ‘u: { .uniname.uc eq ‘BUTTERFLY’ }’,
         “{$t.our-nick}, U+1F98B BUTTERFLY [So] (🦋)”);
@@ -216,14 +225,6 @@ $t.test(‘last basic query, just in case’,
         /^ <me($t)>‘, U+1F435 MONKEY FACE [So] (🐵)’ $/,
         /^ <me($t)>‘, U+2A34 MULTIPLICATION SIGN IN LEFT HALF CIRCLE [Sm] (⨴)’ $/,
         /^ <me($t)>‘, U+1D227 GREEK INSTRUMENTAL NOTATION SYMBOL-17 [So] (𝈧)’ $/);
-
-# https://github.com/perl6/whateverable/issues/234
-$t.test(｢\U lookup by code｣,
-        “{$t.bot-nick}: \\U0010ffff”,
-        /^ <me($t)>‘, U+10FFFF <noncharacter-10FFFF> [Cn] (􏿿)’ $/);
-$t.test(｢\U lookup by code｣,
-        “{$t.bot-nick}: \\U2665”,
-        /^ <me($t)>‘, U+2665 BLACK HEART SUIT [So] (♥)’ $/);
 
 
 $t.last-test;
