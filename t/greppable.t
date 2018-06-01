@@ -16,7 +16,7 @@ $t.shortcut-tests: <grep: grep6:>,
 
 # Basics
 
-$t.test(‘basic query’,
+$t.test(:30timeout, ‘basic query’,
         “{$t.bot-nick}: password”,
         /^ <me($t)>‘, ’(\d+)‘ lines, ’(\d+)‘ modules:’
            { cmp-ok +~$0, &[>], +~$1, ‘more lines than modules’ }
@@ -51,7 +51,7 @@ $t.test-gist(‘Proper format’, # assume that tadzik's modules don't change
                ‘/t/01-file-find.t#L85) | <code>exit 0; # <b>I have no idea</b>’
                ‘ what I'm doing, but I get Non-zero exit status w/o this</code> |’ $$/));
 
-$t.test(:40timeout, ‘the output of git grep is split by \n, not something else’,
+$t.test(:120timeout, ‘the output of git grep is split by \n, not something else’,
         “{$t.bot-nick}: foo”,
         /^ <me($t)>‘, ’\d+‘ lines, ’\d+‘ modules: https://whatever.able/fakeupload’ $/);
 
