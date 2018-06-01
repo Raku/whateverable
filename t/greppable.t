@@ -36,8 +36,8 @@ $t.test-gist(‘“…” is not added to root files’,
              %(‘result.md’ => none /‘``…/README.md``’/));
 
 $t.test(‘single line/module returned’,
-      “{$t.bot-nick}: 6lang”,
-      /^ <me($t)>‘, ’\d+‘ line, ’\d+‘ module: https://whatever.able/fakeupload’ $/);
+      “{$t.bot-nick}: ought to cover the same functionality as this class, maybe long-term we”,
+      /^ <me($t)>‘, 1 line, 1 module: https://whatever.able/fakeupload’ $/);
 
 $t.test(‘another query’,
         “{$t.bot-nick}: I have no idea”,
