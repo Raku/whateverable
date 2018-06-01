@@ -106,7 +106,7 @@ multi method irc-to-me($msg) {
     my $total   = $stats.elems;
     my $modules = $stats.Set.elems;
     (‘’ but FileStore({ ‘result.md’ => $gist }))
-    but PrettyLink({“$total lines, $modules modules: $_”})
+    but PrettyLink({“{s $total, ‘line’}, {s $modules, ‘module’}: $_”})
 }
 
 
