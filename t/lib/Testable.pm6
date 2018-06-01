@@ -38,8 +38,12 @@ class Testable {
                                          “--ports=$port”;
         END .kill with $!server-proc;
         %*ENV<TESTABLE_PORT> = $port;
-        $!server-proc.start;
+        my $started = $!server-proc.start;
         sleep 1;
+        if $started.status ~~ Broken {
+            die “Can't start miniircd, did you clone with --recurse-submodules ?\n”
+              ~ ‘if not, you can do that now with: git submodule update --init --recursive’
+        }
 
         $!irc-client = IRC::Client.new(
             :nick($our-nick ~ (^999999 .pick))
