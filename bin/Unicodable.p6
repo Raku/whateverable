@@ -96,7 +96,7 @@ method from-numerics($query) {
     $query ~~ m:ignoremark/^
         :i \s*
         [
-            [ | ‘u’ (.) <?{ $0[*-1].Str.uniname.match: /PLUS.*SIGN/ }>
+            [ | [｢\U｣ |‘u’ (.)] <?{ $0[*-1].Str.uniname.match: /PLUS.*SIGN/ }>
               | [ <:Nd> & <:Numeric_Value(0)> ] ‘x’ # TODO is it fixed now? … What exactly?
             ]
             $<digit>=<:HexDigit>+

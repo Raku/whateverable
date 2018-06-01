@@ -217,6 +217,14 @@ $t.test(‘last basic query, just in case’,
         /^ <me($t)>‘, U+2A34 MULTIPLICATION SIGN IN LEFT HALF CIRCLE [Sm] (⨴)’ $/,
         /^ <me($t)>‘, U+1D227 GREEK INSTRUMENTAL NOTATION SYMBOL-17 [So] (𝈧)’ $/);
 
+# https://github.com/perl6/whateverable/issues/234
+$t.test(｢\U lookup by code｣,
+        “{$t.bot-nick}: \\U0010ffff”,
+        /^ <me($t)>‘U+10FFFF <illegal> [] (�)’ $/);
+$t.test(｢\U lookup by code｣,
+        “{$t.bot-nick}: \\U2665”,
+        /^ <me($t)>‘U+2665 BLACK HEART SUIT [So] (♥)’ $/);
+
 
 $t.last-test;
 done-testing;
