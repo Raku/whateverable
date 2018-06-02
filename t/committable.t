@@ -122,7 +122,7 @@ $t.test(‘stdin Nl’,
 
 $t.test(‘huge stdin is not replied back fully’,
         ‘commit: stdin https://raw.githubusercontent.com/perl6/mu/master/misc/camelia.txt’,
-        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         “{$t.our-nick}, STDIN is set to «Camelia␤␤The Camelia image is copyright 2009 by Larry Wall.  Permission to use␤is granted under the…»”);
 
 # Ranges and multiple commits
@@ -195,22 +195,22 @@ $t.test(‘␤ works like an actual newline’,
 
 $t.test(‘fetching code from urls’,
         ‘commit: HEAD https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
-        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, ¦HEAD(’<sha>‘): «url test␤»’ $/);
 
 $t.test(‘comment after a url’,
         ‘commit: HEAD https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 # this is a comment’,
-        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, ¦HEAD(’<sha>‘): «url test␤»’ $/);
 
 $t.test(‘comment after a url (without #)’,
         ‘commit: HEAD https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 ← like this!’,
-        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, ¦HEAD(’<sha>‘): «url test␤»’ $/);
 
 $t.test(‘wrong url’,
         ‘commit: HEAD http://github.com/sntoheausnteoahuseoau’,
-        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found).”);
+        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found)”);
 
 $t.test(‘wrong mime type’,
         ‘commit: HEAD https://www.wikipedia.org/’,

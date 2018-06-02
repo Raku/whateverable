@@ -82,9 +82,8 @@ method process($msg, $config is copy, $code is copy, :%ENV) {
         $config = ‘v6.c’
     }
     my @commits = self.get-commits: $config;
-    $code = self.process-code: $code, $msg;
-    my $filename = write-code $code;
-    LEAVE { unlink $_ with $filename }
+    my $file = self.process-code: $code, $msg;
+    LEAVE .unlink with $file;
 
     my @outputs; # unlike %shas this is ordered
     my %shas;    # { output => [sha, sha, …], … }
@@ -94,7 +93,7 @@ method process($msg, $config is copy, $code is copy, :%ENV) {
         }
         @outputs.push: .key if %shas{.key}:!exists;
         .key
-    }, @commits.map: { self.process-commit: $_, $filename, :%ENV };
+    }, @commits.map: { self.process-commit: $_, $file, :%ENV };
 
     my $short-str = @outputs == 1 && %shas{@outputs[0]} > 3 && $config.chars < 20
     ?? “¦{$config} ({+%shas{@outputs[0]}} commits): «{@outputs[0]}»”

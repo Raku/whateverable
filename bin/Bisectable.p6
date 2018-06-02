@@ -158,9 +158,7 @@ multi method irc-to-me($msg where .text ~~ &bisect-cmd) {
     self.process: $msg, ~$code, ~$old, ~$new
 }
 
-method process($msg, $code is copy, $old, $new) {
-    $code = self.process-code: $code, $msg;
-
+method process($msg, $code, $old, $new) {
     # convert to real ids so we can look up the builds
     my @options = <HEAD>;
     my $full-old = to-full-commit $old;
@@ -179,11 +177,11 @@ method process($msg, $code is copy, $old, $new) {
     grumble “No build for revision “$new”” unless build-exists $full-new;
     my $short-new = self.get-short-commit: $new eq ‘HEAD’ ?? $full-new !! $new;
 
-    my $filename = write-code $code;
-    LEAVE { unlink $_ with $filename }
+    my $file = self.process-code: $code, $msg;
+    LEAVE .unlink with $file;
 
-    my $old-result = run-snippet $full-old, $filename;
-    my $new-result = run-snippet $full-new, $filename;
+    my $old-result = run-snippet $full-old, $file;
+    my $new-result = run-snippet $full-new, $file;
 
     grumble “Problem with $short-old commit: $old-result<output>” if $old-result<signal> < 0;
     grumble “Problem with $short-new commit: $new-result<output>” if $new-result<signal> < 0;
@@ -229,17 +227,17 @@ method process($msg, $code is copy, $old, $new) {
     my ($bisect-output, $bisect-status);
     if $old-result<signal> ≠ $new-result<signal> {
         $msg.reply: “Bisecting by exit signal (old=$short-old new=$short-new). Old exit signal: {signal-to-text $old-result<signal>}”;
-        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $filename, :old-exit-signal($old-result<signal>)
+        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $file, :old-exit-signal($old-result<signal>)
     } elsif $old-result<exit-code> ≠ $new-result<exit-code> {
         $msg.reply: “Bisecting by exit code (old=$short-old new=$short-new). Old exit code: $old-result<exit-code>”;
-        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $filename, :old-exit-code($old-result<exit-code>)
+        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $file, :old-exit-code($old-result<exit-code>)
     } else {
         if $old-result<signal> ≠ 0 {
             $msg.reply: “Bisecting by output (old=$short-old new=$short-new) because on both starting points the exit code is $old-result<exit-code> and exit signal is {signal-to-text $old-result<signal>}”
         } else {
             $msg.reply: “Bisecting by output (old=$short-old new=$short-new) because on both starting points the exit code is $old-result<exit-code>”
         }
-        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $filename, :old-output($old-result<output>)
+        ($bisect-output, $bisect-status) = self.run-bisect: cwd => $dir, $file, :old-output($old-result<output>)
     }
     $msg.reply: ‘bisect log: ’ ~ self.upload: { ‘query’   => $msg.text,
                                                 ‘result’  => colorstrip(“$init-result<output>\n$bisect-output”), },

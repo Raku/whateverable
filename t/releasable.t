@@ -144,7 +144,7 @@ $t.test-gist(‘gisted files look alright’,
 
 $t.test(‘uncommitted changed from a link’,
         “{$t.bot-nick}: changelog https://gist.github.com/AlexDaniel/45b98a8bd5935a53a3ed4762ea5f5d43/raw/”,
-        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         “{$t.our-nick}, 1 out of 8 commits logged”,
         “{$t.our-nick}, Details: https://whatever.able/fakeupload”);
 

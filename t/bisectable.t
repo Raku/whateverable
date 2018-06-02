@@ -180,25 +180,25 @@ $t.test(‘␤ works like an actual newline’,
 
 $t.test(‘fetching code from urls’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
-        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(‘comment after a url’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 # this is a comment’,
-        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(‘comment after a url (without #)’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 ← like this!’,
-        “{$t.our-nick}, Successfully fetched the code from the provided URL.”,
+        “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(‘wrong url’,
         ‘bisect: http://github.com/sntoheausnteoahuseoau’,
-        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found).”);
+        “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found)”);
 
 $t.test(‘wrong mime type’,
         ‘bisect: https://www.wikipedia.org/’,

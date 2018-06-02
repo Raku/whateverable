@@ -172,7 +172,9 @@ multi method irc-to-me(Message $msg where .text ~~
 }
 
 multi method irc-to-me(Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdin>=.* $/) {
-    $default-stdin = self.process-code: ~$<stdin>, $msg;
+    my $file = self.process-code: ~$<stdin>, $msg;
+    $default-stdin = $file.slurp;
+    unlink $file;
     “STDIN is set to «{shorten $default-stdin, 200}»” # TODO is 200 a good limit
 }
 
@@ -279,9 +281,9 @@ sub perl6-grep($stdin, $regex is copy, :$timeout = 180, :$complex = False, :$hac
               ~ ($complex ?? ｢ nqp::substr($_, 0, nqp::index($_, “\0”)) ~~｣ !! ‘’) ~ “\n”
               ~ $regex ~ “;\n”
               ~ ｢last if $++ > ｣ ~ $GIST-LIMIT;
-    my $filename = write-code $magic;
-    LEAVE unlink $_ with $filename;
-    my $result = run-snippet $full-commit, $filename, :$timeout, :$stdin, args => (‘-np’,);
+    my $file = write-code $magic;
+    LEAVE unlink $_ with $file;
+    my $result = run-snippet $full-commit, $file, :$timeout, :$stdin, args => (‘-np’,);
     my $output = $result<output>;
     # numbers less than zero indicate other weird failures ↓
     grumble “Something went wrong ($output)” if $result<signal> < 0;
@@ -502,11 +504,67 @@ sub write-code($code) is export {
     my ($filename, $filehandle) = tempfile :!unlink;
     $filehandle.print: $code;
     $filehandle.close;
-    $filename
+    $filename.IO
+}
+
+sub process-gist($url, $msg) is export {
+    return unless $url ~~
+      /^ ‘https://gist.github.com/’<[a..zA..Z-]>+‘/’(<.xdigit>**32) $/;
+
+    my $gist-id = ~$0;
+    my $api-url = ‘https://api.github.com/gists/’ ~ $gist-id;
+
+    my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
+    my $response;
+    try {
+        $response = $ua.get: $api-url;
+        CATCH {
+            grumble “Cannot fetch data from GitHub API ({.message})”
+        }
+    }
+    if not $response.is-success {
+        grumble ‘Cannot fetch data from GitHub API’
+                ~ “ (HTTP status line is {$response.status-line})”
+    }
+
+    my %scores; # used to determine the main file to execute
+
+    my %data = from-json $response.decoded-content;
+    grumble ‘Refusing to handle truncated gist’ if %data<truncated>;
+
+    sub path($filename) { “sandbox/$filename”.IO }
+
+    for %data<files>.values {
+        grumble ‘Invalid filename returned’ if .<filename>.contains: ‘/’|“\0”;
+
+        my $score = 0; # for heuristics
+        $score += 50 if .<language> && .<language> eq ‘Perl 6’;
+        $score -= 20 if .<filename>.ends-with: ‘.pm6’;
+        $score += 40 if !.<language> && .<content>.contains: ‘ MAIN’;
+
+        my IO $path = path .<filename>;
+        if .<size> ≥ 10_000_000 {
+            $score -= 300;
+            grumble ‘Refusing to handle files larger that 10 MB’;
+        }
+        if .<truncated> {
+            $score -= 100;
+            grumble ‘Can't handle truncated files yet’; # TODO?
+        } else {
+            spurt $path, .<content>;
+        }
+        %scores.push: .<filename> => $score
+    }
+
+    my $main-file = %scores.max(*.value).key;
+    if $msg and %scores > 1 {
+        $msg.reply: “Using file “$main-file” as a main file, other files are placed in “sandbox/””
+    }
+    path $main-file;
 }
 
 sub process-url($url, $msg) is export {
-    my $ua = HTTP::UserAgent.new;
+    my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
     my $response;
     try {
         $response = $ua.get: $url;
@@ -517,7 +575,7 @@ sub process-url($url, $msg) is export {
     }
     if not $response.is-success {
         grumble ‘It looks like a URL, but for some reason I cannot download it’
-                ~ “ (HTTP status line is {$response.status-line}).”
+                ~ “ (HTTP status line is {$response.status-line})”
     }
     if not $response.content-type.contains: ‘text/plain’ | ‘perl’ {
         grumble “It looks like a URL, but mime type is ‘{$response.content-type}’”
@@ -526,15 +584,15 @@ sub process-url($url, $msg) is export {
     }
 
     my $body = $response.decoded-content;
-    .reply: ‘Successfully fetched the code from the provided URL.’ with $msg;
+    .reply: ‘Successfully fetched the code from the provided URL’ with $msg;
     sleep 0.02; # https://github.com/perl6/whateverable/issues/163
     $body
 }
 
 method process-code($code is copy, $msg) {
     $code ~~ m{^ ( ‘http’ s? ‘://’ \S+ ) }
-    ?? process-url(~$0, $msg)
-    !! $code.subst: :g, ‘␤’, “\n”
+    ?? process-gist(~$0, $msg) // write-code process-url(~$0, $msg)
+    !! write-code $code.subst: :g, ‘␤’, “\n”
 }
 
 multi method filter($response where (.encode.elems > MESSAGE-LIMIT

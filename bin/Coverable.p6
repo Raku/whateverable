@@ -46,7 +46,7 @@ sub condense(@arr) { # squish into ranges
     }
 }
 
-method process($msg, $config is copy, $grep is copy, $code is copy) {
+method process($msg, $config is copy, $grep is copy, $code) {
     my $start-time = now;
 
     if $config ~~ /^ [say|sub] $/ {
@@ -57,10 +57,9 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
 
     my @commits = self.get-commits: $config;
     grumble ‘Coverable only works with one commit’ if @commits > 1;
-    $code = self.process-code: $code, $msg;
 
-    my $filename = write-code $code;
-    LEAVE { unlink $_ with $filename }
+    my $file = self.process-code: $code, $msg;
+    LEAVE .unlink with $file;
 
     my $result;
     my %lookup;
@@ -80,7 +79,7 @@ method process($msg, $config is copy, $grep is copy, $code is copy) {
         LEAVE { unlink $log }
 
         %*ENV<MVM_COVERAGE_LOG> = $log;
-        $result = run-snippet $full-commit, $filename;
+        $result = run-snippet $full-commit, $file;
         %*ENV<MVM_COVERAGE_LOG>:delete;
 
         my $g = run ‘grep’, ‘-P’, ‘--’, $grep, $log, :out;

@@ -49,11 +49,10 @@ multi method irc-privmsg-channel($msg) {
     self.process: $msg, $msg.args[1], :good-only
 }
 
-method process($msg, $code is copy, :$good-only?) {
+method process($msg, $code, :$good-only?) {
     my $commit = ‘HEAD’;
-    $code = self.process-code: $code, $msg;
-    my $filename = write-code $code;
-    LEAVE { unlink $_ with $filename }
+    my $file = self.process-code: $code, $msg;
+    LEAVE .unlink with $file;
 
     # convert to real id so we can look up the build
     my $full-commit  = to-full-commit $commit;
@@ -65,7 +64,7 @@ method process($msg, $code is copy, :$good-only?) {
     }
 
     # actually run the code
-    my $result = run-snippet $full-commit, $filename;
+    my $result = run-snippet $full-commit, $file;
     my $output = $result<output>;
     if $good-only and ($result<signal> ≤ 0 or $result<signal> == SIGHUP) {
         # forcefully proceed ↑ with non-zero signals (except sighupped timeouts)

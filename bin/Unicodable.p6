@@ -107,9 +107,12 @@ method from-numerics($query) {
 }
 
 method process($msg, $query is copy) {
-    my $code-response = self.process-code: $query, $msg;
-    if $code-response ne $query {
-        $query = $code-response
+    my $file = self.process-code: $query, $msg;
+    LEAVE .unlink with $file;
+
+    my $file-contents = $file.slurp;
+    if $file-contents ne $query {
+        $query = $file-contents # fetched from URL
     } elsif not $msg.args[1].match: /^ ‘.u’ \s / {
         $query = ~$0 if $msg.args[1] ~~ / <[,:]> \s (.*) / # preserve leading spaces
     }
@@ -146,13 +149,13 @@ method process($msg, $query is copy) {
     } elsif $query.starts-with: ‘{’ {
         my $full-commit = to-full-commit ‘HEAD’;
         my $output = ‘’;
-        my $filename = write-code “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
-        LEAVE { unlink $_ with $filename }
+        my $file = write-code “say join “\c[31]”, (0..0x10FFFF).grep:\n” ~ $query;
+        LEAVE unlink $_ with $file;
 
         die ‘No build for the last commit. Oops!’ unless build-exists $full-commit;
 
         # actually run the code
-        my $result = run-snippet $full-commit, $filename;
+        my $result = run-snippet $full-commit, $file;
         $output = $result<output>;
         # numbers less than zero indicate other weird failures ↓
         grumble “Something went wrong ($output)” if $result<signal> < 0;

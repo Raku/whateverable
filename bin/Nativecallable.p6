@@ -25,7 +25,9 @@ sub run-gptrixie($header-file) {
 }
 
 multi method irc-to-me($msg where /^ \s* $<code>=.+ /) {
-    my $code = self.process-code: $<code>, $msg;
+    my $file = self.process-code: $<code>, $msg;
+    my $code = slurp $file;
+    $file.unlink;
     my $header-file = write-code “\n#include <stddef.h>\n#include <stdbool.h>\n” ~ $code;
     LEAVE unlink $_ with $header-file;
     run-gptrixie($header-file)
