@@ -150,10 +150,10 @@ $t.test(‘Did you mean some tag?’,
 $t.test(‘Did you mean some commit?’,
         ‘bench: d2c5694e50 say 42’,
         “{$t.our-nick}, ¦d2c5694: «Cannot find this revision (did you mean “d2c5684”?)»”);
-$t.test(‘Only one commit is wrong (did you mean … ?)’,
+$t.test(:15timeout, ‘Only one commit is wrong (did you mean … ?)’,
         ‘bench: 2015.13,2015.12^ say 42’,
         /^ <me($t)>‘, ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦2015.12^: «’ \d+\.\d+ ‘»’ $/);
-$t.test(:15timeout, ‘Both commits are wrong (did you mean … ?)’,
+$t.test(:25timeout, ‘Both commits are wrong (did you mean … ?)’,
         ‘bench: 2015.12^,2015.13,69fecb52eb2 say 42’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
         /^ <me($t)>‘, ¦2015.12^: «’ \d+\.\d+ ‘» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “c9ebfc2”?)»’ $/);
