@@ -206,6 +206,9 @@ $t.test(‘advanced autodetection’,
 $t.test(‘invalid code is ignored’,
         ‘42 .note∞ my $x = 50’);
 
+$t.test(‘invalid code is ignored’,
+        ‘say calls .gist, right? so it's probably .gist calling .Str’);
+
 $t.test(‘useless stuff is ignored’,
         ‘42’);
 
