@@ -1,0 +1,12 @@
+#!/bin/bash
+ARCHIVES_LOCATION=$1
+
+set -o pipefail
+
+echo 'Removing these builds:'
+for file in "$ARCHIVES_LOCATION"/*.zst; do
+    if ! pzstd -dqc -- "$file" | tar t &> /dev/null; then
+        echo "$file"
+        rm -- "$file"
+    fi
+done

@@ -1,0 +1,13 @@
+#!/bin/bash
+curl 'http://unicode.org/Public/UNIDATA/PropertyAliases.txt' | grep -Po '^[^ ]+\s+; \K[^ ]+' > uniprops
+echo Emoji                     >> uniprops
+echo Emoji_Presentation        >> uniprops
+echo Emoji_Modifier            >> uniprops
+echo Emoji_Modifier_Base       >> uniprops
+echo Numeric_Value_Numerator   >> uniprops
+echo Numeric_Value_Denominator >> uniprops
+echo NFG_QC                    >> uniprops
+echo MVM_COLLATION_PRIMARY     >> uniprops
+echo X_SECONDARY               >> uniprops
+echo X_TERTIARY                >> uniprops
+echo MVM_COLLATION_QC          >> uniprops

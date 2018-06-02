@@ -1,0 +1,21 @@
+#!/bin/bash
+# ↓ Run it like this ↓
+# find builds/rakudo-moar/ -mindepth 1 -maxdepth 1 -size +5M -print0 | xargs -0 -n 1 -P 5 ./maintenance/recompress
+
+ARCHIVES_LOCATION='./builds/rakudo-moar'
+BUILDS_LOCATION='/tmp/whateverable/rakudo-moar'
+
+archive_path=$1
+archive_file=${1##*/}
+sha=${archive_file%%.zst}
+
+printf "%s\n" "$sha"
+zstd -q -f -d -- "$archive_path" &&
+    zstd -q -19 -i "$ARCHIVES_LOCATION/$sha" -o "$archive_path" -f
+rm -- "$ARCHIVES_LOCATION/$sha" # delete anyway, because can fail due to permissions
+
+
+# If you want to retar, use stuff below ↓
+# build_path="$BUILDS_LOCATION/$sha"
+# zstd -dqc -- "$archive_path" | tar x --absolute-names
+# tar cf - --absolute-names --remove-files -- "$build_path" | zstd -c -19 -q -o "$archive_path" -f
