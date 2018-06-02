@@ -221,7 +221,7 @@ $t.test(:31timeout, ‘timeout’,
 # Trailing whitespace
 $t.test("Trailing whitespace is fixed",
         'u: GREEK SMALL THETA     ',
-        "{$t.out-nick}, U+03B8 GREEK SMALL LETTER THETA [Ll] (θ)");
+        "{$t.our-nick}, U+03B8 GREEK SMALL LETTER THETA [Ll] (θ)");
         
 # Extra tests
 
