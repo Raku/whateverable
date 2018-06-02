@@ -158,6 +158,19 @@ $t.test(:25timeout, ‘Both commits are wrong (did you mean … ?)’,
         /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
         /^ <me($t)>‘, ¦2015.12^: «’ \d+\.\d+ ‘» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦69fecb5: «Cannot find this revision (did you mean “c9ebfc2”?)»’ $/);
 
+# Other
+
+# https://github.com/perl6/whateverable/issues/38
+$t.test(‘Issue #38’,
+        ‘bench: say (5..Inf).reverse.list # well, let's bench it’,
+        “{$t.our-nick}, ¦say: «Cannot find this revision (did you mean “all”?)»”);
+$t.test(‘Issue #38’,
+        ‘bench: releases say (5..Inf).reverse.list # well, let's bench it’,
+        /^ <me($t)>‘, starting to benchmark the ’ \d+ ‘ given commit’ ‘s’? $/,
+        “{$t.our-nick}, benchmarked the given commits, now zooming in on performance differences”,
+        “{$t.our-nick}, https://whatever.able/fakeupload”,
+        :240timeout);
+
 # Timeouts
 
 # TODO See issue #99
