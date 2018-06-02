@@ -222,7 +222,15 @@ $t.test(:31timeout, ‘timeout’,
 $t.test("Trailing whitespace is fixed",
         'u: GREEK SMALL THETA     ',
         "{$t.our-nick}, U+03B8 GREEK SMALL LETTER THETA [Ll] (θ)");
-        
+
+# Gists
+
+$t.test(‘refusing to gist too many lines’,
+        ‘u: Lo’,
+        “{$t.our-nick}, U+00AA FEMININE ORDINAL INDICATOR [Lo] (ª)”,
+        “{$t.our-nick}, U+00BA MASCULINE ORDINAL INDICATOR [Lo] (º)”,
+        “{$t.our-nick}, Cowardly refusing to gist more than 5000 lines”);
+
 # Extra tests
 
 $t.test(‘last basic query, just in case’,
