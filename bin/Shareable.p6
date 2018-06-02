@@ -24,9 +24,11 @@ use JSON::Fast;
 use Cro::HTTP::Router;
 use Cro::HTTP::Server;
 
-my $host-arch = $*KERNEL.hardware;
+#my $host-arch = $*KERNEL.hardware;
+my $host-arch = ‘x86_64’;
 $host-arch = ‘amd64’|‘x86_64’ if $host-arch eq ‘amd64’|‘x86_64’;
-$host-arch = $*KERNEL.name ~ ‘-’ ~ $host-arch;
+#$host-arch = $*KERNEL.name ~ ‘-’ ~ $host-arch;
+$host-arch = ‘linux’ ~ ‘-’ ~ $host-arch;
 
 sub cached-archive($build where ‘HEAD.tar.gz’, :$backend=‘rakudo-moar’, :$arch) {
     my $repo = $backend eq ‘rakudo-moar’ ?? $RAKUDO !! MOARVM;
