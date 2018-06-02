@@ -84,7 +84,7 @@ method help($msg) {
 multi method irc-to-me($msg where /^ $<build>=[\S+] $/) {
     my $full-commit = to-full-commit ~$<build>;
     return ‘No build for this commit’ unless build-exists $full-commit;
-    my $link = $CONFIG<mothership>;
+    my $link = $CONFIG<mothership> // $CONFIG<self>;
     “$link/$<build>”
 }
 
