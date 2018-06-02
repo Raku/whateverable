@@ -251,6 +251,18 @@ $t.test(‘Did you forget to specify a revision?’,
         /^ $($t.our-nick) ‘, ¦v6.c (’\d+‘ commits): «hello world␤»’ $/,
         :20timeout);
 
+# Gists
+
+$t.test(‘nicely formatted gist’,
+        ‘commit: 2016.05,2016.06,2016.07,2016.08,2016.09,2016.10,2016.11,2016.12,2017.01,2017.02,2017.03,2018.01’
+            ~ ‘ say(‘this is a test’)xx⑳ if $*PERL.compiler.version < v2018’,
+        “{$t.our-nick}, https://whatever.able/fakeupload”,
+        :30timeout);
+
+$t.test-gist(‘wrapped lines on long commit lists’,
+             %(‘result’ => /^‘¦«2016.05,2016.06,2016.07,2016.08,2016.09,2016.10,2016.11,2016.12,2017.01,’
+                            \n‘  2017.02,2017.03»:’\n‘this is a test’/));
+
 # Timeouts
 
 $t.test(:22timeout, ‘timeout’,
