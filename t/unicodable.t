@@ -52,6 +52,12 @@ $t.test(‘More than three uploaded (without preview)’,
         “{$t.our-nick}, U+2003 EM SPACE [Zs] ( )”,
         “{$t.our-nick}, 6 characters in total: https://whatever.able/fakeupload”);
 
+$t.test(‘Many characters to describe (with preview)’,
+        ‘u: !Onyetenyevwe!’,
+        “{$t.our-nick}, U+0021 EXCLAMATION MARK [Po] (!)”,
+        “{$t.our-nick}, U+004F LATIN CAPITAL LETTER O [Lu] (O)”,
+        “{$t.our-nick}, 14 characters in total (!Onyetenyevwe!): https://whatever.able/fakeupload”);
+
 $t.test(‘Search by words’,
         ‘u: POO PILE’,
         “{$t.our-nick}, U+1F4A9 PILE OF POO [So] (💩)”);
