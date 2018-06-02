@@ -40,11 +40,17 @@ $t.test(‘Three symbols’,
         “{$t.our-nick}, U+0020 SPACE [Zs] ( )”,
         “{$t.our-nick}, U+2BAC BLACK CURVED LEFTWARDS AND UPWARDS ARROW [So] (⮬)”);
 
-$t.test(‘More than three uploaded’,
+$t.test(‘More than three uploaded (with preview)’,
         ‘u: ㈰🁍⩟⏛℧’,
         “{$t.our-nick}, U+3230 PARENTHESIZED IDEOGRAPH SUN [So] (㈰)”,
         “{$t.our-nick}, U+1F04D DOMINO TILE HORIZONTAL-04-00 [So] (🁍)”,
         “{$t.our-nick}, 5 characters in total (㈰🁍⩟⏛℧): https://whatever.able/fakeupload”);
+
+$t.test(‘More than three uploaded (without preview)’,
+        ‘u: Zs EM’,
+        “{$t.our-nick}, U+2001 EM QUAD [Zs] ( )”,
+        “{$t.our-nick}, U+2003 EM SPACE [Zs] ( )”,
+        “{$t.our-nick}, 6 characters in total: https://whatever.able/fakeupload”);
 
 $t.test(‘Search by words’,
         ‘u: POO PILE’,
