@@ -31,7 +31,7 @@ constant $LIMIT = 5_000;
 constant $PREVIEW-LIMIT = 50;
 
 method help($msg) {
-    ‘Just type any unicode character or part of a character name. Alternatively, you can also provide a code snippet.’
+    ‘Just type any Unicode character or part of a character name. Alternatively, you can also provide a code snippet.’
 }
 
 multi method irc-to-me($msg) {

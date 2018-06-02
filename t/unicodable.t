@@ -9,7 +9,7 @@ use Testable;
 
 my $t = Testable.new: bot => ‘Unicodable’;
 
-$t.common-tests: help => ‘Just type any unicode character or part of a character name.’
+$t.common-tests: help => ‘Just type any Unicode character or part of a character name.’
                       ~ ‘ Alternatively, you can also provide a code snippet.’;
 
 $t.shortcut-tests: <u: u6: uni: uni6: propdump: propdump, unidump: unidump,>,
@@ -218,6 +218,11 @@ $t.test(:31timeout, ‘timeout’,
         ‘u: { sleep 1 }’,
         “{$t.our-nick}, «timed out after 30 seconds» «exit signal = SIGHUP (1)»”);
 
+# Trailing whitespace
+$t.test("Trailing whitespace is fixed",
+        'u: GREEK SMALL THETA     ',
+        "{$t.out-nick}, U+03B8 GREEK SMALL LETTER THETA [Ll] (θ)");
+        
 # Extra tests
 
 $t.test(‘last basic query, just in case’,
