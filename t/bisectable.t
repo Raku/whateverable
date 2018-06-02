@@ -250,6 +250,13 @@ $t.test(:21timeout, ‘timeout’,
 
 # Extra tests
 
+# https://github.com/perl6/whateverable/issues/90
+$t.test(‘working directory unchanged’,
+        ‘bisect: for dir(‘lib’) { say ‘X’ }’,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
+        /^ <me($t)>‘, Output on both points: «’ ‘X␤’+ ‘»’ $/);
+
+
 $t.test(:50timeout, ‘another working query #1’,
         ‘bisect: new=d3acb938 try { NaN.Rat == NaN; exit 0 }; exit 1’,
         “{$t.our-nick}, Bisecting by exit code (old=2015.12 new=d3acb93). Old exit code: 0”,
