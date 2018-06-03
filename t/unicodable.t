@@ -251,8 +251,11 @@ $t.test(‘last basic query, just in case’,
         /^ <me($t)>‘, U+2A34 MULTIPLICATION SIGN IN LEFT HALF CIRCLE [Sm] (⨴)’ $/,
         /^ <me($t)>‘, U+1D227 GREEK INSTRUMENTAL NOTATION SYMBOL-17 [So] (𝈧)’ $/);
 
-
 $t.last-test;
+
+$t.test('good MIME type',
+        'u: https://raw.githubusercontent.com/perl6/whateverable/master/t/lib/Testable.pm6',
+        "{$t.our-nick}, Successfully fetched the code from the provided URL");
 done-testing;
 END $t.end;
 
