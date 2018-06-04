@@ -33,9 +33,10 @@ class Testable {
 
         my $self = self;
 
+        my $host = ‘localhost’;
         my $port = (1024..65535).pick; # will do for now
-        $!server-proc = Proc::Async.new: <3rdparty/miniircd/miniircd --listen=localhost>,
-                                         “--ports=$port”;
+        $!server-proc = Proc::Async.new: <3rdparty/miniircd/miniircd>,
+                                         “--listen=$host”, “--ports=$port”;
         END .kill with $!server-proc;
         %*ENV<TESTABLE_PORT> = $port;
         my $started = $!server-proc.start;
@@ -44,6 +45,7 @@ class Testable {
             die “Can't start miniircd, did you clone with --recurse-submodules ?\n”
               ~ ‘if not, you can do that now with: git submodule update --init --recursive’
         }
+        note “# IRC test server on $host:$port”;
 
         $!irc-client = IRC::Client.new(
             :nick($our-nick ~ (^999999 .pick))
