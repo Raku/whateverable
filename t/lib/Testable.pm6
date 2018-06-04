@@ -77,6 +77,9 @@ class Testable {
             }
         }
 
+        my $bot-pid = await $!bot-proc.ready;
+        note “# Bot pid: $bot-pid”;
+
         start { sleep 20; $ready.send: False }
         $!bot-nick = $ready.receive;
         $!our-nick = $!irc-client.servers.values[0].current-nick;

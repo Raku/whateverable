@@ -640,8 +640,6 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
 }
 
 method selfrun($nick is copy, @alias?) {
-    note “Bot pid: $*PID” if %*ENV<TESTABLE>;
-
     ensure-config;
 
     use Whateverable::Builds;
