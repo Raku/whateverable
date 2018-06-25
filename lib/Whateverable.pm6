@@ -243,16 +243,16 @@ sub get-output(*@run-args, :$timeout = $default-timeout || 10,
         $proc.bind-stdin: $fh-stdin
     }
 
-    my @chunks;
+    my $buf = Buf.new;
     my $result;
     my $s-start = now;
     my $s-end;
     react {
-        whenever $proc.stdout { @chunks.push: $_ }; # RT #131763
-        whenever $proc.stderr { @chunks.push: $_ };
+        whenever $proc.stdout :bin { $buf.push: $_ }; # RT #131763
+        whenever $proc.stderr :bin { $buf.push: $_ };
         whenever Promise.in($timeout) {
             $proc.kill; # TODO sends HUP, but should kill the process tree instead
-            @chunks.push: “«timed out after $timeout seconds»”
+            $buf.push: “«timed out after $timeout seconds»”.encode
         }
         whenever $proc.start: :$ENV, :$cwd { #: scheduler => BEGIN ThreadPoolScheduler.new { # TODO do we need to set scheduler?
             $result = $_;
@@ -260,7 +260,8 @@ sub get-output(*@run-args, :$timeout = $default-timeout || 10,
             done
         }
     }
-    my $output = @chunks.join;
+
+    my $output = $buf.decode: ‘utf8-c8’;
     %(
         output    => $chomp ?? $output.chomp !! $output,
         exit-code => $result.exitcode,
