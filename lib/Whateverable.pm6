@@ -541,6 +541,7 @@ sub process-gist($url, $msg) is export {
         my $score = 0; # for heuristics
         $score += 50 if .<language> && .<language> eq ‘Perl 6’;
         $score -= 20 if .<filename>.ends-with: ‘.pm6’;
+        $score -= 10 if .<filename>.ends-with: ‘.t’;
         $score += 40 if !.<language> && .<content>.contains: ‘ MAIN’;
 
         my IO $path = path .<filename>;
