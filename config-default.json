@@ -26,7 +26,7 @@
     "releasable": {
         "spammed-channels": ["#perl6-dev", "#whateverable"],
         "spam-before": 604800,
-        "spam-every": 86400,
+        "spam-every": 72000,
         "spam-exception-delay": 3600
     }
 }
