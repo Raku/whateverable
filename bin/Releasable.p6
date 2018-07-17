@@ -30,6 +30,7 @@ my $RELEASE-HOUR     = 19; # GMT+0
 my $BLOCKERS-URL-RT  = ‘https://fail.rakudo.party/release/blockers.json’;
 my $BLOCKERS-URL-GH  = ‘https://api.github.com/repos/rakudo/rakudo/issues?state=open&labels=%E2%9A%A0%20blocker%20%E2%9A%A0’;
 my $DRAFT-URL        = ‘https://raw.github.com/wiki/rakudo/rakudo/ChangeLog-Draft.md’;
+my $DRAFT-USER-URL   = ‘https://github.com/rakudo/rakudo/wiki/ChangeLog-Draft’;
 
 method help($msg) {
     “status | status link”
@@ -240,7 +241,8 @@ sub remind($msg, @channels) {
     my $time-left = time-left $datetime;
     my $text = “Next release $time-left”;
     $text ~= ‘. ’ ~ blockers<summary>;
-    $text ~= ‘. Please log your changes in the ChangeLog’;
+    $text ~= ‘. Please log your changes in the ChangeLog: ’;
+    $text ~= $DRAFT-USER-URL;
     for @channels {
         $msg.irc.send-cmd: ‘PRIVMSG’, $_, $text, :server($msg.server)
     }
