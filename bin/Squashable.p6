@@ -243,6 +243,9 @@ sub process-event($hook is copy, $data) { # TODO refactor
                     my $where = $action eq ‘assigned’ ?? ‘to’ !! ‘from’;
                     notify :silent, “$login++ $action issue $title $where $assignee: $url”
                 }
+            } elsif $action eq ‘labeled’ | ‘unlabeled’ {
+                my $label = $data<label><name>;
+                notify “$login++ $action issue $title ($label): $url”
             } else {
                 notify “$login++ $action issue $title: $url”
             }
