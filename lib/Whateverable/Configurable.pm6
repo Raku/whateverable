@@ -55,7 +55,8 @@ multi method irc-to-me($msg where ‘variables’|‘vars’) {
     my @vars  = %*BOT-ENV.sort(*.key);
     my $gist  = @vars.map({.key ~ ‘=’ ~ .value}).join(‘; ’);
     my $table = “| Name | Value |\n|---|---|\n”
-              ~ @vars.map: { “| {.key} | {.value} |\n” };
+              ~ join “\n”, @vars.map: {  “| {markdown-escape .key  } |”
+                                        ~ “ {markdown-escape .value} |” };
 
     $gist but FileStore(%(‘variables.md’ => $table))
 }
