@@ -308,7 +308,7 @@ sub fetch-build($full-commit-hash, :$backend!) {
             whenever Supply.interval: 0.5 { test-delay }
         }
     }
-    LEAVE { $done.keep } if $done.defined && %*ENV<TESTABLE>;
+    LEAVE .keep with $done;
 
     my $ua = HTTP::UserAgent.new;
     $ua.timeout = 10;
