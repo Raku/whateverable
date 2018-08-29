@@ -97,6 +97,8 @@ multi method irc-to-me($msg where
 }
 
 
+my %*BOT-ENV;
+
 Notable.new.selfrun: ‘notable6’, [ / [note|@shortcuts]6? <before ‘:’> /,
                                    fuzzy-nick(‘notable6’, 1) ]
 

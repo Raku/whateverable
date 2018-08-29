@@ -313,6 +313,9 @@ my $react = start react {
     }
 }
 
+
+my %*BOT-ENV;
+
 $squashable.selfrun: ‘squashable6’, [ / squash6? <before ‘:’> /,
                                       fuzzy-nick(‘squashable6’, 3) ]
 

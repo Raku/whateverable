@@ -39,8 +39,8 @@ method help($msg) {
 sub ignored-commits() {
     my $last-release = to-full-commit chomp slurp “$RAKUDO/VERSION”;
     die ‘Cannot resolve the tag for the last release’ unless $last-release;
-    my $result = run :out, :cwd($RAKUDO), ‘git’, ‘log’, ‘--pretty=%b’,
-                     ‘-z’, “$last-release..HEAD”, ‘--’, ‘docs/ChangeLog’;
+    my $result = run :out, :cwd($RAKUDO), <git log --pretty=%b -z>,
+                     “$last-release..%*BOT-ENV<branch>”, ‘--’, ‘docs/ChangeLog’;
     die ‘Cannot git log the changelog’ unless $result;
 
     return gather for $result.out.split(0.chr, :skip-empty) {
@@ -269,6 +269,9 @@ multi method keep-reminding($msg) {
 multi method irc-connected($msg) {
     once start self.keep-reminding: $msg
 }
+
+
+my %*BOT-ENV = branch => ‘master’;
 
 Releasable.new.selfrun: ‘releasable6’, [ / release6? <before ‘:’> /,
                                          fuzzy-nick(‘releasable6’, 2) ]

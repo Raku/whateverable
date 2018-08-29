@@ -29,6 +29,7 @@ use Terminal::ANSIColor;
 use Text::Diff::Sift4;
 
 use Misc;
+use Whateverable::Configurable;
 
 our $RAKUDO = (%*ENV<TESTABLE> // ‘’).contains(‘rakudo-mock’)
               ?? ‘./t/data/rakudo’.IO.absolute
@@ -52,13 +53,18 @@ sub ensure-config is export { $CONFIG //= from-json slurp; }
 
 constant Message = IRC::Client::Message;
 
-unit role Whateverable[:$default-timeout = 10] does IRC::Client::Plugin does Helpful;
+unit role Whateverable does IRC::Client::Plugin;
 
+also does Helpful;
+also does Configurable;
+
+# TODO stdin can be one of the vars
 my $default-stdin = slurp ‘stdin’;
 
 my role Enough { } # to prevent recursion in exception handling
 
 method TWEAK {
+    %*BOT-ENV<timeout> //= 10;
     # wrap around everything to catch exceptions
     once { # per class
         self.^lookup(‘irc-to-me’).wrap: sub ($self, $msg) {
@@ -222,8 +228,7 @@ method get-short-commit($original-commit) { # TODO not an actual solution tbh
     !! $original-commit
 }
 
-# TODO $default-timeout is VNNull when working in non-OOP style. Rakudobug it?
-sub get-output(*@run-args, :$timeout = $default-timeout || 10,
+sub get-output(*@run-args, :$timeout = %*BOT-ENV<timeout> // 10,
                :$stdin, :$ENV, :$cwd = $*CWD, :$chomp = True) is export {
     my $proc = Proc::Async.new: |@run-args;
 
@@ -433,9 +438,8 @@ sub run-smth($full-commit-hash, $code, :$backend=‘rakudo-moar’) is export {
     $return
 }
 
-# TODO $default-timeout is VNNull when working in non-OOP style. Rakudobug it?
 sub run-snippet($full-commit-hash, $file, :$backend=‘rakudo-moar’, :@args=Empty,
-                :$timeout=$default-timeout||10, :$stdin=$default-stdin, :$ENV) is export {
+                :$timeout=%*BOT-ENV<timeout> // 10, :$stdin=$default-stdin, :$ENV) is export {
     run-smth :$backend, $full-commit-hash, -> $path {
         my $binary-path = $path.IO.add: ‘bin/perl6’;
         my %tweaked-env = $ENV // %*ENV;

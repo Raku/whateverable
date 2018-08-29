@@ -90,6 +90,9 @@ multi method irc-to-me($msg where /^ $<build>=[\S+] $/) {
     “$link/$<build>”
 }
 
+
+my %*BOT-ENV;
+
 Shareable.new.selfrun: ‘shareable6’, [ fuzzy-nick(‘shareable6’, 2) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

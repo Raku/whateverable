@@ -111,6 +111,9 @@ method process($msg, $config is copy, $code is copy, :%ENV) {
     $short-str but ProperStr($long-str);
 }
 
+
+my %*BOT-ENV;
+
 Committable.new.selfrun: ‘committable6’, [ / [ | c <!before [｢:\｣|｢:/｣]> [ommit]?6?
                                                | @(shortcuts.keys) ] <before ‘:’> /,
                                            fuzzy-nick(‘committable6’, 3) ]

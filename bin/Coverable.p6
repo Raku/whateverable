@@ -138,6 +138,9 @@ method process($msg, $config is copy, $grep is copy, $code) {
     ($short-str but ProperStr($long-str)) but FileStore(%(‘result.md’ => $cover-report));
 }
 
+
+my %*BOT-ENV;
+
 Coverable.new.selfrun: ‘coverable6’, [ / cover6? <before ‘:’> /,
                                        fuzzy-nick(‘coverable6’, 3) ];
 

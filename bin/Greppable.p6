@@ -114,6 +114,9 @@ if $ECO-PATH.IO !~~ :d {
     run ‘git’, ‘clone’, $ECO-ORIGIN, $ECO-PATH
 }
 
+
+my %*BOT-ENV;
+
 Greppable.new.selfrun: ‘greppable6’, [ / [file|tree]? grep6? <before ‘:’> /,
                                        fuzzy-nick(‘greppable6’, 2) ]
 

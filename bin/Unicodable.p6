@@ -24,7 +24,7 @@ use Whateverable::Uniprops;
 
 use IRC::Client;
 
-unit class Unicodable does Whateverable[:30default-timeout] does Replaceable;
+unit class Unicodable does Whateverable does Replaceable;
 
 constant MESSAGE-LIMIT = 3;
 constant $LIMIT = 5_000;
@@ -209,6 +209,9 @@ method propdump($msg, $query) {
     }
     ‘’ but FileStore({ ‘result.md’ => $answer })
 }
+
+
+my %*BOT-ENV = :30timeout;
 
 Unicodable.new.selfrun: ‘unicodable6’, [/ u[ni]?6? <before ‘:’> /, ‘propdump’, ‘unidump’,
                                         fuzzy-nick(‘unicodable6’, 3)];

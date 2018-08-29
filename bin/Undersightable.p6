@@ -289,6 +289,8 @@ multi method irc-to-me($msg where /check|status|info|test|log/) {
 }
 
 
+my %*BOT-ENV;
+
 Undersightable.new.selfrun: ‘undersightable6’, [ fuzzy-nick(‘undersightable6’, 3) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

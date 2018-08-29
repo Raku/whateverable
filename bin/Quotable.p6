@@ -71,6 +71,9 @@ sub process-channel($file, $channel, $regex-str) {
     %(:$channel, :$count, :$date-min, :$date-max, :$gist)
 }
 
+
+my %*BOT-ENV;
+
 Quotable.new.selfrun: ‘quotable6’, [ / quote6? <before ‘:’> /,
                                      fuzzy-nick(‘quotable6’, 1) ]
 

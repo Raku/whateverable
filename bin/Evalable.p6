@@ -50,7 +50,7 @@ multi method irc-privmsg-channel($msg) {
 }
 
 method process($msg, $code, :$good-only?) {
-    my $commit = ‘HEAD’;
+    my $commit = %*BOT-ENV<commit>;
     my $file = self.process-code: $code, $msg;
     LEAVE .unlink with $file;
 
@@ -100,6 +100,9 @@ method process($msg, $code, :$good-only?) {
     my $gist = ($extra ?? “$extra\n” !! ‘’) ~ colorstrip $output;
     (‘’ but ProperStr($gist)) but PrettyLink({ “Full output: $_” })
 }
+
+
+my %*BOT-ENV = commit => ‘HEAD’;
 
 Evalable.new.selfrun: ‘evalable6’, [/ [ | \s*[master|rakudo|r|‘r-m’|m|p6|perl6]
                                         | e[val]?6? | what ] <before ‘:’> /,
