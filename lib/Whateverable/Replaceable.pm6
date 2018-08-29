@@ -31,7 +31,9 @@ method make-believe($msg, @nicks, &play, :$timeout = 4) {
     my $update-promise = Promise.new;
     $!update-promise-channel.send: $update-promise;
     $msg.irc.send-cmd: ‘NAMES’, $msg.channel;
+    my $x = %*BOT-ENV;
     start {
+        my %*BOT-ENV = $x; # TODO … yeah, I don't know
         await Promise.anyof: $update-promise, Promise.in: $timeout;
         $!users-lock.protect: {
             return if any %!users{$msg.channel}{@nicks}:exists
