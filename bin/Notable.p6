@@ -60,12 +60,13 @@ multi method irc-to-me($msg where
 }
 
 my &clearish = {
+    my @clear-commands = <clear reset delete default>;
     do if .args[1].starts-with: @shortcuts.any ~ ‘:’ {
-        m/^ \s* [clear|reset|delete] \s* $/
+        m/^ \s* @clear-commands \s* $/
     } else {
-        m/^ \s* [clear|reset|delete] \s+ <topic> \s* $/
+        m/^ \s* @clear-commands \s+ <topic> \s* $/
         ||
-        m/^ \s* <topic> \s+ [clear|reset|delete] \s* $/
+        m/^ \s* <topic> \s+ @clear-commands \s* $/
     }
 }
 multi method irc-to-me($msg where &clearish) {
