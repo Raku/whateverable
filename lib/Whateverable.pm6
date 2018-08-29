@@ -597,9 +597,10 @@ method process-code($code is copy, $msg) {
     !! write-code $code.subst: :g, ‘␤’, “\n”
 }
 
-multi method filter($response where (.encode.elems > MESSAGE-LIMIT
-                                        or ?.?additional-files
-                                        or (!~$_ and $_ ~~ ProperStr))) {
+multi method filter($response where
+                    (.encode.elems > MESSAGE-LIMIT
+                     or (!~$_ and # non-empty are not gisted unless huge
+                         (?.?additional-files or $_ ~~ ProperStr)))) {
     # Here $response is a Str with a lot of stuff mixed in (possibly)
     my $description = ‘Whateverable’;
     my $text = colorstrip $response.?long-str // ~$response;
