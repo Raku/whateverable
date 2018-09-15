@@ -1,7 +1,7 @@
 {
     "perl"        : "6.c",
     "name"        : "Whateverable",
-    "version"     : "1.0.0",
+    "version"     : "1.0.1",
     "description" : "Different IRC bots that operate on a bunch of prebuilt Rakudo versions",
     "authors"     : [
         "Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>",
@@ -10,17 +10,17 @@
     "license"     : "AGPL-3.0-or-later",
     "provides"    : {
         "Whateverable"               : "lib/Whateverable.pm6",
-        "Whateverable::Bits"         : "lib/Whateverable::Bits.pm6",
-        "Whateverable::Builds"       : "lib/Whateverable::Builds.pm6",
-        "Whateverable::Config"       : "lib/Whateverable::Config.pm6",
-        "Whateverable::Configurable" : "lib/Whateverable::Configurable.pm6",
-        "Whateverable::Heartbeat"    : "lib/Whateverable::Heartbeat.pm6",
-        "Whateverable::Messages"     : "lib/Whateverable::Messages.pm6",
-        "Whateverable::Output"       : "lib/Whateverable::Output.pm6",
-        "Whateverable::Processing"   : "lib/Whateverable::Processing.pm6",
-        "Whateverable::Replaceable"  : "lib/Whateverable::Replaceable.pm6",
-        "Whateverable::Running"      : "lib/Whateverable::Running.pm6",
-        "Whateverable::Uniprops"     : "lib/Whateverable::Uniprops.pm6"
+        "Whateverable::Bits"         : "lib/Whateverable/Bits.pm6",
+        "Whateverable::Builds"       : "lib/Whateverable/Builds.pm6",
+        "Whateverable::Config"       : "lib/Whateverable/Config.pm6",
+        "Whateverable::Configurable" : "lib/Whateverable/Configurable.pm6",
+        "Whateverable::Heartbeat"    : "lib/Whateverable/Heartbeat.pm6",
+        "Whateverable::Messages"     : "lib/Whateverable/Messages.pm6",
+        "Whateverable::Output"       : "lib/Whateverable/Output.pm6",
+        "Whateverable::Processing"   : "lib/Whateverable/Processing.pm6",
+        "Whateverable::Replaceable"  : "lib/Whateverable/Replaceable.pm6",
+        "Whateverable::Running"      : "lib/Whateverable/Running.pm6",
+        "Whateverable::Uniprops"     : "lib/Whateverable/Uniprops.pm6"
     },
     "depends"     : [
         "App::GPTrixie",
