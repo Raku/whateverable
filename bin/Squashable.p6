@@ -16,7 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Config;
 
 use IRC::Client;
 

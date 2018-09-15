@@ -156,3 +156,5 @@ our @prop-table is export =
     (‘MVM_COLLATION_TERTIARY’),
     (‘MVM_COLLATION_QC’),
 ),
+
+# vim: expandtab shiftwidth=4 ft=perl6

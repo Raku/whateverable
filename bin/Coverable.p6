@@ -17,7 +17,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
+use Whateverable::Processing;
+use Whateverable::Running;
 
 use IRC::Client;
 
@@ -55,10 +59,10 @@ method process($msg, $config is copy, $grep is copy, $code) {
         $config = ‘HEAD’
     }
 
-    my @commits = self.get-commits: $config;
+    my @commits = get-commits $config;
     grumble ‘Coverable only works with one commit’ if @commits > 1;
 
-    my $file = self.process-code: $code, $msg;
+    my $file = process-code $code, $msg;
     LEAVE .unlink with $file;
 
     my $result;
@@ -71,7 +75,7 @@ method process($msg, $config is copy, $grep is copy, $code) {
     if not defined $full-commit {
         $output = ‘Cannot find this revision’;
         my @options = <HEAD>;
-        $output ~= “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options}”?)”
+        $output ~= “ (did you mean “{get-short-commit get-similar $commit, @options}”?)”
     } elsif not build-exists $full-commit {
         $output = ‘No build for this commit’
     } else { # actually run the code
@@ -94,8 +98,8 @@ method process($msg, $config is copy, $grep is copy, $code) {
             $output ~= “ «exit signal = {Signal($result<signal>)} ($result<signal>)»” if $result<signal> ≠ 0
         }
     }
-    my $short-commit = self.get-short-commit: $commit;
-    $short-commit ~= “({self.get-short-commit: $full-commit})” if $commit eq ‘HEAD’;
+    my $short-commit = get-short-commit $commit;
+    $short-commit ~= “({get-short-commit $full-commit})” if $commit eq ‘HEAD’;
 
     if now - $start-time > TOTAL-TIME {
         grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
@@ -121,10 +125,10 @@ method process($msg, $config is copy, $grep is copy, $code) {
                 $cover-report ~= “| [$fname#$ln]($url/$fname#$ln) |”;
                 my $sed-range = “{$l.min},{$l.max}p”;
                 # ⚠ TODO don't do this ↓ for every line, do it for every *file*. It will be much faster.
-                my $proc = run :out, :cwd($RAKUDO), ‘git’, ‘show’, “$full-commit:$fname”;
+                my $proc = run :out, :cwd($CONFIG<rakudo>), <git show>, “$full-commit:$fname”;
                 # TODO So we are using RAKUDO ↑, but RAKUDO may not know about some commits *yet*, while
                 #      they may be accessible if you give a hash directly.
-                my $code = run(:out, :in($proc.out), ‘sed’, ‘-n’, $sed-range).out.slurp-rest.trim; # TODO trim? or just chomp?
+                my $code = run(:out, :in($proc.out), <sed -n>, $sed-range).out.slurp-rest.trim; # TODO trim? or just chomp?
                 $code .= subst: :g, “\n”, ‘```<br>```’; # TODO multiline code blocks using github markdown?
                 $code .= subst: :g, ‘|’, ‘\|’; # TODO really?
                 $cover-report ~= “ ```$code``` |\n”; # TODO close properly (see how many ``` are there already)

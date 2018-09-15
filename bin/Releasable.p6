@@ -16,7 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
+use Whateverable::Processing;
 
 use IRC::Client;
 
@@ -37,9 +40,9 @@ method help($msg) {
 }
 
 sub ignored-commits() {
-    my $last-release = to-full-commit chomp slurp “$RAKUDO/VERSION”;
+    my $last-release = to-full-commit chomp slurp “$CONFIG<rakudo>/VERSION”;
     die ‘Cannot resolve the tag for the last release’ unless $last-release;
-    my $result = run :out, :cwd($RAKUDO), <git log --pretty=%b -z>,
+    my $result = run :out, :cwd($CONFIG<rakudo>), <git log --pretty=%b -z>,
                      “$last-release..%*BOT-ENV<branch>”, ‘--’, ‘docs/ChangeLog’;
     die ‘Cannot git log the changelog’ unless $result;
 
@@ -61,7 +64,7 @@ sub time-left($then) {
 }
 
 sub parse-next-release($msg) {
-    my $guide = slurp “$RAKUDO/docs/release_guide.pod”;
+    my $guide = slurp “$CONFIG<rakudo>/docs/release_guide.pod”;
     die ‘Unable to parse the release guide’ unless $guide ~~ /
     ^^ ‘=head2 Planned future releases’ $$
     .*?
@@ -107,7 +110,7 @@ sub changelog-to-stats($changelog) {
     die ‘Cannot resolve the tag for the previous release’ without $actual-commit-old;
 
     my @shas = $changes.match(:g, / [‘[’ (<.xdigit>**4..*) ‘]’ \s*]+ $$/)»[0].flat».Str;
-    my $result = run :out, :cwd($RAKUDO), ‘git’, ‘log’, ‘-z’, ‘--pretty=%H’,
+    my $result = run :out, :cwd($CONFIG<rakudo>), <git log -z --pretty=%H>,
                      ‘--reverse’, “$actual-commit-old..HEAD”;
     die ‘Failed to query rakudo git log’ unless $result;
     my @git-commits = $result.out.slurp-rest.split(0.chr, :skip-empty)
@@ -184,7 +187,7 @@ multi method irc-to-me($msg where /^ :i \s*
                                     [changelog|release|log|status|info|when|next]‘?’?
                                     [\s+ $<url>=[‘http’.*]]? $/) {
     my $changelog = process-url ~$_, $msg with $<url>;
-    $changelog  //= slurp “$RAKUDO/docs/ChangeLog”;
+    $changelog  //= slurp “$CONFIG<rakudo>/docs/ChangeLog”;
     without $<url> {
         use HTTP::UserAgent;
         my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
@@ -222,11 +225,11 @@ multi method irc-to-me($msg where /^ :i \s*
     %files<!warnings!> = $warnings if $warnings;
 
     if %stats<unlogged> {
-        my $descs = run :out, :cwd($RAKUDO), ‘git’, ‘show’,
+        my $descs = run :out, :cwd($CONFIG<rakudo>), ‘git’, ‘show’,
                         ‘--format=%s’,
                         “--abbrev=$SHA-LENGTH”, ‘--quiet’, |%stats<unlogged>;
-        my $links = run :out, :cwd($RAKUDO), ‘git’, ‘show’,
-                        ‘--format=[<a href="’ ~ $RAKUDO-REPO ~ ‘/commit/%H">%h</a>]’,
+        my $links = run :out, :cwd($CONFIG<rakudo>), ‘git’, ‘show’,
+                        ‘--format=[<a href="’ ~ $CONFIG<rakudo-repo> ~ ‘/commit/%H">%h</a>]’,
                         “--abbrev=$SHA-LENGTH”, ‘--quiet’, |%stats<unlogged>;
         my $unreviewed = join “\n”, ($descs.out.lines Z $links.out.lines).map:
                          {‘    + ’ ~ html-escape(.[0]) ~ ‘ ’ ~ .[1]};

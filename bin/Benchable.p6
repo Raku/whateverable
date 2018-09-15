@@ -17,11 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
-
-use IRC::Client;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
+use Whateverable::Output;
+use Whateverable::Processing;
+use Whateverable::Running;
 
 use File::Directory::Tree;
+use IRC::Client;
 use SVG::Plot;
 use SVG;
 use Stats;
@@ -76,8 +80,8 @@ multi method irc-to-me($msg where /^ \s* $<config>=([:i compare \s]? <.&commit-l
 method process($msg, $config, $code) {
     my $start-time = now;
     my $old-dir = $*CWD;
-    my @commits = self.get-commits: $config;
-    my $file = self.process-code: $code, $msg;
+    my @commits = get-commits $config;
+    my $file = process-code $code, $msg;
     LEAVE .unlink with $file;
 
     my %graph;
@@ -89,12 +93,12 @@ method process($msg, $config, $code) {
             grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
         }
         # convert to real ids so we can look up the builds
-        my $full-commit  = to-full-commit         $commit;
-        my $short-commit = self.get-short-commit: $commit;
+        my $full-commit  = to-full-commit   $commit;
+        my $short-commit = get-short-commit $commit;
         if not defined $full-commit {
             my @options = <HEAD v6.c releases all>;
             %times{$short-commit}<err> = ‘Cannot find this revision’
-            ~ “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options}”?)”
+            ~ “ (did you mean “{get-short-commit get-similar $commit, @options}”?)”
             # TODO why $commit is a match here when using compare?
         } elsif not build-exists $full-commit {
             %times{$short-commit}<err> = ‘No build for this commit’
@@ -126,12 +130,12 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
             next unless %times{@commits[$x]}:exists and %times{@commits[$x + 1]}:exists;      # the commits have to have been run at all
             next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists; # and without error
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) ≥ %times{@commits[$x]}<min> × 0.1 {
-                my $result = get-output :cwd($RAKUDO), ‘git’, ‘rev-list’,
+                my $result = get-output :cwd($CONFIG<rakudo>), ‘git’, ‘rev-list’,
                                         ‘--bisect’, ‘--no-merges’,
                                          @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];
                 my $new-commit = $result<output>;
                 if $result<exit-code> == 0 and defined $new-commit and $new-commit ne ‘’ {
-                    my $short-commit = self.get-short-commit: $new-commit;
+                    my $short-commit = get-short-commit $new-commit;
                     if not build-exists $new-commit {
                         %times{$short-commit}<err> = ‘No build for this commit’
                     } elsif %times{$short-commit}:!exists and $short-commit ne @commits[$x] and $short-commit ne @commits[$x + 1] { # actually run the code
@@ -144,7 +148,7 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
         }
     }
 
-    @commits .= map: { self.get-short-commit: $_ };
+    @commits .= map: { get-short-commit $_ };
 
     if @commits ≥ ITERATIONS {
         my $pfilename = ‘plot.svg’;

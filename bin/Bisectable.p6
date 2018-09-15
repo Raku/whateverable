@@ -18,7 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
+use Whateverable::Output;
+use Whateverable::Processing;
+use Whateverable::Running;
 
 use File::Directory::Tree;
 use File::Temp;
@@ -26,10 +31,6 @@ use IRC::Client;
 use Terminal::ANSIColor;
 
 unit class Bisectable does Whateverable;
-
-constant COMMIT-LINK = ‘https://github.com/rakudo/rakudo/commit’;
-constant BUILD-LOCK  = ‘./lock’.IO.absolute;
-constant TRIM-CHARS  = 2000;
 
 enum RevisionType <Old New Skip>;
 
@@ -70,7 +71,7 @@ method test-commit($code-file, :$old-exit-code, :$old-exit-signal, :$old-output,
     }
 
     take ‘»»»»» Script output:’;
-    my $short-output = shorten $result<output>, TRIM-CHARS;
+    my $short-output = shorten $result<output>, $CONFIG<bisectable><trim-chars>;
     take $short-output;
     take “»»»»» (output was trimmed  because it is too large)” if $short-output ne $result<output>;
 
@@ -164,20 +165,20 @@ method process($msg, $code, $old, $new) {
     my $full-old = to-full-commit $old;
     without $full-old {
         grumble “Cannot find revision “$old””
-        ~ “ (did you mean “{self.get-short-commit: self.get-similar: $old, @options}”?)”
+        ~ “ (did you mean “{get-short-commit get-similar $old, @options}”?)”
     }
     grumble “No build for revision “$old”” unless build-exists $full-old;
-    my $short-old = self.get-short-commit: $old eq $full-old | ‘HEAD’ ?? $full-old !! $old;
+    my $short-old = get-short-commit $old eq $full-old | ‘HEAD’ ?? $full-old !! $old;
 
     my $full-new = to-full-commit $new;
     without $full-new {
         grumble “Cannot find revision “$new””
-        ~ “ (did you mean “{self.get-short-commit: self.get-similar: $new, @options}”?)”
+        ~ “ (did you mean “{get-short-commit get-similar $new, @options}”?)”
     }
     grumble “No build for revision “$new”” unless build-exists $full-new;
-    my $short-new = self.get-short-commit: $new eq ‘HEAD’ ?? $full-new !! $new;
+    my $short-new = get-short-commit $new eq ‘HEAD’ ?? $full-new !! $new;
 
-    my $file = self.process-code: $code, $msg;
+    my $file = process-code $code, $msg;
     LEAVE .unlink with $file;
 
     my $old-result = run-snippet $full-old, $file;
@@ -209,7 +210,7 @@ method process($msg, $code, $old, $new) {
 
     my $dir = tempdir :!unlink;
     LEAVE { rmtree $_ with $dir }
-    run :out(Nil), :err(Nil), ‘git’, ‘clone’, $RAKUDO, $dir; # TODO check the result
+    run :out(Nil), :err(Nil), <git clone>, $CONFIG<rakudo>, $dir; # TODO check the result
 
     my $bisect-start = get-output cwd => $dir, ‘git’, ‘bisect’, ‘start’;
     my $bisect-old   = get-output cwd => $dir, ‘git’, ‘bisect’, ‘old’, $full-old;
@@ -255,7 +256,8 @@ method process($msg, $code, $old, $new) {
         grumble ｢‘bisect run’ failure. See the log for more details｣
     }
     my $link-msg = get-output(:cwd($dir), ‘git’, ‘show’, ‘--quiet’, ‘--date=short’,
-                              “--pretty=(%cd) {COMMIT-LINK}/%H”, ‘bisect/new’)<output>;
+                              “--pretty=(%cd) $CONFIG<bisectable><commit-link>/%H”,
+                              ‘bisect/new’)<output>;
     $msg.reply: $link-msg;
     if $link-msg.ends-with: ‘07fecb52eb1fd07397659f19a5cf36dc61f84053’ {
         grumble ‘The result looks a bit unrealistic, doesn't it? Most probably the output is different on every commit (e.g. ｢bisect: say rand｣)’

@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use Text::Diff::Sift4;
+
+# This file is a collection of tiny general purpose
+# functions and other things.
 
 role Helpful { method help($msg) { … } }
 
@@ -30,6 +32,7 @@ sub shorten($str, $max, $cutoff=$max ÷ 2) is export {
 }
 
 sub fuzzy-nick($nick, $distance) is export {
+    use Text::Diff::Sift4;
     / \w+ <?{ sift4(~$/, $nick, 5) ~~ 1..$distance }> /
 }
 
@@ -67,6 +70,15 @@ sub time-left(Instant() $then, :$already-there?) is export {
     $answer ~= “$days day{$days ≠ 1 ?? ‘s’ !! ‘’} and ” if $days;
     $answer ~= “≈$hours hour{$hours ≠ 1 ?? ‘s’ !! ‘’}”;
     $answer
+}
+
+#↓ Spurt into a tempfile.
+sub write-code($code --> IO) is export {
+    use File::Temp;
+    my ($filename, $filehandle) = tempfile :!unlink;
+    $filehandle.print: $code;
+    $filehandle.close;
+    $filename.IO
 }
 
 class Whateverable::X::HandleableAdHoc is X::AdHoc is export {}

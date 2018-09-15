@@ -18,12 +18,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
+use Whateverable::Running;
 
 use IRC::Client;
 use JSON::Fast;
-use SVG::Plot;
 use SVG;
+use SVG::Plot;
 
 unit class Statisfiable does Whateverable;
 
@@ -97,7 +100,7 @@ multi method process($msg, $type, $zeroed) {
         my %data := %stats{$type};
         my $let's-save = False;
         my @command = <git log -z --pretty=%H>, %*BOT-ENV<range>;
-        for run(:out, :cwd($RAKUDO), |@command).out.split: 0.chr, :skip-empty -> $full {
+        for run(:out, :cwd($CONFIG<rakudo>), |@command).out.split: 0.chr, :skip-empty -> $full {
             next unless $full;
             #my $short = to-full-commit $_, :short;
 
@@ -139,7 +142,7 @@ my %*BOT-ENV = %(
     height     =>  800,
 );
 
-Statisfiable.new.selfrun: ‘statisfiable6’, [ / stat[s]?6? <before ‘:’> /,
+Statisfiable.new.selfrun: ‘testisfiable6’, [ / stat[s]?6? <before ‘:’> /,
                                              fuzzy-nick(‘statisfiable6’, 3) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6

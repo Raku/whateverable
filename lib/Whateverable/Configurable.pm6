@@ -14,10 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use Misc;
+use Whateverable::Bits;
 
 #↓ User-configurable variables for a bot
-unit role Configurable;
+unit role Whateverable::Configurable;
 
 # Keep in mind that the variables are not saved anywhere and will
 # be reset on bot restart.
@@ -26,6 +26,7 @@ unit role Configurable;
 
 has %!default-values; #← autopopulated based on the first encountered value
 
+#↓ Resetting a variable
 multi method irc-to-me($msg where /^ $<key>=@(%*BOT-ENV.keys)
                                      ‘=’
                                      [‘’|clear|reset|delete|default] $/) {
@@ -38,6 +39,7 @@ multi method irc-to-me($msg where /^ $<key>=@(%*BOT-ENV.keys)
     “$key is now set to its default value “{%*BOT-ENV{$key}}””
 }
 
+#↓ Setting a variable
 multi method irc-to-me($msg where /^ $<key>=@(%*BOT-ENV.keys)
                                      ‘=’
                                      $<value>=\S+ $/) {
@@ -51,6 +53,7 @@ multi method irc-to-me($msg where /^ $<key>=@(%*BOT-ENV.keys)
     “$key is now set to “$value” (default value is “$default-value”)”
 }
 
+#↓ Listing all variables
 multi method irc-to-me($msg where ‘variables’|‘vars’) {
     my @vars  = %*BOT-ENV.sort(*.key);
     my $gist  = @vars.map({.key ~ ‘=’ ~ .value}).join(‘; ’);

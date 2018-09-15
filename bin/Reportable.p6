@@ -16,7 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Config;
 
 use IRC::Client;
 
@@ -100,8 +101,8 @@ sub snapshot($msg?) {
         CATCH {
             # TODO the message is not send when the snapshot is scheduled
             note ‘Failed to make the snapshot’;
-            .irc.send-cmd: ‘PRIVMSG’, $CAVE, “Failed to make the snapshot. Help me.”,
-                           :server(.server), :prefix($PARENTS.join(‘, ’) ~ ‘: ’) with $msg;
+            .irc.send-cmd: ‘PRIVMSG’, $CONFIG<cave>, “Failed to make the snapshot. Help me.”,
+                           :server(.server), :prefix($CONFIG<caregivers>.join(‘, ’) ~ ‘: ’) with $msg;
             rmtree $_ with $temp-folder;
         }
 

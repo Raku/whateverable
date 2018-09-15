@@ -18,15 +18,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
+use Whateverable::Processing;
 use Whateverable::Replaceable;
+use Whateverable::Running;
 
 use IRC::Client;
 use Terminal::ANSIColor;
 
-unit class Evalable does Whateverable does Replaceable;
-
-constant SHORT-MESSAGE-LIMIT = MESSAGE-LIMIT ÷ 2;
+unit class Evalable does Whateverable does Whateverable::Replaceable;
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: say ‘hello’; say ‘world’”
@@ -51,7 +53,7 @@ multi method irc-privmsg-channel($msg) {
 
 method process($msg, $code, :$good-only?) {
     my $commit = %*BOT-ENV<commit>;
-    my $file = self.process-code: $code, $msg;
+    my $file = process-code $code, $msg;
     LEAVE .unlink with $file;
 
     # convert to real id so we can look up the build
@@ -85,15 +87,16 @@ method process($msg, $code, :$good-only?) {
 
     my $reply-start = “rakudo-moar $short-commit: OUTPUT: «$extra”;
     my $reply-end   = ‘»’;
-    if MESSAGE-LIMIT ≥ ($reply-start, $output, $reply-end).map(*.encode.elems).sum {
+    if $CONFIG<message-limit> ≥ ($reply-start, $output, $reply-end).map(*.encode.elems).sum {
         return $reply-start ~ $output ~ $reply-end # no gist
     }
     $reply-end = ‘…’ ~ $reply-end;
     my $extra-size = ($reply-start, $reply-end).map(*.encode.elems).sum;
     my $output-size = 0;
+    my $SHORT-MESSAGE-LIMIT = $CONFIG<message-limit> ÷ 2;
     my $output-cut = $output.comb.grep({
         $output-size += .encode.elems;
-        $output-size + $extra-size < SHORT-MESSAGE-LIMIT
+        $output-size + $extra-size < $SHORT-MESSAGE-LIMIT
     })[0..*-2].join;
     $msg.reply: $reply-start ~ $output-cut ~ $reply-end;
     sleep 0.02;

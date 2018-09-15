@@ -16,8 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
 use Whateverable::Replaceable;
-use Misc;
+
 use Cro::HTTP::Client;
 use Digest::SHA256::Native;
 
@@ -144,7 +147,7 @@ my @files = # TODO uncomment rakudo.org when it stops being so slow,
 
 unit class Undersightable does Whateverable;
 
-also does Replaceable; # steal the logic to track online users
+also does Whateverable::Replaceable; # steal the logic to track online users
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: check”
@@ -182,7 +185,7 @@ method check-files(:$title, :$url-pattern, :$path-pattern, :$start-tag-date, :$r
     take “\n## $title\n”;
     take ‘| URL | Status code | Message |’;
     take ‘|-----|-------------|---------|’;
-    for reverse self.get-tags: $start-tag-date, :dups, :default(), :$repo {
+    for reverse get-tags $start-tag-date, :dups, :default(), :$repo {
         my $url =  $url-pattern($_);
         my $resp = get $url, Error;
         if $resp {
@@ -214,7 +217,7 @@ method check-releases {
 }
 
 method check-bots($msg) {
-    my %users = await self.list-users: $msg, %*ENV<DEBUGGABLE> ?? $CAVE !! ‘#perl6’;
+    my %users = await self.list-users: $msg, %*ENV<DEBUGGABLE> ?? $CONFIG<cave> !! ‘#perl6’;
     take “\n## IRC Bots\n”;
     take ‘| Bot | Status |’;
     take ‘|-----|--------|’;
@@ -234,7 +237,7 @@ method check-version-mentions() {
 
     {
         my $url = ‘https://moarvm.org/’;
-        my $last-tag = self.get-tags(‘2009-02-01’, :default(), repo => ‘./data/moarvm’).tail;
+        my $last-tag = get-tags(‘2009-02-01’, :default(), repo => ‘./data/moarvm’).tail;
         my $resp = get $url;
         with $resp {
             if await($resp.body).contains: “The MoarVM team is proud to release version $last-tag” {
@@ -246,7 +249,7 @@ method check-version-mentions() {
     }
     {
         my $url = ‘https://en.wikipedia.org/wiki/MoarVM’;
-        my $last-tag = self.get-tags(‘2009-02-01’, :default(), repo => ‘./data/moarvm’).tail;
+        my $last-tag = get-tags(‘2009-02-01’, :default(), repo => ‘./data/moarvm’).tail;
         my $resp = get $url;
         with $resp {
             if await($resp.body).match: / $last-tag / { # TODO better pattern
@@ -258,7 +261,7 @@ method check-version-mentions() {
     }
     {
         my $url = ‘https://en.wikipedia.org/wiki/Rakudo_Perl_6’;
-        my $last-tag = self.get-tags(‘2009-02-01’, :default(), repo => ‘./data/rakudo-moar’).tail;
+        my $last-tag = get-tags(‘2009-02-01’, :default(), repo => ‘./data/rakudo-moar’).tail;
         my $resp = get $url;
         with $resp {
             if await($resp.body).match: / [‘#’\d+ \s]? ‘"’$last-tag‘"’ / {

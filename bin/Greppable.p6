@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use Misc;
 use Whateverable;
+use Whateverable::Bits;
+use Whateverable::Output;
+use Whateverable::Running;
 
-use IRC::Client;
 use Config::INI;
+use IRC::Client;
 
 unit class Greppable does Whateverable;
 

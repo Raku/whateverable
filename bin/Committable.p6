@@ -18,7 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Processing;
+use Whateverable::Running;
 
 use IRC::Client;
 
@@ -62,13 +65,13 @@ multi method irc-to-me($msg where /^ \s* [ @<envs>=((<[\w-]>+)‘=’(\S*)) ]* %
 
 method process-commit($commit, $filename, :%ENV) {
     # convert to real ids so we can look up the builds
-    my $full-commit = to-full-commit          $commit;
-    my $short-commit = self.get-short-commit: $commit;
-    $short-commit ~= “({self.get-short-commit: $full-commit})” if $commit eq ‘HEAD’;
+    my $full-commit = to-full-commit    $commit;
+    my $short-commit = get-short-commit $commit;
+    $short-commit ~= “({get-short-commit $full-commit})” if $commit eq ‘HEAD’;
 
     without $full-commit {
         return $short-commit R=> ‘Cannot find this revision (did you mean “’ ~
-          self.get-short-commit(self.get-similar: $commit, <HEAD v6.c releases all>) ~
+          get-short-commit(get-similar $commit, <HEAD v6.c releases all>) ~
           ‘”?)’
     }
     $short-commit R=> subprocess-commit $commit, $filename, $full-commit, :%ENV;
@@ -81,8 +84,8 @@ method process($msg, $config is copy, $code is copy, :%ENV) {
         $code = “$config $code”;
         $config = ‘v6.c’
     }
-    my @commits = self.get-commits: $config;
-    my $file = self.process-code: $code, $msg;
+    my @commits = get-commits $config;
+    my $file = process-code $code, $msg;
     LEAVE .unlink with $file;
 
     my @outputs; # unlike %shas this is ordered

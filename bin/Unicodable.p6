@@ -18,13 +18,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Processing;
 use Whateverable::Replaceable;
+use Whateverable::Running;
 use Whateverable::Uniprops;
 
 use IRC::Client;
 
-unit class Unicodable does Whateverable does Replaceable;
+unit class Unicodable does Whateverable does Whateverable::Replaceable;
 
 constant MESSAGE-LIMIT = 3;
 constant $LIMIT = 5_000;
@@ -107,7 +110,7 @@ method from-numerics($query) {
 }
 
 method process($msg, $query is copy) {
-    my $file = self.process-code: $query, $msg;
+    my $file = process-code $query, $msg;
     LEAVE .unlink with $file;
 
     my $file-contents = $file.slurp;

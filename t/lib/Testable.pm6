@@ -28,6 +28,8 @@ class Testable {
         $sig-compat = SIGBUS if v2018.04 ≤ $*PERL.compiler.version ≤ v2018.05;
         $!delay-channel = signal($sig-compat).Channel;
 
+        use Whateverable::Config;
+        ensure-config ‘config-default.json’.IO.open;
         use Whateverable::Builds;
         ensure-cloned-repos;
 

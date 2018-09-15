@@ -15,14 +15,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use Misc;
 use Whateverable;
-
-use IRC::Client;
-use JSON::Fast;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
+use Whateverable::Running;
 
 use Cro::HTTP::Router;
 use Cro::HTTP::Server;
+use IRC::Client;
+use JSON::Fast;
 
 #my $host-arch = $*KERNEL.hardware;
 my $host-arch = ‘x86_64’;
@@ -31,7 +33,7 @@ $host-arch = ‘amd64’|‘x86_64’ if $host-arch eq ‘amd64’|‘x86_64’;
 $host-arch = ‘linux’ ~ ‘-’ ~ $host-arch;
 
 sub cached-archive($build where ‘HEAD.tar.gz’, :$backend=‘rakudo-moar’, :$arch) {
-    my $repo = $backend eq ‘rakudo-moar’ ?? $RAKUDO !! MOARVM;
+    my $repo = $backend eq ‘rakudo-moar’ ?? $CONFIG<rakudo> !! $CONFIG<moarvm>;
     my $full-commit = to-full-commit ‘HEAD’, :$repo; # TODO that's slightly repetitive
     my $file = “/tmp/whateverable/shareable/$backend/$full-commit.tar.gz”.IO;
     if not $file.e {
@@ -58,13 +60,13 @@ my $application = route {
         # TODO change once resolved: https://github.com/croservices/cro-http/issues/21
         return bad-request unless $backend ~~ <rakudo-moar moarvm>.any;
         return cached-archive $build, :$backend, :$arch if $build eq ‘HEAD.tar.gz’;
-        my $repo = $backend eq ‘rakudo-moar’ ?? $RAKUDO !! MOARVM;
+        my $repo = $backend eq ‘rakudo-moar’ ?? $CONFIG<rakudo> !! $CONFIG<moarvm>;
         my $full-commit = to-full-commit $build, :$repo;
         return not-found unless $full-commit;
         return not-found unless build-exists $full-commit, :$backend;
 
-        my $archive-path  = “{ARCHIVES-LOCATION}/$backend/$full-commit.zst”;
-        my $archive-link  = “{ARCHIVES-LOCATION}/$backend/$full-commit”;
+        my $archive-path  = “$CONFIG<archives-location>/$backend/$full-commit.zst”;
+        my $archive-link  = “$CONFIG<archives-location>/$backend/$full-commit”;
 
         my $file = $archive-path.IO.e ?? $archive-path !! $archive-link.IO.resolve.Str;
         header ‘Content-Disposition’, “attachment; filename="{$file.IO.basename}"”;
@@ -86,7 +88,7 @@ method help($msg) {
 multi method irc-to-me($msg where /^ $<build>=[\S+] $/) {
     my $full-commit = to-full-commit ~$<build>;
     return ‘No build for this commit’ unless build-exists $full-commit;
-    my $link = $CONFIG<mothership> // $CONFIG<self>;
+    my $link = $CONFIG<mothership> // $*CONFIG<self>;
     “$link/$<build>”
 }
 

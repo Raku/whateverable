@@ -18,7 +18,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use Whateverable;
-use Misc;
+use Whateverable::Bits;
+use Whateverable::Builds;
+use Whateverable::Config;
+use Whateverable::Output;
+use Whateverable::Running;
 
 use IRC::Client;
 
@@ -66,23 +70,23 @@ method did-you-mean($out) {
 }
 
 method process($msg, $config, $sources is copy) {
-    my @commits = self.get-commits: $config, repo => MOARVM;
+    my @commits = get-commits $config, repo => $CONFIG<moarvm>;
     my %files;
     my @processed;
     for @commits -> $commit {
         my %prev = @processed.tail if @processed;
         my %cur;
         # convert to real ids so we can look up the builds
-        %cur<full-commit> = to-full-commit $commit, repo => MOARVM;
+        %cur<full-commit> = to-full-commit $commit, repo => $CONFIG<moarvm>;
         if not defined %cur<full-commit> {
             %cur<error> = “Cannot find revision $commit”;
             my @options = <HEAD v6.c releases all>;
-            %cur<error> ~= “ (did you mean “{self.get-short-commit: self.get-similar: $commit, @options, repo => MOARVM}”?)”
+            %cur<error> ~= “ (did you mean “{get-short-commit get-similar $commit, @options, repo => $CONFIG<moarvm>}”?)”
         } elsif not build-exists %cur<full-commit>, :backend<moarvm> {
             %cur<error> = ‘No build for this commit’
         }
-        %cur<short-commit> = self.get-short-commit: $commit;
-        %cur<short-commit> ~= “({self.get-short-commit: %cur<full-commit>})” if $commit eq ‘HEAD’;
+        %cur<short-commit> = get-short-commit $commit;
+        %cur<short-commit> ~= “({get-short-commit %cur<full-commit>})” if $commit eq ‘HEAD’;
         if %prev {
             my $filename = “result-{(1 + %files).fmt: ‘%05d’}”;
             my $result = “Comparing %prev<short-commit> → %cur<short-commit>\n”;

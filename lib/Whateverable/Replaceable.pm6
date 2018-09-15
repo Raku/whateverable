@@ -14,10 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use Misc;
+use Whateverable::Bits;
 
 #↓ Keep track of users and pretend to be someone if needed
-unit role Replaceable;
+unit role Whateverable::Replaceable;
 
 # This is a temporary solution. See this bug report:
 # * https://github.com/zoffixznet/perl6-IRC-Client/issues/29
