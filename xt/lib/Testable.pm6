@@ -68,7 +68,7 @@ class Testable {
         );
         start $!irc-client.run;
 
-        my $executable = ‘./bin/’ ~ $bot ~ ‘.p6’;
+        my $executable = ‘./xbin/’ ~ $bot ~ ‘.p6’;
         run :env(|%*ENV, PERL6LIB => ‘lib’), <perl6 -c -->, $executable; # precompahead
         $!bot-proc = Proc::Async.new: <perl6 -->, $executable;
         END .kill with $!bot-proc;
