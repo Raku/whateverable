@@ -237,7 +237,7 @@ $t.test(:50timeout, ‘Result is different on every revision’,
         /^ <me($t)>‘, Bisecting by output (old=2015.12 new=’<sha>‘) because on both starting points the exit code is 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2015-12-25) https://github.com/rakudo/rakudo/commit/07fecb52eb1fd07397659f19a5cf36dc61f84053”,
-        “{$t.our-nick}, The result looks a bit unrealistic, doesn't it? Most probably the output is different on every commit (e.g. ｢bisect: say rand｣)”);
+        “{$t.our-nick}, The result looks a bit unrealistic. Most probably the output is different on every commit (e.g. ｢bisect: say rand｣)”);
 
 # Timeouts
 
