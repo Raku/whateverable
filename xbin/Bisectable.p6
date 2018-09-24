@@ -179,12 +179,8 @@ method process($msg, $code, $old, $new) {
                                               description => $msg.server.current-nick,
                                               public => !%*ENV<DEBUGGABLE>;
 
-    if $bisect-status == 2 {
-        my $good-revs     = get-output(:cwd($repo-cwd), <git for-each-ref>,
-                                       ‘--format=%(objectname)’, ‘refs/bisect/old-*’)<output>;
-        my @possible-revs = get-output(:cwd($repo-cwd), <git rev-list>,
-                                       <refs/bisect/new --not>, |$good-revs.lines)<output>.lines;
-        grumble “There are {+@possible-revs} candidates for the”
+    if $bisect-result<first-new-commit>.list > 1 {
+        grumble “There are {+$bisect-result<first-new-commit>} candidates for the”
         ~ ‘first “new” revision. See the log for more details’
     }
     if $bisect-status ≠ 0 {

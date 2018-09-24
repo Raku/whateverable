@@ -58,6 +58,14 @@ sub run-bisect(&runner  = &standard-runner,  #← Something to run on every revi
             $first-new-commit = ~$0;
             last
         }
+        if $status == 2 {
+            my $good-revs     = get-output(:cwd($repo-cwd), <git for-each-ref>,
+                                           ‘--format=%(objectname)’, ‘refs/bisect/old-*’)<output>;
+            my @possible-revs = get-output(:cwd($repo-cwd), <git rev-list>,
+                                           <refs/bisect/new --not>, |$good-revs.lines)<output>.lines;
+            $first-new-commit = @possible-revs;
+            last
+        }
         last if $status ≠ 0;
         LAST take $result<output>
     }
