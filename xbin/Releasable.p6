@@ -168,8 +168,13 @@ sub blockers {
         when Positional { @tickets.append: $_ }
         default         { die “Expected Str or Positional but got {.^name}” }
     }
-    $summary ~= ‘. At least ’ if $summary; # TODO could say “At least 0 blockers” 😂
-    $summary ~= “{+@tickets} blocker{@tickets ≠ 1 ?? ‘s’ !! ‘’}”;
+    if @tickets == 0 {
+        $summary ~= ‘. ’ if $summary;
+        $summary ~= ‘There are no known blockers’;
+    } else {
+        $summary ~= ‘. At least ’ if $summary;
+        $summary ~= “{+@tickets} blocker{@tickets ≠ 1 ?? ‘s’ !! ‘’}”;
+    }
     # TODO share some logic with reportable
 
     my $list = join ‘’, @tickets.map: {
