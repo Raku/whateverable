@@ -52,8 +52,14 @@ sub get-output(*@run-args, :$timeout = %*BOT-ENV<timeout> // 10,
         whenever $proc.stdout :bin { $buf.push: $_ }; # RT #131763
         whenever $proc.stderr :bin { $buf.push: $_ };
         whenever Promise.in($timeout) {
-            $proc.kill; # TODO sends HUP, but should kill the process tree instead
-            $buf.push: “«timed out after $timeout seconds»”.encode
+            $proc.kill; # TODO sends SIGHUP, but should kill the process group instead
+            # TODO we should probably start a new process group so that it
+            #      is easier to kill afterwards
+            $buf.push: “«timed out after $timeout seconds»”.encode;
+            whenever Promise.in(10) {
+                $buf.push: ‘«SIGKILL after another 10 seconds»’;
+                $proc.kill: SIGKILL
+            }
         }
         whenever $proc.start: :$ENV, :$cwd {
             $result = $_;
