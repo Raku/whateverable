@@ -27,15 +27,15 @@ use Whateverable::Builds;
 unit module Whateverable::Running;
 
 #↓ Unpacks a build, runs $code and cleans up.
-sub run-smth($full-commit-hash, Code $code, :$backend=‘rakudo-moar’) is export {
-    my $build-prepath =   “$CONFIG<builds-location>/$backend”;
-    my $build-path    =                      “$build-prepath/$full-commit-hash”;
+sub run-smth($full-commit-hash, Code $code,
+             :$backend=‘rakudo-moar’, :$wipe = True) is export {
+    my $build-path    = run-smth-build-path $full-commit-hash, :$backend;
     my $archive-path  = “$CONFIG<archives-location>/$backend/$full-commit-hash.zst”;
     my $archive-link  = “$CONFIG<archives-location>/$backend/$full-commit-hash”;
 
     # create all parent directories just in case
     # (may be needed for isolated /tmp)
-    mkdir $build-prepath;
+    mkdir $build-path.IO.parent;
 
     # lock on the destination directory to make
     # sure that other bots will not get in our way.
@@ -61,8 +61,15 @@ sub run-smth($full-commit-hash, Code $code, :$backend=‘rakudo-moar’) is expo
     }
 
     my $return = $code($build-path); # basically, we wrap around $code
-    rmtree $build-path;
+    rmtree $build-path if $wipe;
     $return
+}
+
+#| Returns path to the unpacked build. This is useful if you want to
+#| use some build multiple times simultaneously (just pass that path
+#| to the code block).
+sub run-smth-build-path($full-commit-hash, :$backend=‘rakudo-moar’) is export {
+    “$CONFIG<builds-location>/$backend/$full-commit-hash”;
 }
 
 
