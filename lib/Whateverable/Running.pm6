@@ -44,20 +44,30 @@ sub run-smth($full-commit-hash, Code $code,
         note “$build-path is locked. Waiting…”;
         sleep 0.5 # should never happen if configured correctly (kinda)
     }
+    my $proc1;
+    my $proc2;
     if $archive-path.IO ~~ :e {
         if run :err(Nil), <pzstd --version> { # check that pzstd is available
-            my $proc = run :out, :bin, <pzstd --decompress --quiet --stdout -->, $archive-path;
-            run :in($proc.out), :bin, <tar --extract --absolute-names>;
+            $proc1 = run :out, :bin, <pzstd --decompress --quiet --stdout -->, $archive-path;
+            $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names>;
         } else {
             die ‘zstd is not installed’ unless run :out(Nil), <unzstd --version>;
             # OK we are using zstd from the Mesozoic Era
-            my $proc = run :out, :bin, <unzstd -qc -->, $archive-path;
-            run :in($proc.out), :bin, <tar --extract --absolute-names>;
+            $proc1 = run :out, :bin, <unzstd -qc -->, $archive-path;
+            $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names>;
         }
     } else {
         die ‘lrzip is not installed’ unless run :err(Nil), <lrzip --version>; # check that lrzip is available
-        my $proc = run :out, :bin, <lrzip --decompress --quiet --outfile - -->, $archive-link;
-        run :in($proc.out), :bin, <tar --extract --absolute-names -->, $build-path;
+        $proc1 = run :out, :bin, <lrzip --decompress --quiet --outfile - -->, $archive-link;
+        $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names -->, $build-path;
+    }
+
+    if not $proc1 or not $proc2 {
+        note “Broken archive for $full-commit-hash, removing…”;
+        try unlink $archive-path;
+        try unlink $archive-link;
+        rmtree $build-path;
+        return %(output => ‘Broken archive’, exit-code => -1, signal => -1, time => -1,)
     }
 
     my $return = $code($build-path); # basically, we wrap around $code
