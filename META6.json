@@ -1,7 +1,7 @@
 {
     "perl"        : "6.c",
     "name"        : "Whateverable",
-    "version"     : "1.0.2",
+    "version"     : "1.0.3",
     "description" : "Different IRC bots that operate on a bunch of prebuilt Rakudo versions",
     "authors"     : [
         "Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>",
