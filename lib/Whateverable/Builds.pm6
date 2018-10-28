@@ -175,7 +175,7 @@ sub get-commits($_, :$repo=$CONFIG<rakudo>) is export {
         }
         return @commits
     }
-    return get-tags ‘2015-12-24’, :$repo if /:i ^ [ releases | v? 6 ‘.’? c ] $/;
+    return get-tags ‘2015-12-20’, :$repo if /:i ^ [ releases | v? 6 ‘.’? c ] $/;
     return get-tags ‘2014-01-01’, :$repo if /:i ^   all                      $/;
     return ~$<commit>                    if /:i ^   compare \s $<commit>=\S+ $/;
     return $_
