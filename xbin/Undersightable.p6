@@ -90,7 +90,6 @@ irclog.perlgeek.de/moarvm/today
 colabti.org/irclogger/irclogger_log/perl6
 colabti.org/irclogger/irclogger_logs/perl6
 
-6lang.party
 6lang.org
 design.6lang.org
 doc.6lang.org
