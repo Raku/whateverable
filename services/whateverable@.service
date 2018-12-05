@@ -35,7 +35,7 @@ InaccessiblePaths=/home/bisectable/git/whateverable/config.json
 TemporaryFileSystem=/home/bisectable/git/whateverable/lib/Whateverable/.precomp
 
 MemoryMax=1.5G
-TasksMax=80
+TasksMax=200
 
 Restart=always
 RestartSec=2
