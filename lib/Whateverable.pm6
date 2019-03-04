@@ -109,7 +109,7 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime \s* $/) {
 #↓ Notices
 multi method irc-notice-me( $ --> Nil)                             {} # Issue #321
 #↓ Private messages
-multi method irc-privmsg-me($ --> ‘Sorry, it is too private here’) {} # TODO issue #16
+multi method irc-privmsg-me($ --> ‘Sorry, it is too private here. You can join #whateverable channel instead’) {} # TODO issue #16
 #↓ Fallback
 multi method irc-to-me($) {
     ‘I cannot recognize this command. See wiki for some examples: ’ ~ self.get-wiki-link
