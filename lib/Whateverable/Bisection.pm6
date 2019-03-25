@@ -56,6 +56,7 @@ sub run-bisect(&runner  = &standard-runner,  #← Something to run on every revi
         $status = $result<exit-code>;
         if $result<output> ~~ /^^ (\S+) ‘ is the first new commit’ / {
             $first-new-commit = ~$0;
+            take $result<output>;
             last
         }
         if $status == 2 {
@@ -64,10 +65,13 @@ sub run-bisect(&runner  = &standard-runner,  #← Something to run on every revi
             my @possible-revs = get-output(:cwd($repo-cwd), <git rev-list>,
                                            <refs/bisect/new --not>, |$good-revs.lines)<output>.lines;
             $first-new-commit = @possible-revs;
+            take $result<output>;
             last
         }
-        last if $status ≠ 0;
-        LAST take $result<output>
+        if $status ≠ 0 {
+            take $result<output>;
+            last
+        }
     }
     my $log = @bisect-log.join(“\n”);
     %( :$log, :$status, :$first-new-commit )
