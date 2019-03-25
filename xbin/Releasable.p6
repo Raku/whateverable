@@ -31,7 +31,7 @@ unit class Releasable does Whateverable;
 my $SHA-LENGTH       = 8;
 my $RELEASE-HOUR     = 19; # GMT+0
 my $BLOCKERS-URL-RT  = ‘https://fail.rakudo.party/release/blockers.json’;
-my $BLOCKERS-URL-GH  = ‘https://api.github.com/repos/rakudo/rakudo/issues?state=open&labels=%E2%9A%A0%20blocker%20%E2%9A%A0’;
+my $BLOCKERS-URL-GH  = ‘https://api.github.com/repos/rakudo/rakudo/issues?state=open&labels=BLOCKER’;
 my $DRAFT-URL        = ‘https://raw.github.com/wiki/rakudo/rakudo/ChangeLog-Draft.md’;
 my $DRAFT-USER-URL   = ‘https://github.com/rakudo/rakudo/wiki/ChangeLog-Draft’;
 
