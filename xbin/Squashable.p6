@@ -25,7 +25,7 @@ unit class Squashable does Whateverable;
 
 my $WIKI-PAGE-URL = ‘https://github.com/rakudo/rakudo/wiki/Monthly-Bug-Squash-Day’;
 my $WIKI-PAGE-URL-RAW = ‘https://raw.githubusercontent.com/wiki/rakudo/rakudo/Monthly-Bug-Squash-Day.md’;
-my $TIMEZONE-RANGE = (-12..14) × 60×60; # in seconds (let's be inclusive?)
+my $TIMEZONE-RANGE = (-12..20) × 60×60; # in seconds (let's be inclusive?)
 my $CHANNEL = %*ENV<DEBUGGABLE> ?? ‘#whateverable’ !! ‘#perl6’;
 my $PATH = ‘data/squashable’.IO;
 
