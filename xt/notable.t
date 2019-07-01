@@ -11,7 +11,7 @@ my $t = Testable.new: bot => ‘Notable’;
 $t.common-tests: help => “Like this: {$t.bot-nick}: weekly rakudo is now 10x faster”;
 
 $t.shortcut-tests: (‘weekly:’,),
-                   <note weekly>;
+                   <note: note weekly>;
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,
