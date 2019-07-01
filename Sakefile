@@ -37,7 +37,7 @@ task ‘start-all’, {
     exit 1
 }
 
-task <kill stop>.any ~ <-all all>.any => @bots.map({‘kill:’ ~ to-name $_}), {;}
+task $_ => @bots.map({‘kill:’ ~ to-name $_}), {;} for <kill stop> X~ <-all all>;
 task ‘test’, { run <prove -j 8 --exec perl6 xt>; True }
 task ‘upgrade’ => ‘stop-all’, { run ‘rakudobrew’, ‘build’, ‘moar’; True }
 
