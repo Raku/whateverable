@@ -25,30 +25,33 @@ unit class Notable does Whateverable;
 
 my $db = %*ENV<TESTABLE> ?? $*TMPDIR.add(“notable{time}”) !! ‘data/notes’.IO;
 END { $db.unlink if %*ENV<TESTABLE> }
-my @shortcuts = ‘weekly’;
+my @shortcuts = ‘weekly’; # first shortcut here is the default topic
 write %() unless $db.e;
 
 method help($msg) {
-    “Like this: {$msg.server.current-nick}: weekly rakudo is now 10x faster”
+    “Like this: {$msg.server.current-nick}: weekly rakudo is now 10x as fast”
 }
 
-sub read()       { from-json slurp $db }
+sub read()       { from-json slurp $db                }
 sub write(%data) {           spurt $db, to-json %data }
 
-my regex topic is export { <[\w:_-]>+ }
+my regex shortcut($msg) { <?{ my $shortcut = $msg.args[1].split(‘:’)[0];
+                            make $shortcut if $shortcut eq @shortcuts.any      }> }
+my regex topic { <[\w:_-]>+ }
 
 sub timestampish { DateTime.now(:0timezone).truncated-to: ‘seconds’ }
 
+#| List topics
 multi method irc-to-me($msg where ‘list’) {
     my @topics = read.keys.sort;
-    return “No notes yet” unless @topics;
+    return ‘No notes yet’ unless @topics;
     @topics.join(‘ ’) but ProperStr(@topics.join: “\n”)
 }
 
+#| Get notes
 multi method irc-to-me($msg where
-                       { m:r/^ \s* [ || <?{.args[1].starts-with: @shortcuts.any ~ ‘:’}>
-                                     || <topic> ] \s* $/ }) {
-    my $topic = ~($<topic> // $msg.args[1].split(‘:’)[0]);
+                       { m:r/^ \s* [ <shortcut($msg)> || <topic> ] \s* $/ }) {
+    my $topic = ~($<topic> // $<shortcut>.made);
     my $data = read;
     return “No notes for “$topic”” if $data{$topic}:!exists;
     my @notes = $data{$topic}.map: {
@@ -59,19 +62,17 @@ multi method irc-to-me($msg where
      but PrettyLink({“{s +@notes, ‘note’}: $_”})
 }
 
-my &clearish = {
-    my @clear-commands = <clear reset delete default>;
-    do if .args[1].starts-with: @shortcuts.any ~ ‘:’ {
-        m/^ \s* @clear-commands \s* $/
-    } else {
-        m/^ \s* @clear-commands \s+ <topic> \s* $/
-        ||
-        m/^ \s* <topic> \s+ @clear-commands \s* $/
-    }
-}
-multi method irc-to-me($msg where &clearish) {
-    $/ = $msg ~~ &clearish;
-    my $topic = ~($<topic> // $msg.args[1].split(‘:’)[0]);
+#| Clear notes
+multi method irc-to-me($msg where
+                       { m:r/^
+                         :my @commands = <clear reset delete default>;
+                         [
+                             ||     <shortcut($msg)> \s* @commands \s*
+                             || \s* @commands        \s+ <topic>   \s*
+                             || \s* <topic>          \s+ @commands \s*
+                         ]
+                         $/ }) {
+    my $topic = ~($<topic> // $<shortcut>.made);
     my $data = read;
     return “No notes for “$topic”” if $data{$topic}:!exists;
     my $suffix = ~timestampish;
@@ -82,19 +83,36 @@ multi method irc-to-me($msg where &clearish) {
     “Moved existing notes to “$new-topic””
 }
 
+#| Add new topic
 multi method irc-to-me($msg where
-                       { m:r/^ \s* [|| <?{.args[1].starts-with: @shortcuts.any ~ ‘:’}>
-                                    || <topic> \s+] $<stuff>=[.*] $/ }) {
-    my $topic = ~($<topic> // $msg.args[1].split(‘:’)[0]);
+                       { m:r/^ \s* [ ‘new-topic’ | ‘new-category’ ] \s+ <topic> \s* $/ }) {
+    my $topic = ~$<topic>;
+    my $data = read;
+    return “Topic “$topic” already exists” if $data{$topic}:exists;
+    $data{$topic} = [];
+    write $data;
+    “New topic added (“$topic”)”
+}
+
+#| Add a note
+multi method irc-to-me($msg where
+                       { m:r/^ \s* [<shortcut($msg)> || <topic> \s+] $<stuff>=[.*] $/ }) {
+    my $topic = $<topic>;
     my $stuff = ~$<stuff>;
     my $data = read;
-    $data{$topic}.push: %(
+    if $topic.defined and $data{~$topic}:!exists {
+        # someone forgot to specify a topic, just default to the first shortcut
+        $topic = @shortcuts.head;
+        $stuff = $msg;
+    }
+    $topic //= $<shortcut>.made;
+    $data{~$topic}.push: %(
         text      => ~$stuff,
         timestamp => timestampish,
         nick      => $msg.nick,
     );
     write $data;
-    ‘Noted!’
+    “Noted! ($topic)”
 }
 
 
