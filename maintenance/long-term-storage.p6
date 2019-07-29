@@ -27,7 +27,7 @@ my \DIR-BASE          = PROJECT.lc;
 my \BUILDS-LOCATION   = “/tmp/whateverable/{DIR-BASE}”;
 my \ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/data/builds/{DIR-BASE}”.IO.absolute;
 my \REPO-LATEST       = “/tmp/whateverable/{DIR-BASE}-repo”;
-my \CUTOFF-DATE       = PROJECT == MoarVM ?? ‘2017-12-01’ !! ‘2016-10-01’;
+my \CUTOFF-DATE       = PROJECT == MoarVM ?? ‘2018-10-01’ !! ‘2018-02-01’;
 my \TAGS-SINCE        = ‘2014-01-01’;
 
 my @git-latest = ‘git’, ‘--git-dir’, “{REPO-LATEST}/.git”, ‘--work-tree’, REPO-LATEST;
