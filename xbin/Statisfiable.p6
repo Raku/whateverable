@@ -142,7 +142,7 @@ my %*BOT-ENV = %(
     height     =>  800,
 );
 
-Statisfiable.new.selfrun: ‘testisfiable6’, [ / stat[s]?6? <before ‘:’> /,
+Statisfiable.new.selfrun: ‘statisfiable6’, [ / stat[s]?6? <before ‘:’> /,
                                              fuzzy-nick(‘statisfiable6’, 3) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6
