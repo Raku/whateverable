@@ -74,6 +74,7 @@ multi method benchmark-code($full-commit-hash, @code) {
 
 multi method irc-to-me($msg where /^ \s* $<config>=([:i compare \s]? <.&commit-list>) \s+ $<code>=.+ /) {
     my ($value, %additional-files) = self.process: $msg, ~$<config>, ~$<code>;
+    return unless $value;
     $value but FileStore(%additional-files)
 }
 
@@ -114,22 +115,29 @@ method process($msg, $config, $code) {
         }
     }
 
+    my $num-commits = +@commits;
+
     # for these config options, check if there are any large speed differences between two commits and if so,
     # recursively find the commit in the middle until there are either no more large speed differences or no
     # more commits inbetween (i.e., the next commit is the exact one that caused the difference)
     if $actually-tested > 1 and
        ($config ~~ /:i ^ [ releases | v? 6 \.? c | all ] $ / or $config.contains: ‘,’) {
-        $msg.reply: ‘benchmarked the given commits, now zooming in on performance differences’;
+        if $num-commits < ITERATIONS {
+            my @prelim-commits = @commits.map({ get-short-commit $_ });
+            $msg.reply: ‘¦’ ~ @prelim-commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join:  ‘ ¦’;
+        }
         sleep 0.05; # to prevent messages from being reordered
 
 Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
             if now - $start-time > TOTAL-TIME {
-                grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
+                grumble “«hit the total time limit of {TOTAL-TIME} seconds»”;
+                last Z;
             }
 
             next unless %times{@commits[$x]}:exists and %times{@commits[$x + 1]}:exists;      # the commits have to have been run at all
             next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists; # and without error
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) ≥ %times{@commits[$x]}<min> × 0.1 {
+                once $msg.reply: ‘benchmarked the given commits and found a performance difference > 10%, now trying to bisect’;
                 my $result = get-output :cwd($CONFIG<rakudo>), ‘git’, ‘rev-list’,
                                         ‘--bisect’, ‘--no-merges’,
                                          @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];
@@ -173,7 +181,11 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
     my $short-str = ‘¦’ ~ @commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join:  ‘ ¦’;
     my $long-str  = ‘¦’ ~ @commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join: “\n¦”;
 
-    return $short-str but ProperStr($long-str), %graph
+    if $num-commits < @commits or $config ~~ /:i compare / { # new commits were added while bisecting
+        return $short-str but ProperStr($long-str), %graph
+    } else {
+        return ‘No new data found’
+    }
 }
 
 
