@@ -73,7 +73,7 @@ sub process-grep-line($line, %commits) { # 🙈
 
         take ~$repo # used for stats in PrettyLink
     }
-    $text = shorten $text, 300; # do not print too long lines
+    $text = shorten $text || ‘’, 300; # do not print too long lines
     $text = markdown-escape $text;
     $text ~~ s:g/ “\c[ESC][1;31m” (.*?) [ “\c[ESC][m” | $ ] /<b>{$0}<\/b>/; # TODO get rid of \/ ?
 
@@ -103,7 +103,7 @@ multi method irc-to-me($msg) {
     my %commits = ();
     my $gist = “| File | Code |\n|--|--|\n”;
     my $stats = gather {
-        $gist ~= $result<output>.split(“\n”).map({process-grep-line $_, %commits}).join: “\n”;
+        $gist ~= $result<output>.lines.map({process-grep-line $_, %commits}).join: “\n”;
     }
     my $total   = $stats.elems;
     my $modules = $stats.Set.elems;
