@@ -27,7 +27,7 @@ use IRC::Client;
 
 unit class Committable does Whateverable;
 
-constant TOTAL-TIME = 60 × 3;
+constant TOTAL-TIME = 60 × 10;
 constant shortcuts = %(
     mc  => ‘2015.12’,      ec  => ‘2015.12’,
     mch => ‘2015.12,HEAD’, ech => ‘2015.12,HEAD’,
@@ -48,7 +48,9 @@ method help($msg) {
 multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=@(shortcuts.keys)
                                                                  [‘:’ | ‘,’]/)
                                   && .text ~~ /^ \s* $<code>=.+ /) is default {
-    self.process: $msg, shortcuts{$prefix<shortcut>}, ~$<code>
+    my $code     = ~$<code>;
+    my $shortcut = shortcuts{$prefix<shortcut>};
+    start self.process: $msg, $shortcut, $code
 }
 
 multi method irc-to-me($msg where /^ \s* [ @<envs>=((<[\w-]>+)‘=’(\S*)) ]* %% \s+
@@ -60,7 +62,10 @@ multi method irc-to-me($msg where /^ \s* [ @<envs>=((<[\w-]>+)‘=’(\S*)) ]* %
         grumble “ENV variable {.key} can only be 0, 1 or empty” if .value ne ‘0’ | ‘1’ | ‘’;
     }
     %ENV ,= %*ENV;
-    self.process: $msg, ~$<config>, ~$<code>, :%ENV
+    my $config = ~$<config>;
+    my $code   = ~$<code>;
+    start self.process: $msg, $config, $code, :%ENV
+
 }
 
 method process-commit($commit, $filename, :%ENV) {
