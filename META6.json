@@ -27,6 +27,7 @@
         "App::GPTrixie",
         "Config::INI",
         "Cro",
+        "Cro::HTTP::Client",
         "Digest",
         "Digest::HMAC",
         "Digest::SHA256::Native",
