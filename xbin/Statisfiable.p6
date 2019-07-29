@@ -32,6 +32,15 @@ unit class Statisfiable does Whateverable;
 
 constant STATS-LOCATION = ‘./data/stats’.IO.absolute;
 
+# TODO gah… fix this stuff…
+my %*BOT-ENV;
+my %BOT-ENV = %(
+    range      => ‘2014.01..HEAD’,
+    background => ‘white’,
+    width      => 1000,
+    height     =>  800,
+);
+
 constant OPTIONS = %(
     core         => ‘CORE.setting.moarvm file size (MB)’,
 #   ‘core.lines’ => ‘Lines in CORE.setting.moarvm file (count)’,
@@ -99,7 +108,8 @@ multi method process($msg, $type, $zeroed) {
     %stat-locks{$type}.protect: {
         my %data := %stats{$type};
         my $let's-save = False;
-        my @command = <git log -z --pretty=%H>, %*BOT-ENV<range>;
+        my @command = |<git log -z --pretty=%H>, |%BOT-ENV<range>;
+
         for run(:out, :cwd($CONFIG<rakudo>), |@command).out.split: 0.chr, :skip-empty -> $full {
             next unless $full;
             #my $short = to-full-commit $_, :short;
@@ -119,13 +129,13 @@ multi method process($msg, $type, $zeroed) {
     my @labels = @results.reverse».key».substr: 0, 8;
 
     my $plot = SVG::Plot.new(
-        width => %*BOT-ENV<width>,
-        height => %*BOT-ENV<height>,
+        width => %BOT-ENV<width>,
+        height => %BOT-ENV<height>,
         min-y-axis => $zeroed ?? 0 !! Nil,
         :$title,
         values     => (@values,),
         :@labels,
-        background => %*BOT-ENV<background>,
+        background => %BOT-ENV<background>,
     ).plot(:lines);
     my %graph = $pfilename => SVG.serialize: $plot;
 
@@ -134,13 +144,6 @@ multi method process($msg, $type, $zeroed) {
     $msg-response but FileStore(%graph)
 }
 
-
-my %*BOT-ENV = %(
-    range      => ‘2014.01..HEAD’,
-    background => ‘white’,
-    width      => 1000,
-    height     =>  800,
-);
 
 Statisfiable.new.selfrun: ‘statisfiable6’, [ / stat[s]?6? <before ‘:’> /,
                                              fuzzy-nick(‘statisfiable6’, 3) ]
