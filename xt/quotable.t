@@ -59,6 +59,14 @@ subtest ‘all channels have recent data’, {
     }
 }
 
+# Timeouts
+
+$t.test(‘timeout’,
+        ‘{$t.bot-nick}: / {sleep ∞} /’,
+        /^ <{$t.our-nick}>‘, OK, working on it! This may take up to three minutes (’\d+‘ messages to process)’ $/,
+        “{$t.our-nick}, timed out after 180 seconds» «exit signal = SIGHUP (1)»”,
+        :190timeout);
+
 $t.last-test;
 done-testing;
 END $t.end;
