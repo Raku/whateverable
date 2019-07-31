@@ -156,7 +156,7 @@ $t.test(‘malformed link (could not parse)’,
 
 # Camelia replacement
 
-my @alts = <master rakudo r r-m m p6 perl6>;
+my @alts = <master rakudo r-m m p6 perl6>;
 
 for (‘’, ‘ ’) X~ (@alts X~ ‘: ’, ‘:’) {
     $t.test(“answers on ‘$_’ when camelia is not around”,
