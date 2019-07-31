@@ -35,10 +35,10 @@ method make-believe($msg, @nicks, &play, :$timeout = 4) {
     start {
         my %*BOT-ENV = $x; # TODO … yeah, I don't know
         await Promise.anyof: $update-promise, Promise.in: $timeout;
-        $!users-lock.protect: {
-            return if any %!users{$msg.channel}{@nicks}:exists
+        my @found-nicks = $!users-lock.protect: {
+             %!users{$msg.channel}{@nicks}:exists
         }
-        try {
+        if @found-nicks.none {
             $msg.reply: $_ but Reply($msg) with play;
             CATCH { default { $msg.reply: self.handle-exception: $_, $msg } }
         }
