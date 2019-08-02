@@ -44,6 +44,10 @@ sub s($count, $word) is export {
     +$count ~ ‘ ’ ~ $word ~ ($count == 1 ?? ‘’ !! ‘s’)
 }
 
+sub maybe($format, $string) is export {
+    $string ?? $string.fmt: $format !! ‘’
+}
+
 sub markdown-escape($text) is export {
     # TODO is it correct? No, that's an ugly hack…
     $text.trans: (｢<｣,   ｢>｣,  ｢&｣,  ｢\｣,  ｢`｣,  ｢*｣,  ｢_｣,  ｢~｣,  ｢|｣) =>
@@ -52,6 +56,13 @@ sub markdown-escape($text) is export {
 
 sub html-escape($text) is export {
     $text.trans: (‘&’, ‘<’, ‘>’) => (‘&amp;’, ‘&lt;’, ‘&gt;’)
+}
+
+my token irc-nick is export {
+    [
+        | <[a..zA..Z0..9]>
+        | ‘-’ | ‘_’ | ‘[’ | ‘]’ | ‘{’ | ‘}’ | ‘\\’ | ‘`’ | ‘|’ | ‘+’
+    ]+
 }
 
 my token commit-list is export {
@@ -91,6 +102,9 @@ sub time-left(Instant() $then, :$already-there?) is export {
     $answer
 }
 
+#| Get current timestamp (DateTime)
+sub timestampish is export { DateTime.now(:0timezone).truncated-to: ‘seconds’ }
+
 #↓ Spurt into a tempfile.
 sub write-code($code --> IO) is export {
     use File::Temp;
@@ -100,6 +114,7 @@ sub write-code($code --> IO) is export {
     $filename.IO
 }
 
+# Exceptions
 class Whateverable::X::HandleableAdHoc is X::AdHoc is export {}
 
 sub grumble(|c) is export {

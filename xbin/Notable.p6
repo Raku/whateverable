@@ -39,8 +39,6 @@ my regex shortcut($msg) { <?{ my $shortcut = $msg.args[1].split(‘:’)[0];
                             make $shortcut if $shortcut eq @shortcuts.any      }> }
 my regex topic { <[\w:_-]>+ }
 
-sub timestampish { DateTime.now(:0timezone).truncated-to: ‘seconds’ }
-
 #| List topics
 multi method irc-to-me($msg where ‘list’) {
     my @topics = read.keys.sort;
