@@ -198,18 +198,8 @@ sub get-similar($tag-or-hash, @other?, :$repo=$CONFIG<rakudo>) is export {
                       .lines.map(*.substr: 0, $cutoff);
 
     # flat(@options, @tags, @commits).min: { sift4($_, $tag-or-hash, 5, 8) }
-    my $ans = ‘HEAD’;
-    my $ans_min = ∞;
-
-    use Text::Diff::Sift4;
-    for flat @options, @tags, @commits {
-        my $dist = sift4 $_, $tag-or-hash, $cutoff;
-        if $dist < $ans_min {
-            $ans = $_;
-            $ans_min = $dist;
-        }
-    }
-    $ans
+    did-you-mean $tag-or-hash, flat(@options, @tags, @commits),
+                 :default(‘HEAD’), :max-offset($cutoff);
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6

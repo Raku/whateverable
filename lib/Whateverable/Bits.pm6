@@ -58,6 +58,25 @@ my token commit-list is export {
     [<-[\s] -[‘,’]>+]+ % [‘,’\s*]
 }
 
+#| Get the closest fuzzy match
+sub did-you-mean($string, @options, :$default=Nil,
+                 :$max-offset=7, :$max-distance=10) is export {
+    my $answer = $default;
+    my $answer-min = ∞;
+    my $distance-limit = $max-distance + 1;
+
+    use Text::Diff::Sift4;
+    for @options {
+        my $distance = sift4 $_, $string, $max-offset, $distance-limit;
+        if $distance < $answer-min {
+            $answer = $_;
+            $answer-min = $distance;
+        }
+    }
+    return $default if $answer-min > $max-distance;
+    $answer
+}
+
 sub time-left(Instant() $then, :$already-there?) is export {
     my $time-left = $then - now;
     return $already-there if $already-there and $time-left < 0;
