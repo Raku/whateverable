@@ -19,6 +19,7 @@ Wants=whateverable@Reportable.service
 Wants=whateverable@Shareable.service
 Wants=whateverable@Squashable.service
 Wants=whateverable@Statisfiable.service
+Wants=whateverable@Tellable.service
 Wants=whateverable@Undersightable.service
 Wants=whateverable@Unicodable.service
 
