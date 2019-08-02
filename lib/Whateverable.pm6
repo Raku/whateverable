@@ -178,7 +178,7 @@ method selfrun($nick is copy, @alias?) {
     use Whateverable::Builds;
     ensure-cloned-repos;
 
-    sleep rand × 300 unless %*ENV<DEBUGGABLE>;
+    sleep rand × 300 if none %*ENV<DEBUGGABLE TESTABLE>;
 
     $nick ~= ‘test’ if %*ENV<DEBUGGABLE>;
     .run with IRC::Client.new(
