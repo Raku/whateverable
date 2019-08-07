@@ -31,10 +31,28 @@ method help($msg) {
     ‘Like this: .tell AlexDaniel your bot is broken’
 }
 
+#| normalize nicknames, somewhat
+sub normalize-weirdly($_ is copy) {
+    # We knowingly ignore CASEMAPPING and its bullshit rules.
+    # Instead we'll do our own crazy stuff in order to DWIM.
+    # These rules are based on messages that were never delivered.
+
+    # XXX not using s/// because there's a sub s (rakudo/rakudo#3111)
+    $_ .= fc;
+    $_ = S/‘[m]’$//;      # matrix users
+    $_ = S/\W+$//;        # garbage at the end
+    $_ = S/^\W+//;        # garbage at the beginning
+    $_ = S:g/‘-’//;       # hyphens
+    $_ = S/^(.*?)\d+/$0/; # numbers at the end
+    $_ = S:g/(.)$0/$0/;   # accidentally doubled letters
+    $_
+}
+
 #| listen for messages
 multi method irc-privmsg-channel($msg) {
+    my $normalized = normalize-weirdly $msg.nick;
     $db-seen.read-write: {
-        .{$msg.nick} = {
+        .{$normalized} = {
             text      => $msg.text,
             channel   => $msg.channel,
             timestamp => timestampish,
@@ -42,12 +60,12 @@ multi method irc-privmsg-channel($msg) {
         }
     }
     my %mail = $db-tell.read;
-    if %mail{$msg.nick} {
-        for %mail{$msg.nick}.list {
+    if %mail{$normalized} {
+        for %mail{$normalized}.list {
             my $text = sprintf ‘%s %s <%s> %s’, .<timestamp channel from text>;
             $msg.irc.send-cmd: 'PRIVMSG', $msg.channel, $text, :server($msg.server)
         }
-        %mail{$msg.nick}:delete;
+        %mail{$normalized}:delete;
         $db-tell.write: %mail;
     }
     $.NEXT
@@ -89,27 +107,28 @@ multi method irc-to-me($msg where { m:r/^ \s* [seen \s+]?
                                           $<who>=<.&irc-nick> <[:,]>* \s* $/ }) {
     my $who = ~$<who>;
     my %seen := $db-seen.read;
-    my $entry = %seen{$who};
+    my $entry = %seen{normalize-weirdly $who};
     without $entry {
         return “I haven't seen $who around”
         ~ maybe ‘, did you mean %s?’, did-you-mean-seen $who, %seen
     }
-    “I saw $who $entry<timestamp> in $entry<channel>: <$who> $entry<text>”
+    “I saw $who $entry<timestamp> in $entry<channel>: <$entry<nick>> $entry<text>”
 }
 
 #| tell
 multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]?
                                           $<who>=<.&irc-nick> <[:,]>* \s+ .* $/ }) {
     my $who = ~$<who>;
+    my $normalized = normalize-weirdly $who;
     return ‘Thanks for the message’ if $who eq $msg.server.current-nick;
     return ‘I'll pass that message to your doctor’ if $who eq $msg.nick and not %*ENV<TESTABLE>;
     my %seen := $db-seen.read;
-    without %seen{$who} {
+    without %seen{$normalized} {
         return “I haven't seen $who around”
         ~ maybe ‘, did you mean %s?’, did-you-mean-seen $who, %seen
     }
     $db-tell.read-write: {
-        .{$who}.push: {
+        .{$normalized}.push: {
             text      => $msg.text,
             channel   => $msg.channel,
             timestamp => timestampish,
