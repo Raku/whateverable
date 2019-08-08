@@ -39,12 +39,12 @@ sub normalize-weirdly($_ is copy) {
 
     # XXX not using s/// because there's a sub s (rakudo/rakudo#3111)
     $_ .= fc;
-    $_ = S/‘[m]’$//;      # matrix users
-    $_ = S/\W+$//;        # garbage at the end
-    $_ = S/^\W+//;        # garbage at the beginning
-    $_ = S:g/‘-’//;       # hyphens
-    $_ = S/^(.*?)\d+/$0/; # numbers at the end
-    $_ = S:g/(.)$0/$0/;   # accidentally doubled letters
+    s:!g/‘[m]’$//;      # matrix users
+    s:!g/\W+$//;        # garbage at the end
+    s:!g/^\W+//;        # garbage at the beginning
+    s:g/‘-’//;          # hyphens
+    s:!g/^(.*?)\d+/$0/; # numbers at the end
+    s:g/(.)$0/$0/;      # accidentally doubled letters
     $_
 }
 
