@@ -53,6 +53,52 @@ $t.test(‘no such nickname (seen)’,
 #        “{$t.our-nick}, I haven't seen x{$t.our-nick} around, did you mean {$t.our-nick}?”);
 
 
+# Seen normalization
+
+$t.test(‘.seen (normalization, matrix users)’,
+        “.seen {$t.our-nick}[m]”,
+        /^ <me($t)>‘, I saw ’<me($t)>‘[m] 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> hello world’ $/
+       );
+
+$t.test(‘.seen (normalization, garbage at the end)’,
+        “.seen {$t.our-nick}``|:”,
+        /^ <me($t)>‘, I saw ’<me($t)>‘``| 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> hello world’ $/
+       );
+
+$t.test(‘.seen (normalization, garbage at the end, colon)’,
+        “.seen {$t.our-nick}``|”,
+        /^ <me($t)>‘, I saw ’<me($t)>‘``| 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> hello world’ $/
+       );
+
+$t.test(‘.seen (normalization, garbage at the beginning)’,
+        “.seen `|{$t.our-nick}”,
+        /^ <me($t)>‘, I saw `|’<me($t)>‘ 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> hello world’ $/
+       );
+
+$t.test(‘.seen (normalization, garbage at the end and beginning)’,
+        “.seen `|{$t.our-nick}`|”,
+        /^ <me($t)>‘, I saw `|’<me($t)>‘`| 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> hello world’ $/
+       );
+
+$t.test(‘.seen (normalization, hyphens)’,
+        “.seen {$t.our-nick.comb.join: ‘-’}”,
+        /^ <me($t)>‘, I saw ’“{$t.our-nick.comb.join: ‘-’}”
+           ‘ 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> hello world’ $/
+       );
+
+$t.test(‘.seen (normalization, numbers)’,
+        “.seen {$t.our-nick}242134”,
+        /^ <me($t)>‘, I saw ’<me($t)>‘242134 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> hello world’ $/
+       );
+
+$t.test(‘.seen (normalization, doubled letters)’,
+        “.seen {$t.our-nick.comb.map({$_ x 2}).join}”,
+        /^ <me($t)>‘, I saw ’“{$t.our-nick.comb.map({$_ x 2}).join}”
+        ‘ 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> hello world’ $/
+       );
+
+
+
 # Tell
 
 $t.test(‘.tell’,
@@ -124,6 +170,41 @@ $t.test(‘receiving multiple messages’,
 $t.test(‘passing messages to the bot itself’,
         “.tell {$t.bot-nick} I love you”,
         “{$t.our-nick}, Thanks for the message”);
+
+
+# Tell normalization
+
+$t.test(‘.tell (normalization, matrix users)’,
+        “.tell {$t.our-nick}[m] whatever”,
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}[m]”);
+
+$t.test(‘.tell (normalization, garbage at the end)’,
+        “.tell {$t.our-nick}``| whatever”,
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}``|”);
+
+$t.test(‘.tell (normalization, garbage at the end, colon)’,
+        “.tell {$t.our-nick}``|: whatever”,
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}``|”);
+
+$t.test(‘.tell (normalization, garbage at the beginning)’,
+        “.tell `|{$t.our-nick} whatever”,
+        “{$t.our-nick}, I'll pass your message to `|{$t.our-nick}”);
+
+$t.test(‘.tell (normalization, garbage at the end and beginning)’,
+        “.tell `|{$t.our-nick}`| whatever”,
+        “{$t.our-nick}, I'll pass your message to `|{$t.our-nick}`|”);
+
+$t.test(‘.tell (normalization, hyphens)’,
+        “.tell {$t.our-nick.comb.join: ‘-’} whatever”,
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick.comb.join: ‘-’}”);
+
+$t.test(‘.tell (normalization, numbers)’,
+        “.tell {$t.our-nick}242134 whatever”,
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}242134”);
+
+$t.test(‘.tell (normalization, doubled letters)’,
+        “.tell {$t.our-nick.comb.map({$_ x 2}).join} whatever”,
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick.comb.map({$_ x 2}).join}”);
 
 
 # TODO it kinda works but for some reason not with long nicks
