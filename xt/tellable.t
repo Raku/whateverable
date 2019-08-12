@@ -206,6 +206,10 @@ $t.test(‘.tell (normalization, doubled letters)’,
         “.tell {$t.our-nick.comb.map({$_ x 2}).join} whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick.comb.map({$_ x 2}).join}”);
 
+$t.test(‘receiving all messages (normalization)’,
+        ‘I'm back!’,
+        |(/^ ‘2’\S+‘Z #whateverable_tellable6 <’<me($t)>‘> ’\S+‘ whatever’ $/ xx 8)
+        );
 
 # TODO it kinda works but for some reason not with long nicks
 #$t.test(‘.tell autocorrect’,
