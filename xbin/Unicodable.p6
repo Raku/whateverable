@@ -21,13 +21,13 @@ use Whateverable;
 use Whateverable::Bits;
 use Whateverable::Builds;
 use Whateverable::Processing;
-use Whateverable::Replaceable;
 use Whateverable::Running;
 use Whateverable::Uniprops;
+use Whateverable::Userlist;
 
 use IRC::Client;
 
-unit class Unicodable does Whateverable does Whateverable::Replaceable;
+unit class Unicodable does Whateverable does Whateverable::Userlist;
 
 constant MESSAGE-LIMIT = 3;
 constant $LIMIT = 5_000;

@@ -22,13 +22,13 @@ use Whateverable::Bits;
 use Whateverable::Builds;
 use Whateverable::Config;
 use Whateverable::Processing;
-use Whateverable::Replaceable;
 use Whateverable::Running;
+use Whateverable::Userlist;
 
 use IRC::Client;
 use Terminal::ANSIColor;
 
-unit class Evalable does Whateverable does Whateverable::Replaceable;
+unit class Evalable does Whateverable does Whateverable::Userlist;
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: say ‘hello’; say ‘world’”

@@ -5,6 +5,7 @@ BEGIN %*ENV<PERL6_TEST_DIE_ON_FAIL> = 1;
 use lib <lib xt/lib>;
 use Test;
 use Testable;
+use IRC::Client;
 
 my $t = Testable.new: bot => ‘Tellable’;
 
@@ -215,6 +216,55 @@ $t.test(‘receiving all messages (normalization)’,
 #$t.test(‘.tell autocorrect’,
 #        “.tell x{$t.our-nick} hello”,
 #        “{$t.our-nick}, I haven't seen x{$t.our-nick} around, did you mean {$t.our-nick}?”);
+
+
+# Making sure that user tracking works
+
+my $jnthn = IRC::Client.new(:nick(‘jnthn’)
+                            :host<127.0.0.1> :port(%*ENV<TESTABLE_PORT>)
+                            :channels<#whateverable_tellable6>);
+start $jnthn.run;
+sleep 1;
+
+$jnthn.send: where => ‘#whateverable_tellable6’, text => ‘hello’;
+
+$t.test(‘autosend doesn't mistrigger (join)’,
+        ‘jnthn: hello’,);
+
+$t.test(‘.seen is still working’,
+        ‘.seen jnthn’,
+        /^ <me($t)>‘, I saw jnthn 2’\S+‘Z in #whateverable_tellable6: <jnthn> hello’ $/
+       );
+
+$jnthn.nick: ‘notjnthn’;
+
+$t.test(‘autosend works (nick change)’,
+        ‘jnthn: where are you’,
+        “{$t.our-nick}, I'll pass your message to jnthn”);
+
+$jnthn.send: where => ‘#whateverable_tellable6’, text => ‘right here’;
+
+$t.test(‘autosend doesn't mistrigger (nick change)’,
+        ‘notjnthn: hello’,);
+
+$t.test(‘.seen is still working (again)’,
+        ‘.seen notjnthn’,
+        /^ <me($t)>‘, I saw notjnthn 2’\S+‘Z in #whateverable_tellable6: <notjnthn> right here’ $/
+       );
+
+$jnthn.part: ‘#whateverable_tellable6’;
+$t.test(‘autosend works (part)’,
+        ‘notjnthn: where???’,
+        “{$t.our-nick}, I'll pass your message to notjnthn”);
+
+$jnthn.join: ‘#whateverable_tellable6’;
+$t.test(‘autosend doesn't mistrigger (join)’,
+        ‘notjnthn: hello’,);
+
+$jnthn.quit;
+$t.test(‘autosend works (quit)’,
+        ‘notjnthn: you've got to be kidding me’,
+        “{$t.our-nick}, I'll pass your message to notjnthn”);
 
 
 $t.last-test;

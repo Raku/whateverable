@@ -18,11 +18,12 @@
 use Whateverable;
 use Whateverable::Bits;
 use Whateverable::FootgunDB;
+use Whateverable::Userlist;
 
 use IRC::Client;
 use JSON::Fast;
 
-unit class Tellable does Whateverable;
+unit class Tellable does Whateverable does Whateverable::Userlist;
 
 my $db-seen = FootgunDB.new: name => ‘tellable-seen’;
 my $db-tell = FootgunDB.new: name => ‘tellable-tell’;
@@ -71,19 +72,19 @@ multi method irc-privmsg-channel($msg) {
     $.NEXT
 }
 
-#`｢ TODO implement proper user tracking first
+
 #| automatic tell
 multi method irc-privmsg-channel($msg where { m:r/^ \s* $<who>=<.&irc-nick> ‘:’+ \s+ (.*) $/ }) {
     my $who = $<who>;
-    # TODO use `does Replaceable`
-    return $.NEXT if $who ~~ list-users.any; # still on the channel
+    return $.NEXT if self.userlist($msg){$who}; # still on the channel
+    my $normalized = normalize-weirdly $who;
     my %seen := $db-seen.read;
-    return $.NEXT unless %seen{$who}:exists; # haven't seen them talk ever
-    my $last-seen-duration = DateTime.now(:0timezone) - DateTime.new(%seen{$who}<timestamp>);
-    return $.NEXT if $last-seen-duration ≥ 60×60×24 × 3; # haven't seen for months
+    return $.NEXT unless %seen{$normalized}:exists; # haven't seen them talk ever
+    my $last-seen-duration = DateTime.now(:0timezone) - DateTime.new(%seen{$normalized}<timestamp>);
+    return $.NEXT if $last-seen-duration ≥ 60×60×24 × 28 × 3; # haven't seen for months
+    $msg.text = ‘tell ’ ~ $msg.text;
     self.irc-to-me: $msg;
-    $.NEXT
-}｣
+}
 
 #| .seen
 multi method irc-privmsg-channel($msg where .args[1] ~~ /^ ‘.seen’ \s+ (.*) /) {
@@ -141,6 +142,6 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]?
 my %*BOT-ENV = %();
 
 Tellable.new.selfrun: ‘tellable6’, [/ [to|tell|ask|seen] 6? <before ‘:’> /,
-                                    fuzzy-nick(‘tellable6’, 3)];
+                                    fuzzy-nick(‘tellable6’, 1)];
 
 # vim: expandtab shiftwidth=4 ft=perl6
