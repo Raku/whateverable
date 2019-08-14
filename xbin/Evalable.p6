@@ -109,6 +109,6 @@ my %*BOT-ENV = commit => ‘HEAD’;
 
 Evalable.new.selfrun: ‘evalable6’, [/ [ | \s*[master|rakudo|‘r-m’|m|p6|perl6]
                                         | e[val]?6? | what ] <before ‘:’> /,
-                                    fuzzy-nick(‘evalable6’, 2) ]
+                                    fuzzy-nick(‘evalable6’, 1) ]
 
 # vim: expandtab shiftwidth=4 ft=perl6
