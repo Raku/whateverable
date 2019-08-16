@@ -142,6 +142,16 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]?
 
 my %*BOT-ENV = %();
 
+{
+    # Renormalize on startup in case the rules were updated
+    $db-tell.write:   $db-tell.read.values».list.flat.classify: {
+        normalize-weirdly .<to>
+    };
+    $db-seen.write: %($db-seen.read.values.map: {
+        normalize-weirdly(.<nick>) => $_
+    });
+}
+
 Tellable.new.selfrun: ‘tellable6’, [/ [to|tell|ask|seen] 6? <before ‘:’> /,
                                     fuzzy-nick(‘tellable6’, 1)];
 
