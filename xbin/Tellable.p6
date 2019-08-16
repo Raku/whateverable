@@ -44,9 +44,9 @@ sub normalize-weirdly($_ is copy) {
     s:!g/\W+$//;        # garbage at the end
     s:!g/^\W+//;        # garbage at the beginning
     s:g/‘-’//;          # hyphens
-    s:!g/^(.*?)\d+/$0/; # numbers at the end
-    s:g/(.)$0/$0/;      # accidentally doubled letters
-    $_
+    s:g/(.)$0+/$0/;     # accidentally doubled characters
+    s:g/\d// if S:g/\d//.chars > 4; # remove numbers if we still have letters
+    $_;
 }
 
 #| listen for messages
