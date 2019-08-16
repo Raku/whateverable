@@ -49,8 +49,11 @@ sub normalize-weirdly($_ is copy) {
     $_;
 }
 
+sub guest-like($nick) { so $nick ~~ /^Guest\d/ }
+
 #| listen for messages
 multi method irc-privmsg-channel($msg) {
+    return $.NEXT if guest-like $msg.nick;
     my $normalized = normalize-weirdly $msg.nick;
     $db-seen.read-write: {
         .{$normalized} = {
@@ -110,6 +113,7 @@ multi method irc-to-me($msg where { m:r/^ \s* [seen \s+]?
     my %seen := $db-seen.read;
     my $entry = %seen{normalize-weirdly $who};
     without $entry {
+        return ‘I haven't seen any guests around’ if guest-like $who;
         return “I haven't seen $who around”
         ~ maybe ‘, did you mean %s?’, did-you-mean-seen $who, %seen
     }
@@ -125,6 +129,7 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]?
     return ‘I'll pass that message to your doctor’ if $who eq $msg.nick and not %*ENV<TESTABLE>;
     my %seen := $db-seen.read;
     without %seen{$normalized} {
+        return ‘Can't pass messages to guests’ if guest-like $who;
         return “I haven't seen $who around”
         ~ maybe ‘, did you mean %s?’, did-you-mean-seen $who, %seen
     }

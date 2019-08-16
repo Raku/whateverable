@@ -48,6 +48,10 @@ $t.test(‘no such nickname (seen)’,
         ‘.seen nobody’,
         “{$t.our-nick}, I haven't seen nobody around”);
 
+$t.test(‘seeing guests’,
+        “.seen Guest35100”,
+        “{$t.our-nick}, I haven't seen any guests around”);
+
 # TODO it kinda works but for some reason not with long nicks
 #$t.test(‘.seen autocorrect’,
 #        “.seen x{$t.our-nick}”,
@@ -172,6 +176,9 @@ $t.test(‘passing messages to the bot itself’,
         “.tell {$t.bot-nick} I love you”,
         “{$t.our-nick}, Thanks for the message”);
 
+$t.test(‘passing messages to guests’,
+        “.tell Guest35100 who are you?”,
+        “{$t.our-nick}, Can't pass messages to guests”);
 
 # Tell normalization
 
