@@ -177,35 +177,35 @@ $t.test(‘passing messages to the bot itself’,
 
 $t.test(‘.tell (normalization, matrix users)’,
         “.tell {$t.our-nick}[m] whatever”,
-        “{$t.our-nick}, I'll pass your message to {$t.our-nick}[m]”);
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
 $t.test(‘.tell (normalization, garbage at the end)’,
         “.tell {$t.our-nick}``| whatever”,
-        “{$t.our-nick}, I'll pass your message to {$t.our-nick}``|”);
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
 $t.test(‘.tell (normalization, garbage at the end, colon)’,
         “.tell {$t.our-nick}``|: whatever”,
-        “{$t.our-nick}, I'll pass your message to {$t.our-nick}``|”);
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
 $t.test(‘.tell (normalization, garbage at the beginning)’,
         “.tell `|{$t.our-nick} whatever”,
-        “{$t.our-nick}, I'll pass your message to `|{$t.our-nick}”);
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
 $t.test(‘.tell (normalization, garbage at the end and beginning)’,
         “.tell `|{$t.our-nick}`| whatever”,
-        “{$t.our-nick}, I'll pass your message to `|{$t.our-nick}`|”);
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
 $t.test(‘.tell (normalization, hyphens)’,
         “.tell {$t.our-nick.comb.join: ‘-’} whatever”,
-        “{$t.our-nick}, I'll pass your message to {$t.our-nick.comb.join: ‘-’}”);
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
 $t.test(‘.tell (normalization, numbers)’,
         “.tell {$t.our-nick}242134 whatever”,
-        “{$t.our-nick}, I'll pass your message to {$t.our-nick}242134”);
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
 $t.test(‘.tell (normalization, doubled letters)’,
         “.tell {$t.our-nick.comb.map({$_ x 2}).join} whatever”,
-        “{$t.our-nick}, I'll pass your message to {$t.our-nick.comb.map({$_ x 2}).join}”);
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
 $t.test(‘receiving all messages (normalization)’,
         ‘I'm back!’,

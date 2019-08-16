@@ -137,7 +137,7 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]?
             to        => $who,
         }
     }
-    “I'll pass your message to $who”
+    “I'll pass your message to {%seen{$normalized}<nick>}”
 }
 
 my %*BOT-ENV = %();
