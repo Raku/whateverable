@@ -134,6 +134,7 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]?
             channel   => $msg.channel,
             timestamp => timestampish,
             from      => $msg.nick,
+            to        => $who,
         }
     }
     “I'll pass your message to $who”
