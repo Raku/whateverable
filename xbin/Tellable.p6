@@ -33,13 +33,13 @@ method help($msg) {
 }
 
 #| normalize nicknames, somewhat
-sub normalize-weirdly($_ is copy) {
+sub normalize-weirdly($nick) {
     # We knowingly ignore CASEMAPPING and its bullshit rules.
     # Instead we'll do our own crazy stuff in order to DWIM.
     # These rules are based on messages that were never delivered.
 
     # XXX not using s/// because there's a sub s (rakudo/rakudo#3111)
-    $_ .= fc;
+    $_ = $nick.fc;
     s:!g/‘[m]’$//;      # matrix users
     s:!g/\W+$//;        # garbage at the end
     s:!g/^\W+//;        # garbage at the beginning
@@ -47,7 +47,7 @@ sub normalize-weirdly($_ is copy) {
     s:g/‘_’//;          # underscores
     s:g/(.)$0+/$0/;     # accidentally doubled characters
     s:g/\d// if S:g/\d//.chars > 4; # remove numbers if we still have letters
-    $_;
+    .chars ≥ 2 ?? $_ !! $nick;      # return original if too much was removed
 }
 
 sub guest-like($nick) { so $nick ~~ /^Guest\d/ }
