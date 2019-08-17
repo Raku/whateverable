@@ -124,9 +124,11 @@ multi method irc-to-me($msg where { m:r/^ \s* [seen \s+]?
 }
 
 #| tell
-multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]?
-                                          $<who>=<.&irc-nick> <[:,]>* \s+ .* $/ }) {
+multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]? $<text>=[
+                                           $<who>=<.&irc-nick> <[:,]>* \s+ .*
+                                          ]$/ }) {
     my $who = ~$<who>;
+    my $text = ~$<text>;
     my $normalized = normalize-weirdly $who;
     return ‘Thanks for the message’ if $who eq $msg.server.current-nick;
     return ‘I'll pass that message to your doctor’ if $who eq $msg.nick and not %*ENV<TESTABLE>;
@@ -138,7 +140,7 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]?
     }
     $db-tell.read-write: {
         .{$normalized}.push: {
-            text      => $msg.text,
+            text      => $text,
             channel   => $msg.channel,
             timestamp => timestampish,
             from      => $msg.nick,
