@@ -254,6 +254,9 @@ $jnthn.send: where => ‘#whateverable_tellable6’, text => ‘right here’;
 $t.test(‘autosend doesn't mistrigger (nick change)’,
         ‘notjnthn: hello’,);
 
+$t.test(‘autosend considers resolved nicknames’,
+        ‘notjnthn``: hello’,);
+
 $t.test(‘.seen is still working (again)’,
         ‘.seen notjnthn’,
         /^ <me($t)>‘, I saw notjnthn 2’\S+‘Z in #whateverable_tellable6: <notjnthn> right here’ $/

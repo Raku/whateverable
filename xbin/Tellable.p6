@@ -84,6 +84,8 @@ multi method irc-privmsg-channel($msg where { m:r/^ \s* $<who>=<.&irc-nick> ‘:
     my $normalized = normalize-weirdly $who;
     my %seen := $db-seen.read;
     return $.NEXT unless %seen{$normalized}:exists; # haven't seen them talk ever
+    my $previous-nick = %seen{$normalized}<nick>;
+    return $.NEXT if self.userlist($msg){$previous-nick}; # previous nickname still on the channel
     my $last-seen-duration = DateTime.now(:0timezone) - DateTime.new(%seen{$normalized}<timestamp>);
     return $.NEXT if $last-seen-duration ≥ 60×60×24 × 28 × 3; # haven't seen for months
     $msg.text = ‘tell ’ ~ $msg.text;
