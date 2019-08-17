@@ -75,6 +75,7 @@ sub did-you-mean($string, @options, :$default=Nil,
     my $answer = $default;
     my $answer-min = ∞;
     my $distance-limit = $max-distance + 1;
+    $distance-limit = 17 if $distance-limit < 17;
 
     use Text::Diff::Sift4;
     for @options {

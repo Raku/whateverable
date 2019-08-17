@@ -53,9 +53,9 @@ $t.test(‘seeing guests’,
         “{$t.our-nick}, I haven't seen any guests around”);
 
 # TODO it kinda works but for some reason not with long nicks
-#$t.test(‘.seen autocorrect’,
-#        “.seen x{$t.our-nick}”,
-#        “{$t.our-nick}, I haven't seen x{$t.our-nick} around, did you mean {$t.our-nick}?”);
+$t.test(‘.seen autocorrect’,
+        “.seen x{$t.our-nick}”,
+        “{$t.our-nick}, I haven't seen x{$t.our-nick} around, did you mean {$t.our-nick}?”);
 
 
 # Seen normalization
@@ -220,9 +220,9 @@ $t.test(‘receiving all messages (normalization)’,
         );
 
 # TODO it kinda works but for some reason not with long nicks
-#$t.test(‘.tell autocorrect’,
-#        “.tell x{$t.our-nick} hello”,
-#        “{$t.our-nick}, I haven't seen x{$t.our-nick} around, did you mean {$t.our-nick}?”);
+$t.test(‘.tell autocorrect’,
+        “.tell x{$t.our-nick} hello”,
+        “{$t.our-nick}, I haven't seen x{$t.our-nick} around, did you mean {$t.our-nick}?”);
 
 
 # Making sure that user tracking works

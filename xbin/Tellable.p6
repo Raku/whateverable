@@ -105,8 +105,8 @@ multi method irc-privmsg-channel($msg where .args[1] ~~ /^ ‘.’[to|tell|ask] 
 }
 
 sub did-you-mean-seen($who, %seen) {
-    did-you-mean $who, %seen.sort(*.value<timestamp>).reverse.map(*.key),
-                 :max-distance(2)
+    did-you-mean $who, %seen.sort(*.value<timestamp>).reverse.map(*.value<nick>),
+                 :max-distance(3)
 }
 
 #| seen
