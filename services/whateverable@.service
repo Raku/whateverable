@@ -8,7 +8,7 @@ PartOf=whateverable-all.service
 [Service]
 Type=simple
 User=bisectable
-ExecStart=/home/bisectable/.rakudobrew/versions/moar-master/install/bin/perl6 /home/bisectable/git/whateverable/xbin/%i.p6
+ExecStart=/home/bisectable/.rakudobrew/versions/moar-master/install/bin/perl6 xbin/%i.p6
 Environment=PERL6LIB=/home/bisectable/git/whateverable/lib
 #Environment=DEBUGGABLE=1
 WorkingDirectory=/home/bisectable/git/whateverable
