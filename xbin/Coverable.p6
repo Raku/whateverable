@@ -104,9 +104,8 @@ method process($msg, $config is copy, $grep, $code is copy) {
     if now - $start-time > TOTAL-TIME {
         grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
     }
-
-    my $short-str = “¦$short-commit: «$output»”; # TODO no need for short string (we gist it anyway)
-    my $long-str  = “¦$full-commit: «$output»”; # TODO simpler output perhaps?
+qj
+    my $result-str  = “¦$full-commit: «$output»”; # TODO simpler output perhaps?
 
     my %coverage;
     for $result<coverage>.split(“\n”) -> $line {
@@ -138,8 +137,7 @@ method process($msg, $config is copy, $grep, $code is copy) {
         }
     }
 
-    # TODO no need for $short-str as mentioned earlier
-    ($short-str but ProperStr($long-str)) but FileStore(%(‘result.md’ => $cover-report));
+    (‘’ but ProperStr($result-str)) but FileStore(%(‘result.md’ => $cover-report));
 }
 
 
