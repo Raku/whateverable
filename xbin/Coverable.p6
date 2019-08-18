@@ -104,7 +104,7 @@ method process($msg, $config is copy, $grep, $code is copy) {
     if now - $start-time > TOTAL-TIME {
         grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
     }
-qj
+
     my $result-str  = “¦$full-commit: «$output»”; # TODO simpler output perhaps?
 
     my %coverage;
