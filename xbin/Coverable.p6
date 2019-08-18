@@ -50,7 +50,7 @@ sub condense(@arr) { # squish into ranges
     }
 }
 
-method process($msg, $config is copy, $grep is copy, $code) {
+method process($msg, $config is copy, $grep, $code is copy) {
     my $start-time = now;
 
     if $config ~~ /^ [say|sub] $/ {
