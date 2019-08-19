@@ -49,6 +49,7 @@ method irc-nick($event) {
             %!userlist{$channel}{$event.new-nick} = True;
         }
     }
+    $.NEXT
 }
 method irc-join($event) {
     $!userlist-lock.protect: {
@@ -57,11 +58,13 @@ method irc-join($event) {
         }
         %!userlist{$event.channel}{$event.nick} = True;
     }
+    $.NEXT
 }
 method irc-part($event) {
     $!userlist-lock.protect: {
         %!userlist{$event.channel}{$event.nick}:delete;
     }
+    $.NEXT
 }
 method irc-quit($event) {
     $!userlist-lock.protect: {
@@ -69,6 +72,7 @@ method irc-quit($event) {
             %!userlist{$channel}{$event.nick}:delete;
         }
     }
+    $.NEXT
 }
 
 has %!userlist-temp; # for storing partial messages
