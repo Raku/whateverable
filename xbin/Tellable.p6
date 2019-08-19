@@ -25,6 +25,10 @@ use JSON::Fast;
 
 unit class Tellable does Whateverable does Whateverable::Userlist;
 
+#| Timeout used for not passing the message if the user
+#| reacts immediately
+my $heard-timeout = 60 × 10; # should be a few minutes
+
 my $db-seen = FootgunDB.new: name => ‘tellable-seen’;
 my $db-tell = FootgunDB.new: name => ‘tellable-tell’;
 
@@ -52,7 +56,7 @@ sub normalize-weirdly($nick) {
 
 sub guest-like($nick) { so $nick ~~ /^Guest\d/ }
 
-#| listen for messages
+#| listen for messages and deliver stuff
 multi method irc-privmsg-channel($msg) {
     return $.NEXT if guest-like $msg.nick;
     my $normalized = normalize-weirdly $msg.nick;
@@ -67,6 +71,8 @@ multi method irc-privmsg-channel($msg) {
     my %mail = $db-tell.read;
     if %mail{$normalized} {
         for %mail{$normalized}.list {
+            next if .<heard> and timestampish() - DateTime.new(.<timestamp>) ≤ $heard-timeout
+                    and .<channel> eq $msg.channel and not %*ENV<TESTABLE>;
             my $text = sprintf ‘%s %s <%s> %s’, .<timestamp channel from text>;
             $msg.irc.send-cmd: 'PRIVMSG', $msg.channel, $text, :server($msg.server)
         }
@@ -84,6 +90,7 @@ multi method irc-privmsg-channel($msg where { m:r/^ \s* $<who>=<.&irc-nick> ‘:
     my $normalized = normalize-weirdly $who;
     my %seen := $db-seen.read;
     return $.NEXT unless %seen{$normalized}:exists; # haven't seen them talk ever
+    # TODO ↓ this should go through all nicknames on the channel
     my $previous-nick = %seen{$normalized}<nick>;
     return $.NEXT if self.userlist($msg){$previous-nick}; # previous nickname still on the channel
     my $last-seen-duration = DateTime.now(:0timezone) - DateTime.new(%seen{$normalized}<timestamp>);
@@ -138,6 +145,9 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]? $<text>=[
         return “I haven't seen $who around”
         ~ maybe ‘, did you mean %s?’, did-you-mean-seen $who, %seen
     }
+    # TODO ↓ this should go through all nicknames on the channel
+    my $previous-nick = %seen{$normalized}<nick>;
+    my $heard = so any self.userlist($msg){$who, $previous-nick};
     $db-tell.read-write: {
         .{$normalized}.push: {
             text      => $text,
@@ -145,6 +155,7 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]? $<text>=[
             timestamp => timestampish,
             from      => $msg.nick,
             to        => $who,
+            heard     => $heard,
         }
     }
     “I'll pass your message to {%seen{$normalized}<nick>}”
