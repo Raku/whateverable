@@ -74,7 +74,8 @@ multi method irc-privmsg-channel($msg) {
             next if .<heard> and timestampish() - DateTime.new(.<timestamp>) ≤ $heard-timeout
                     and .<channel> eq $msg.channel and not %*ENV<TESTABLE>;
             my $text = sprintf ‘%s %s <%s> %s’, .<timestamp channel from text>;
-            $msg.irc.send-cmd: 'PRIVMSG', $msg.channel, $text, :server($msg.server)
+            $msg.irc.send-cmd: 'PRIVMSG', $msg.channel, $text, :server($msg.server);
+            sleep 0.3;
         }
         %mail{$normalized}:delete;
         $db-tell.write: %mail;
