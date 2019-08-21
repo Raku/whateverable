@@ -57,7 +57,7 @@ sub normalize-weirdly($nick) {
 sub guest-like($nick) { so $nick ~~ /^Guest\d/ }
 
 #| listen for messages and deliver stuff
-multi method irc-privmsg-channel($msg) {
+multi method irc-privmsg($msg where IRC::Client::Message::Privmsg::Channel) {
     return $.NEXT if guest-like $msg.nick;
     my $normalized = normalize-weirdly $msg.nick;
     $db-seen.read-write: {

@@ -238,6 +238,11 @@ $jnthn.send: where => ‘#whateverable_tellable6’, text => ‘hello’;
 $t.test(‘autosend doesn't mistrigger (join)’,
         ‘jnthn: hello’,);
 
+$t.test(‘messages to other users are seen’,
+        “.seen {$t.our-nick}”,
+        /^ <me($t)>‘, I saw ’<me($t)>‘ 2’\S+‘Z in #whateverable_tellable6: <’<me($t)>‘> jnthn: hello’ $/
+       );
+
 $t.test(‘.seen is still working’,
         ‘.seen jnthn’,
         /^ <me($t)>‘, I saw jnthn 2’\S+‘Z in #whateverable_tellable6: <jnthn> hello’ $/
