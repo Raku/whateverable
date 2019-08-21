@@ -110,7 +110,7 @@ sub snapshot($msg?) {
         .reply: ‘OK! Working on it. This will take forever, so don't hold your breath.’ with $msg;
 
         my $env = %*ENV.clone;
-        $env<PATH> = join ‘:’, $*EXECUTABLE.parent, %ENV<PATH>;
+        $env<PATH> = join ‘:’, $*EXECUTABLE.parent, $env<PATH>;
         mkdir “$temp-folder/GH”;
         run :$env, ‘maintenance/pull-gh’, “$temp-folder/GH”; # TODO authenticate on github to get rid of unlikely rate limiting
         mkdir “$temp-folder/RT”;
