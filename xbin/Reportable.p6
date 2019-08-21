@@ -110,7 +110,7 @@ sub snapshot($msg?) {
         .reply: ‘OK! Working on it. This will take forever, so don't hold your breath.’ with $msg;
 
         my $env = %*ENV.clone;
-        $env<PATH> = ‘/home/bisectable/.rakudobrew/bin/’ ~ ‘:’ ~ $env<PATH>; # TODO any better solution?
+        $env<PATH> = join ‘:’, $*EXECUTABLE.parent, %ENV<PATH>;
         mkdir “$temp-folder/GH”;
         run :$env, ‘maintenance/pull-gh’, “$temp-folder/GH”; # TODO authenticate on github to get rid of unlikely rate limiting
         mkdir “$temp-folder/RT”;
