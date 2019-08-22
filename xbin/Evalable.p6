@@ -47,6 +47,8 @@ multi method irc-privmsg-channel($msg) {
     my $nonword-ratio = $msg.args[1].comb(/<-alpha -space>/) ÷ $msg.args[1].chars;
     nextsame if $nonword-ratio < 0.1; # skip if doesn't look like code at all
     nextsame if $msg.args[1] ~~ /^ \s*<[\w-]>+‘:’ /; # skip messages to other bots
+    nextsame if $msg.args[1] eq ‘???’;                 # unfortunate trigger (???)
+    nextsame if $msg.args[1] ~~ /^ \w+ \s+ ‘&’ \s* $/; # unfortunate trigger (sleep &)
 
     self.process: $msg, $msg.args[1], :good-only
 }

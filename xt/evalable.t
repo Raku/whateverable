@@ -228,6 +228,12 @@ $t.test(‘segfaults are not ignored’,
         ‘use NativeCall; sub strdup(int64) is native(Str) {*}; strdup(0)’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(signal SIGSEGV) »’ $/);
 
+$t.test(‘ignore common messages (sleep &)’,
+        ‘sleep &’);
+
+$t.test(‘ignore common messages (???)’,
+        ‘???’);
+
 # Timeouts
 
 $t.test(‘timeout’,
