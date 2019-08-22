@@ -206,6 +206,14 @@ class Testable {
                   “$.bot-nick,url”,
                   “$.our-nick, https://github.com/perl6/whateverable”);
 
+        use Whateverable;
+        self.test(‘thank you (directly)’,
+                  “$.bot-nick: thank you!”,
+                  /^“{$.our-nick}, ”@(you're-welcome)/);
+
+        self.test(‘thank you (indirectly)’,
+                  “thanks, $.bot-nick!”,
+                  /^“{$.our-nick}, ”@(you're-welcome)/);
 
         self.test(‘uptime’,
                   “{$.bot-nick}: uptime”,

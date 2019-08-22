@@ -106,6 +106,25 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime \s* $/) {
         ~ “implementing {.language_name} {.language_version}.”
      })
 }
+#| You're welcome!
+sub you're-welcome is export {
+    «
+    ‘You're welcome!’
+    ‘I'm happy to help!’
+    ‘Anytime!’
+    ‘It's my pleasure!’
+    ‘Thank you! You love me, you really love me!’
+    ‘\o/’
+    »
+}
+#| Replying to thanks
+multi method irc-to-me(Message $msg where .text ~~ /:i^ [‘thank you’|‘thanks’] \s* /) {
+    you're-welcome.pick
+}
+#| Replying to thanks
+multi method irc-privmsg-channel($msg where .text ~~ /:i [‘thank you’|‘thanks’] .* $($msg.server.current-nick) /) {
+    you're-welcome.pick
+}
 #↓ Notices
 multi method irc-notice-me( $ --> Nil)                             {} # Issue #321
 #↓ Private messages
