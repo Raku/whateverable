@@ -15,13 +15,14 @@
         "Whateverable::Builds"       : "lib/Whateverable/Builds.pm6",
         "Whateverable::Config"       : "lib/Whateverable/Config.pm6",
         "Whateverable::Configurable" : "lib/Whateverable/Configurable.pm6",
+        "Whateverable::FootgunDB"    : "lib/Whateverable/FootgunDB.pm6",
         "Whateverable::Heartbeat"    : "lib/Whateverable/Heartbeat.pm6",
         "Whateverable::Messages"     : "lib/Whateverable/Messages.pm6",
         "Whateverable::Output"       : "lib/Whateverable/Output.pm6",
         "Whateverable::Processing"   : "lib/Whateverable/Processing.pm6",
-        "Whateverable::Replaceable"  : "lib/Whateverable/Replaceable.pm6",
         "Whateverable::Running"      : "lib/Whateverable/Running.pm6",
-        "Whateverable::Uniprops"     : "lib/Whateverable/Uniprops.pm6"
+        "Whateverable::Uniprops"     : "lib/Whateverable/Uniprops.pm6",
+        "Whateverable::Userlist"     : "lib/Whateverable/Userlist.pm6"
     },
     "depends"     : [
         "App::GPTrixie",
