@@ -111,29 +111,29 @@ $t.test(:50timeout, ‘mixed term styles’,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-03-18) https://github.com/rakudo/rakudo/commit/6d120cab6d0bf55a3c96fd3bd9c2e841e7eb99b0”);
 
-# DWIM
+# DWIM / DWYM
 
 $t.test(‘forgot the right syntax (comma)’,
         ‘bisect: 2016.02,2016.03 say 42’,
-        “{$t.our-nick}, Using old=2016.02 new=2016.03 in an attempt to DWIM”,
+        “{$t.our-nick}, Using old=2016.02 new=2016.03 in an attempt to do what you mean”,
         “{$t.our-nick}, On both starting points (old=2016.02 new=2016.03) the exit code is 0 and the output is identical as well”,
         “{$t.our-nick}, Output on both points: «42␤»”);
 
 $t.test(‘forgot the right syntax (space)’,
         ‘bisect: 2016.02   2016.03 say 42’,
-        “{$t.our-nick}, Using old=2016.02 new=2016.03 in an attempt to DWIM”,
+        “{$t.our-nick}, Using old=2016.02 new=2016.03 in an attempt to do what you mean”,
         “{$t.our-nick}, On both starting points (old=2016.02 new=2016.03) the exit code is 0 and the output is identical as well”,
         “{$t.our-nick}, Output on both points: «42␤»”);
 
 $t.test(‘forgot the right syntax (comma+space)’,
         ‘bisect: 2016.02  ,  2016.03 say 42’,
-        “{$t.our-nick}, Using old=2016.02 new=2016.03 in an attempt to DWIM”,
+        “{$t.our-nick}, Using old=2016.02 new=2016.03 in an attempt to do what you mean”,
         “{$t.our-nick}, On both starting points (old=2016.02 new=2016.03) the exit code is 0 and the output is identical as well”,
         “{$t.our-nick}, Output on both points: «42␤»”);
 
 $t.test(‘forgot the right syntax (one revision only)’,
         ‘bisect: 2016.02 say 42’,
-        “{$t.our-nick}, Using old=2016.02 new=HEAD in an attempt to DWIM”,
+        “{$t.our-nick}, Using old=2016.02 new=HEAD in an attempt to do what you mean”,
         /^ <me($t)>‘, On both starting points (old=2016.02 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «42␤»”);
 
@@ -159,7 +159,7 @@ $t.test(‘non-revisions are ignored (two revisions)’,
 
 $t.test(‘some non-revisions are ignored (one is correct)’,
         ‘bisect: 2016.05 2017.13 .say # heh’,
-        “{$t.our-nick}, Using old=2016.05 new=HEAD in an attempt to DWIM”,
+        “{$t.our-nick}, Using old=2016.05 new=HEAD in an attempt to do what you mean”,
         /^ <me($t)>‘, On both starting points (old=2016.05 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «2017.13␤»”);
 

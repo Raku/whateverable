@@ -67,7 +67,7 @@ multi method irc-to-me($msg where .text ~~ &bisect-cmd) {
         $old  =         $<maybe-rev>[0];
         $new  = $_ with $<maybe-rev>[1];
         $code = $<maybe-code>;
-        $msg.reply: “Using old=$old new=$new in an attempt to DWIM”
+        $msg.reply: “Using old=$old new=$new in an attempt to do what you mean”
     }
     self.process: $msg, ~$code, ~$old, ~$new
 }
