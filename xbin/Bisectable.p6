@@ -181,7 +181,7 @@ method process($msg, $code, $old, $new) {
 
     if $bisect-result<first-new-commit>.list > 1 {
         grumble “There are {+$bisect-result<first-new-commit>} candidates for the”
-        ~ ‘first “new” revision. See the log for more details’
+        ~ ‘ first “new” revision. See the log for more details’
     }
     if $bisect-status ≠ 0 {
         grumble ｢‘bisect run’ failure. See the log for more details｣
