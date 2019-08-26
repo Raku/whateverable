@@ -37,7 +37,7 @@ multi method irc-privmsg-channel(ChannelMessage $msg where .nick eq DISCORD-BRID
     my $bridged-msg = $msg.clone:
         nick => ~$<nick>,
         text => ~$<text>,
-        args => [$msg.channel, $<text>],
+        args => [$msg.channel, ~$<text>],
     ;
 
     with $.irc.^private_method_table<handle-event> {

@@ -241,7 +241,7 @@ $t.test(:50timeout, ‘Result is different on every revision’,
 
 # Timeouts
 
-$t.test(:21timeout, ‘timeout’,
+$t.test(:!both, :21timeout, ‘timeout’,
         ‘bisect: say ‘Zzzz…’; sleep ∞’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0, exit signal is 1 (SIGHUP) and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «Zzzz…␤«timed out after 10 seconds»»”);

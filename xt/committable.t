@@ -265,7 +265,7 @@ $t.test-gist(‘wrapped lines on long commit lists’,
 
 # Timeouts
 
-$t.test(:22timeout, ‘timeout’,
+$t.test(:!both, :22timeout, ‘timeout’,
         ‘commit: 2015.12,HEAD say ‘Zzzz…’; sleep ∞’,
         /^ <me($t)>‘, ¦2015.12,HEAD(’<sha>‘): «Zzzz…␤«timed out after 10 seconds» «exit signal = SIGHUP (1)»»’ $/);
 

@@ -106,7 +106,12 @@ class Testable {
         ok $connected.status ~~ Kept, ‘bridge client connected’;
     }
 
-    method test(|c ($description, $command, *@expected, :$timeout is copy = 11, :$delay = 0.5, :$bridge = False)) {
+    method test($description, :$both = True, |c) {
+        self!do-test($description, |c);
+        self!do-test($description ~ " (bridged)", :bridge, |c) if $both;
+    }
+
+    method !do-test(|c ($description, $command, *@expected, :$timeout is copy = 25, :$delay = 0.5, :$bridge = False)) {
         $timeout ×= 1.5 if %*ENV<HARNESS_ACTIVE>; # expect some load (relevant for parallelized tests)
         $!first-test = c without $!first-test;
 
@@ -202,12 +207,6 @@ class Testable {
                   “$.our-nick, $help # See wiki for more examples: ”
                       ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
 
-        self.test(:bridge, ‘help message (bridge)’,
-                  “$.bot-nick, helP”,
-                  “$.our-nick, $help # See wiki for more examples: ”
-                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
-
-
         self.test(‘help message’,
                   “$.bot-nick,   HElp?  ”,
                   “$.our-nick, $help # See wiki for more examples: ”
@@ -222,7 +221,6 @@ class Testable {
                   “$.bot-nick,   usage?  ”,
                   “$.our-nick, $help # See wiki for more examples: ”
                       ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
-
 
         self.test(‘typoed name’,
                   “z{$.bot-nick.substr: 1}: source”, # mangle it just a little bit

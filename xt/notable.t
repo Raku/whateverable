@@ -43,7 +43,7 @@ $t.test(‘list topics’,
 
 # Creating notes
 
-$t.test(‘create new topic’,
+$t.test(:!both, ‘create new topic’,
         “{$t.bot-nick}: new-topic blah”,
         “{$t.our-nick}, New topic added (“blah”)”);
 
@@ -51,7 +51,7 @@ $t.test(‘try to create the same topic again’,
         “{$t.bot-nick}: new-topic blah”,
         “{$t.our-nick}, Topic “blah” already exists”);
 
-$t.test(‘note something’,
+$t.test(:!both, ‘note something’,
         “{$t.bot-nick}: blah foo”,
         “{$t.our-nick}, Noted! (blah)”);
 
@@ -59,7 +59,7 @@ $t.test(‘list topics (with notes)’,
         “{$t.bot-nick}: list”,
         “{$t.our-nick}, blah”);
 
-$t.test(‘note something (shortcut)’,
+$t.test(:!both, ‘note something (shortcut)’,
         “weekly: Monday”,
         “{$t.our-nick}, Noted! (weekly)”);
 
@@ -82,12 +82,12 @@ $t.test(‘list notes (shortcut)’,
 my $moved;
 my $moved-shortcut;
 
-$t.test(‘clear’,
+$t.test(:!both, ‘clear’,
         “{$t.bot-nick}: clear blah”,
         /^<me($t)>‘, Moved existing notes to “blah_’<date>‘”’$
           {$moved=$<date>}/);
 
-$t.test(‘clear (shortcut)’,
+$t.test(:!both, ‘clear (shortcut)’,
         “weekly: clear”,
         /^<me($t)>‘, Moved existing notes to “weekly_’<date>‘”’$
           {$moved-shortcut=$<date>}/);
@@ -109,15 +109,15 @@ $t.test(‘empty after clearing (shortcut)’,
         “{$t.our-nick}, No notes for “weekly””);
 
 
-$t.test(‘re-create blah topic’,
+$t.test(:!both, ‘re-create blah topic’,
         “{$t.bot-nick}: new-category blah”,
         “{$t.our-nick}, New topic added (“blah”)”);
 
-$t.test(‘note something after clearing’,
+$t.test(:!both, ‘note something after clearing’,
         “{$t.bot-nick}: blah foo”,
         “{$t.our-nick}, Noted! (blah)”);
 
-$t.test(‘note something after clearing (shortcut)’,
+$t.test(:!both, ‘note something after clearing (shortcut)’,
         “weekly: Monday”,
         “{$t.our-nick}, Noted! (weekly)”);
 
@@ -129,11 +129,11 @@ $t.test(‘list notes after clearing (shortcut)’,
         “weekly:”,
         /^<me($t)>‘, 1 note: ’<date>‘ <’<me($t)>‘>: Monday’$/);
 
-$t.test(‘note something again’,
+$t.test(:!both, ‘note something again’,
         “{$t.bot-nick}: blah bar”,
         “{$t.our-nick}, Noted! (blah)”);
 
-$t.test(‘note something again (shortcut)’,
+$t.test(:!both, ‘note something again (shortcut)’,
         “weekly: Tuesday”,
         “{$t.our-nick}, Noted! (weekly)”);
 
@@ -146,11 +146,11 @@ $t.test(‘list two notes (shortcut)’,
         “weekly:”,
         /^<me($t)>‘, 2 notes: ’<date>‘ <’<me($t)>‘>: Monday  ;  ’<date>‘ <’<me($t)>‘>: Tuesday’$/);
 
-$t.test(‘note something big’,
+$t.test(:!both, ‘note something big’,
         “{$t.bot-nick}: blah {‘z’ x 300}”,
         “{$t.our-nick}, Noted! (blah)”);
 
-$t.test(‘note something big (shortcut)’,
+$t.test(:!both, ‘note something big (shortcut)’,
         “weekly: {‘Z’ x 300}”,
         “{$t.our-nick}, Noted! (weekly)”);
 
@@ -182,7 +182,7 @@ $t.test(‘… delete’,
         “{$t.our-nick}, No notes for “DWIM””);
 
 
-$t.test(‘no topic specified’,
+$t.test(:!both, ‘no topic specified’,
         “{$t.bot-nick}: just note it somewhere”,
         “{$t.our-nick}, Noted! (weekly)”);
 

@@ -226,7 +226,7 @@ $t.test(‘spaces before urls are still ignored’,
 
 # Timeouts
 
-$t.test(:31timeout, ‘timeout’,
+$t.test(:!both, :31timeout, ‘timeout’,
         ‘u: { sleep 1 }’,
         “{$t.our-nick}, «timed out after 30 seconds» «exit signal = SIGHUP (1)»”);
 
@@ -253,7 +253,8 @@ $t.test(‘last basic query, just in case’,
 
 $t.last-test;
 
-$t.test('good MIME type',
+# FIXME: :!both because this test is broken from the bridge.
+$t.test(:!both, 'good MIME type',
         'u: https://raw.githubusercontent.com/perl6/whateverable/master/xt/lib/Testable.pm6',
         "{$t.our-nick}, Successfully fetched the code from the provided URL");
 done-testing;
