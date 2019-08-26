@@ -10,6 +10,9 @@ class Testable {
     has $.our-nick;
     has $.bot-nick;
 
+    has $.discord;
+    has $.fake-nick;
+
     has $!server-proc;
     has $!bot-proc;
     has $!irc-client;
@@ -18,7 +21,7 @@ class Testable {
     has $!first-test;
     has $!delay-channel;
 
-    submethod BUILD(:$bot, :$our-nick = ‘testable’) {
+    submethod BUILD(:$bot, :$our-nick = ‘testable’, :$!discord) {
         $!bot = $bot;
         my $ready  = Channel.new;
         $!messages = Channel.new;
@@ -50,7 +53,10 @@ class Testable {
         note “# IRC test server on $host:$port”;
 
         $!irc-client = IRC::Client.new(
-            :nick($our-nick ~ (^999999 .pick))
+            :nick($!discord ??
+                ‘discord6’ !!
+                $our-nick ~ (^999999 .pick)
+            )
             :host<127.0.0.1>
             :$port
             :channels(“#whateverable_{$bot.lc}6”)
@@ -66,6 +72,7 @@ class Testable {
                 }
             )
         );
+        $!fake-nick = $our-nick if $!discord;
         start $!irc-client.run;
 
         my $executable = ‘./xbin/’ ~ $bot ~ ‘.p6’;
@@ -89,6 +96,10 @@ class Testable {
         is $!bot-nick, “{$bot.lc}6”, ‘bot nickname is expected’
     }
 
+    method our-nick {
+        $!discord ?? $!fake-nick !! $!our-nick
+    }
+
     method test(|c ($description, $command, *@expected, :$timeout is copy = 11, :$delay = 0.5)) {
         $timeout ×= 1.5 if %*ENV<HARNESS_ACTIVE>; # expect some load (relevant for parallelized tests)
         $!first-test = c without $!first-test;
@@ -99,7 +110,9 @@ class Testable {
         my @got;
         my $start = now;
 
-        $!irc-client.send: :where(“#whateverable_$!bot-nick”) :text($command);
+        my $real-command = $!discord ??
+            “<$!fake-nick> $command” !! $command;
+        $!irc-client.send: :where(“#whateverable_$!bot-nick”) :text($real-command);
         sleep $delay if @expected == 0; # make it possible to check for no replies
         my $lock-delay = 0;
         for ^@expected {
