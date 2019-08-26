@@ -148,31 +148,31 @@ $t.test(‘unnecessary ask’,
         “{$t.our-nick}, I haven't seen nobody around”);
 
 
-$t.test(‘passing a message works’,
+$t.test(:!both, ‘passing a message works’,
         “.tell {$t.our-nick} secret message”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘message delivery works’,
+$t.test(:!both, ‘message delivery works’,
         ‘I'm back!’,
         /^ ‘2’\S+‘Z #whateverable_tellable6 <’<me($t)>‘> ’<me($t)>‘ secret message’ $/
        );
 
-$t.test(‘passing multiple messages (1)’,
+$t.test(:!both, ‘passing multiple messages (1)’,
         “.tell {$t.our-nick} secret message one”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘passing multiple messages (2)’,
+$t.test(:!both, ‘passing multiple messages (2)’,
         “.tell {$t.our-nick} secret message two”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘receiving multiple messages’,
+$t.test(:!both, ‘receiving multiple messages’,
         ‘I'm back!’,
         /^ ‘2’\S+‘Z #whateverable_tellable6 <’<me($t)>‘> ’<me($t)>‘ secret message one’ $/,
         /^ ‘2’\S+‘Z #whateverable_tellable6 <’<me($t)>‘> ’<me($t)>‘ secret message two’ $/,
        );
 
 
-$t.test(‘passing messages to the bot itself’,
+$t.test(:!both, ‘passing messages to the bot itself’,
         “.tell {$t.bot-nick} I love you”,
         “{$t.our-nick}, Thanks for the message”);
 
@@ -182,39 +182,39 @@ $t.test(‘passing messages to guests’,
 
 # Tell normalization
 
-$t.test(‘.tell (normalization, matrix users)’,
+$t.test(:!both, ‘.tell (normalization, matrix users)’,
         “.tell {$t.our-nick}[m] whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘.tell (normalization, garbage at the end)’,
+$t.test(:!both, ‘.tell (normalization, garbage at the end)’,
         “.tell {$t.our-nick}``| whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘.tell (normalization, garbage at the end, colon)’,
+$t.test(:!both, ‘.tell (normalization, garbage at the end, colon)’,
         “.tell {$t.our-nick}``|: whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘.tell (normalization, garbage at the beginning)’,
+$t.test(:!both, ‘.tell (normalization, garbage at the beginning)’,
         “.tell `|{$t.our-nick} whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘.tell (normalization, garbage at the end and beginning)’,
+$t.test(:!both, ‘.tell (normalization, garbage at the end and beginning)’,
         “.tell `|{$t.our-nick}`| whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘.tell (normalization, hyphens)’,
+$t.test(:!both, ‘.tell (normalization, hyphens)’,
         “.tell {$t.our-nick.comb.join: ‘-’} whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘.tell (normalization, numbers)’,
+$t.test(:!both, ‘.tell (normalization, numbers)’,
         “.tell {$t.our-nick}242134 whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘.tell (normalization, doubled letters)’,
+$t.test(:!both, ‘.tell (normalization, doubled letters)’,
         “.tell {$t.our-nick.comb.map({$_ x 2}).join} whatever”,
         “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
 
-$t.test(‘receiving all messages (normalization)’,
+$t.test(:!both, ‘receiving all messages (normalization)’,
         ‘I'm back!’,
         |(/^ ‘2’\S+‘Z #whateverable_tellable6 <’<me($t)>‘> ’\S+‘ whatever’ $/ xx 8)
         );

@@ -226,7 +226,7 @@ $t.test(‘spaces before urls are still ignored’,
 
 # Timeouts
 
-$t.test(:31timeout, ‘timeout’,
+$t.test(:!both, :31timeout, ‘timeout’,
         ‘u: { sleep 1 }’,
         “{$t.our-nick}, «timed out after 30 seconds» «exit signal = SIGHUP (1)»”);
 
@@ -251,11 +251,14 @@ $t.test(‘last basic query, just in case’,
         /^ <me($t)>‘, U+2A34 MULTIPLICATION SIGN IN LEFT HALF CIRCLE [Sm] (⨴)’ $/,
         /^ <me($t)>‘, U+1D227 GREEK INSTRUMENTAL NOTATION SYMBOL-17 [So] (𝈧)’ $/);
 
-$t.last-test;
-
 $t.test('good MIME type',
         'u: https://raw.githubusercontent.com/perl6/whateverable/master/xt/lib/Testable.pm6',
-        "{$t.our-nick}, Successfully fetched the code from the provided URL");
+        "{$t.our-nick}, Successfully fetched the code from the provided URL",
+        "{$t.our-nick}, U+0075 LATIN SMALL LETTER U [Ll] (u)",
+        "{$t.our-nick}, U+0073 LATIN SMALL LETTER S [Ll] (s)",
+        "{$t.our-nick}, Cowardly refusing to gist more than 5000 lines");
+
+$t.last-test;
 done-testing;
 END $t.end;
 

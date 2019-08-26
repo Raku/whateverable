@@ -29,6 +29,7 @@ use Text::Diff::Sift4;
 use Whateverable::Bits;
 use Whateverable::Configurable;
 use Whateverable::Config;
+use Whateverable::Discordable;
 use Whateverable::Heartbeat;
 use Whateverable::Messages;
 use Whateverable::Processing;
@@ -39,6 +40,7 @@ unit role Whateverable does IRC::Client::Plugin;
 
 also does Helpful;
 also does Whateverable::Configurable;
+also does Whateverable::Discordable;
 
 method TWEAK {
     %*BOT-ENV<timeout> //= 10;

@@ -250,7 +250,7 @@ $t.test(‘ignore common messages (???)’,
 
 # Timeouts
 
-$t.test(‘timeout’,
+$t.test(:!both, ‘timeout’,
         ‘eval: say ‘Zzzz…’; sleep ∞’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(signal SIGHUP) Zzzz…␤«timed out after 10 seconds»»’ $/);
 

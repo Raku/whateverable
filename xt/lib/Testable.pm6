@@ -13,6 +13,7 @@ class Testable {
     has $!server-proc;
     has $!bot-proc;
     has $!irc-client;
+    has $!bridge-client;
     has $.messages;
 
     has $!first-test;
@@ -67,6 +68,12 @@ class Testable {
             )
         );
         start $!irc-client.run;
+        # The bridge client might be needed later. We don't start it yet.
+        $!bridge-client = IRC::Client.new(
+            :nick<discord6>
+            :host<127.0.0.1> :$port
+            :channels(“#whateverable_{$bot.lc}6”)
+        );
 
         my $executable = ‘./xbin/’ ~ $bot ~ ‘.p6’;
         run :env(|%*ENV, PERL6LIB => ‘lib’), <perl6 -c -->, $executable; # precompahead
@@ -89,7 +96,22 @@ class Testable {
         is $!bot-nick, “{$bot.lc}6”, ‘bot nickname is expected’
     }
 
-    method test(|c ($description, $command, *@expected, :$timeout is copy = 11, :$delay = 0.5)) {
+    method !start-bridge {
+        my Promise $connected .= new;
+        $!bridge-client.plugins.push: class {
+            method irc-connected (|c) { $connected.keep }
+        }
+        start $!bridge-client.run;
+        await Promise.anyof: $connected, Promise.in(10);
+        ok $connected.status ~~ Kept, ‘bridge client connected’;
+    }
+
+    method test($description, :$both = True, |c) {
+        self!do-test($description, |c);
+        self!do-test($description ~ " (bridged)", :bridge, |c) if $both;
+    }
+
+    method !do-test(|c ($description, $command, *@expected, :$timeout is copy = 25, :$delay = 0.5, :$bridge = False)) {
         $timeout ×= 1.5 if %*ENV<HARNESS_ACTIVE>; # expect some load (relevant for parallelized tests)
         $!first-test = c without $!first-test;
 
@@ -99,7 +121,14 @@ class Testable {
         my @got;
         my $start = now;
 
-        $!irc-client.send: :where(“#whateverable_$!bot-nick”) :text($command);
+        state $started-bridge = 0;
+        if $bridge {
+            self!start-bridge unless $started-bridge++;
+            $!bridge-client.send: :where(“#whateverable_$!bot-nick”) :text("<$!our-nick> $command");
+        }
+        else {
+            $!irc-client.send: :where(“#whateverable_$!bot-nick”) :text($command);
+        }
         sleep $delay if @expected == 0; # make it possible to check for no replies
         my $lock-delay = 0;
         for ^@expected {
@@ -192,7 +221,6 @@ class Testable {
                   “$.bot-nick,   usage?  ”,
                   “$.our-nick, $help # See wiki for more examples: ”
                       ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
-
 
         self.test(‘typoed name’,
                   “z{$.bot-nick.substr: 1}: source”, # mangle it just a little bit
