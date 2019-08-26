@@ -6,10 +6,7 @@ use lib <lib xt/lib>;
 use Test;
 use Testable;
 
-my $t = Testable.new: bot => ‘Evalable’, :discord;
-
-is $t.our-nick, ‘testable’, ‘our-nick is testable...’;
-is $t.^attributes.first(‘$!our-nick’).get_value($t), ‘discord6’, ‘... but we're faking discord6’;
+my $t = Testable.new: bot => ‘Evalable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: say ‘hello’; say ‘world’”;
 
