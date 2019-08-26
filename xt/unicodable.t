@@ -251,12 +251,14 @@ $t.test(‘last basic query, just in case’,
         /^ <me($t)>‘, U+2A34 MULTIPLICATION SIGN IN LEFT HALF CIRCLE [Sm] (⨴)’ $/,
         /^ <me($t)>‘, U+1D227 GREEK INSTRUMENTAL NOTATION SYMBOL-17 [So] (𝈧)’ $/);
 
-$t.last-test;
-
-# FIXME: :!both because this test is broken from the bridge.
-$t.test(:!both, 'good MIME type',
+$t.test('good MIME type',
         'u: https://raw.githubusercontent.com/perl6/whateverable/master/xt/lib/Testable.pm6',
-        "{$t.our-nick}, Successfully fetched the code from the provided URL");
+        "{$t.our-nick}, Successfully fetched the code from the provided URL",
+        "{$t.our-nick}, U+0075 LATIN SMALL LETTER U [Ll] (u)",
+        "{$t.our-nick}, U+0073 LATIN SMALL LETTER S [Ll] (s)",
+        "{$t.our-nick}, Cowardly refusing to gist more than 5000 lines");
+
+$t.last-test;
 done-testing;
 END $t.end;
 
