@@ -125,13 +125,16 @@ sub process-gist($url, $msg) is export {
             spurt $path, .<content>;
         }
 
-        if .<filename>.ends-with('.md') {
-          if .<contents> ~~ /'```' [ 'perl' 6? ] ~ '```' (.+) / {
-            .<contents> = $/[0];
-          }
-          if .<contents> ~~ /"```" \s* "\n" ~ '```' (.+) / {
-            .<contents> = $/[0];
-          }
+        if .<filename>.ends-with: ‘.md’ | ‘.markdown’ {
+            for ‘perl6’, ‘perl’, ‘’ -> $type {
+                if .<content> ~~ /‘```’ $type \s* \n ~ ‘```’ (.+?) / {
+                    .<content> = ~$0;
+                    #↓ XXX resave the file with just the code. Total hack but it works
+                    spurt $path, .<content>;
+                    $score += 3;
+                    last
+                }
+            }
         }
 
         %scores.push: .<filename> => $score

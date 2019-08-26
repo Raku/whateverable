@@ -224,6 +224,20 @@ $t.test(‘malformed link (could not parse)’,
         ‘commit: HEAD https://:P’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Could not parse URI: https://:P)”);
 
+# markdown gists
+
+$t.test(‘perl6 code block in a markdown file’,
+        ‘c: 2015.12 https://gist.github.com/AlexDaniel/06a5d19e13264b14a585e7c5990d4680’,
+        “{$t.our-nick}, ¦2015.12: «43␤43␤»”);
+
+$t.test(‘unknown code block in a markdown file’,
+        ‘c: 2015.12 https://gist.github.com/AlexDaniel/227d3eeb65ec5bb1b06dd59b85c7ebbd’,
+        “{$t.our-nick}, ¦2015.12: «42␤42␤»”);
+
+$t.test(‘multiple code blocks in a markdown file’,
+        ‘c: 2015.12 https://gist.github.com/AlexDaniel/c5c1aa0fdcee3fd1f74cbb099d0f9b19’,
+        “{$t.our-nick}, ¦2015.12: «41␤41␤»”);
+
 # Did you mean … ?
 
 $t.test(‘Did you mean “all”?’,

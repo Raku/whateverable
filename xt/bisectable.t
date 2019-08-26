@@ -212,6 +212,23 @@ $t.test(‘malformed link (could not parse)’,
         ‘bisect: https://:P’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Could not parse URI: https://:P)”);
 
+# markdown gists
+
+$t.test(‘perl6 code block in a markdown file’,
+        ‘bisect: https://gist.github.com/AlexDaniel/06a5d19e13264b14a585e7c5990d4680’,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
+        “{$t.our-nick}, Output on both points: «43␤43␤»”);
+
+$t.test(‘unknown code block in a markdown file’,
+        ‘bisect: https://gist.github.com/AlexDaniel/227d3eeb65ec5bb1b06dd59b85c7ebbd’,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
+        “{$t.our-nick}, Output on both points: «42␤42␤»”);
+
+$t.test(‘multiple code blocks in a markdown file’,
+        ‘bisect: https://gist.github.com/AlexDaniel/c5c1aa0fdcee3fd1f74cbb099d0f9b19’,
+        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
+        “{$t.our-nick}, Output on both points: «41␤41␤»”);
+
 # Did you mean … ?
 $t.test(‘Did you mean “HEAD” (new)?’,
         ‘bisect: new=DEAD say 42’,

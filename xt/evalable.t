@@ -154,6 +154,20 @@ $t.test(‘malformed link (could not parse)’,
         ‘eval: https://:P’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Could not parse URI: https://:P)”);
 
+# markdown gists
+
+$t.test(‘perl6 code block in a markdown file’,
+        ‘e: https://gist.github.com/AlexDaniel/06a5d19e13264b14a585e7c5990d4680’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «43␤43␤»’ $/);
+
+$t.test(‘unknown code block in a markdown file’,
+        ‘e: https://gist.github.com/AlexDaniel/227d3eeb65ec5bb1b06dd59b85c7ebbd’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «42␤42␤»’ $/);
+
+$t.test(‘multiple code blocks in a markdown file’,
+        ‘e: https://gist.github.com/AlexDaniel/c5c1aa0fdcee3fd1f74cbb099d0f9b19’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «41␤41␤»’ $/);
+
 # Camelia replacement
 
 my @alts = <master rakudo r-m m p6 perl6>;
