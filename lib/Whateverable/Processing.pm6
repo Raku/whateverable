@@ -124,6 +124,16 @@ sub process-gist($url, $msg) is export {
         } else {
             spurt $path, .<content>;
         }
+
+        if .<filename>.ends-with('.md') {
+          if .<contents> ~~ /'```' [ 'perl' 6? ] ~ '```' (.+) / {
+            .<contents> = $/[0];
+          }
+          if .<contents> ~~ /"```" \s* "\n" ~ '```' (.+) / {
+            .<contents> = $/[0];
+          }
+        }
+
         %scores.push: .<filename> => $score
     }
 
