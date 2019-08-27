@@ -185,8 +185,11 @@ start $camelia.run;
 sleep 1;
 
 for (‘’, ‘ ’) X~ (@alts X~ ‘: ’) {
-    $t.test(“camelia is back, be silent (‘$_’)”,
-            $_ ~ “say ‘$_’”)
+    $t.test(:!both, “camelia is back, be silent (‘$_’)”,
+            $_ ~ “say ‘$_’”);
+    $t.test(:!both, :bridge, “camelia is back, be NOT silent for discord (‘$_’)”,
+            $_ ~ “say ‘$_’”,
+            /^ <me($t)>‘, rakudo-moar ’<sha>“: OUTPUT: «$_␤»” $/)
 }
 
 for (‘’, ‘ ’) X~ (@alts X~ ‘:’) {

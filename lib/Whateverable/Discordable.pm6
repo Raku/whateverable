@@ -14,12 +14,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+use Whateverable::Bits;
 use IRC::Client::Message;
 
 my constant ChannelMessage = IRC::Client::Message::Privmsg::Channel;
 
 #| Transparently handle messages from the discord bridge.
 unit role Whateverable::Discordable;
+
+#| Role mixed into .nick of messages processed by Discordable
+my role FromDiscord is export { }
 
 #| Nick of the discord bridge bot.
 my constant DISCORD-BRIDGE = any(‘discord6’, ‘discord61’);
@@ -35,7 +39,7 @@ multi method irc-privmsg-channel(ChannelMessage $msg where .nick eq DISCORD-BRID
     # into $.nick. It is not used for routing the message on IRC, only to
     # address the user in the reply.
     my $bridged-msg = $msg.clone:
-        nick => ~$<nick>,
+        nick => ~$<nick> but FromDiscord,
         text => ~$<text>,
         args => [$msg.channel, ~$<text>],
     ;

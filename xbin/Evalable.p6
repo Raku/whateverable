@@ -21,6 +21,7 @@ use Whateverable;
 use Whateverable::Bits;
 use Whateverable::Builds;
 use Whateverable::Config;
+use Whateverable::Discordable;
 use Whateverable::Processing;
 use Whateverable::Running;
 use Whateverable::Userlist;
@@ -35,8 +36,11 @@ method help($msg) {
 }
 
 multi method irc-to-me($msg) {
-    return self.process: $msg, $msg.text if $msg.args[1] !~~
-                                /^ \s*[master|rakudo|r|‘r-m’|m|p6|perl6]‘:’\s /;
+    # Do not answer when camelia is around (she reacts to the same triggers).
+    # But always do when the message is from discord because camelia doesn't
+    # support that.
+    return self.process: $msg, $msg.text if $msg.nick ~~ FromDiscord or
+            $msg.args[1] !~~ /^ \s*[master|rakudo|r|‘r-m’|m|p6|perl6]‘:’\s /;
     self.make-believe: $msg, (‘camelia’,), {
         self.process: $msg, $msg.text
     }
