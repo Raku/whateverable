@@ -17,6 +17,7 @@
 
 use Whateverable;
 use Whateverable::Bits;
+use Whateverable::Discordable;
 use Whateverable::FootgunDB;
 use Whateverable::Userlist;
 
@@ -66,6 +67,7 @@ multi method irc-privmsg($msg where IRC::Client::Message::Privmsg::Channel) {
             channel   => $msg.channel,
             timestamp => timestampish,
             nick      => $msg.nick,
+            bridged   => ($msg.nick ~~ FromDiscord).so,
         }
     }
     my %mail = $db-tell.read;
@@ -91,6 +93,7 @@ multi method irc-privmsg-channel($msg where { m:r/^ \s* $<who>=<.&irc-nick> ‘:
     my $normalized = normalize-weirdly $who;
     my %seen := $db-seen.read;
     return $.NEXT unless %seen{$normalized}:exists; # haven't seen them talk ever
+    return $.NEXT if %seen{$normalized}<bridged>; # we don't know status of bridged users
     # TODO ↓ this should go through all nicknames on the channel
     my $previous-nick = %seen{$normalized}<nick>;
     return $.NEXT if self.userlist($msg){$previous-nick}; # previous nickname still on the channel
