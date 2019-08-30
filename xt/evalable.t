@@ -121,6 +121,10 @@ $t.test(‘␤ works like an actual newline’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «hello world!␤»’ $/);
 }
 
+$t.test(‘special characters (\r\n)’,
+        ‘e: say “\r\n”’,
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «␍␤»’ $/);
+
 # URLs
 
 $t.test(‘fetching code from urls’,

@@ -169,6 +169,7 @@ multi method filter($response where
 #↓ Regular response (not a gist)
 multi method filter($text is copy) {
     ansi-to-irc($text).trans:
+        “\r\n” => ‘␍␤’,
         “\n” => ‘␤’,
         3.chr => 3.chr, 0xF.chr => 0xF.chr, # keep these for IRC colors
         |((^32)».chr Z=> (0x2400..*).map(*.chr)), # convert all unreadable ASCII crap
