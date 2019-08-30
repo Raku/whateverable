@@ -123,7 +123,7 @@ $t.test(‘␤ works like an actual newline’,
 
 $t.test(‘special characters (\r\n)’,
         ‘e: say “\r\n”’,
-        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «␍␤»’ $/);
+        /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «␍␤␤»’ $/);
 
 # URLs
 
