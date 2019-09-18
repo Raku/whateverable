@@ -103,6 +103,15 @@ $t.test(‘.seen (normalization, doubled letters)’,
        );
 
 
+# CTCP ACTION
+
+$t.test(:!both, ‘send a /me’, “\x[01]ACTION waves\x[01]”);
+
+$t.test(:!both, ‘.seen a /me’,
+        “.seen {$t.our-nick}”,
+        /^ <me($t)>‘, I saw ’<me($t)>‘ 2’\S+‘Z in #whateverable_tellable6: * ’<me($t)>‘ waves’ $/
+       );
+
 
 # Tell
 

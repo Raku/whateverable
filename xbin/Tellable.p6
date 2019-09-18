@@ -131,7 +131,13 @@ multi method irc-to-me($msg where { m:r/^ \s* [seen \s+]?
         return “I haven't seen $who around”
         ~ maybe ‘, did you mean %s?’, did-you-mean-seen $who, %seen
     }
-    “I saw $who $entry<timestamp> in $entry<channel>: <$entry<nick>> $entry<text>”
+
+    # Format CTCP ACTION aka /me
+    my $said = $entry<text> ~~ /^ \x[01] ‘ACTION ’ <( .* )> \x[01] $/ ??
+        “* $entry<nick> $/” !!
+        “<$entry<nick>> $entry<text>”;
+
+    “I saw $who $entry<timestamp> in $entry<channel>: $said”
 }
 
 #| tell
