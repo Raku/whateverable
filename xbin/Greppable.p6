@@ -103,7 +103,7 @@ multi method irc-to-me($msg) {
     my %commits = ();
     my $gist = “| File | Code |\n|--|--|\n”;
     my $stats = gather {
-        $gist ~= $result<output>.lines.map({process-grep-line $_, %commits}).join: “\n”;
+        $gist ~= $result<output>.split(“\n”).map({process-grep-line $_, %commits}).join: “\n”;
     }
     my $total   = $stats.elems;
     my $modules = $stats.Set.elems;
