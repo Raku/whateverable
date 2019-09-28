@@ -56,7 +56,7 @@ sub process-grep-line($line, %commits) { # 🙈
                 when ‘github’
                    | ‘gitlab’ { Config::INI::parse(slurp $dotgitrepo)<subrepo><commit> }
                 when ‘cpan’   { run(:out, :cwd($ECO-PATH),
-                                    ‘git’, ‘rev-parse’, ‘HEAD’).out.slurp.trim }
+                                    <git rev-parse HEAD>).out.slurp.trim }
                 default       { die “Unsupported source “$source”” }
             }
             %commits{$repo} = $commit;
@@ -83,7 +83,7 @@ sub process-grep-line($line, %commits) { # 🙈
 multi method irc-to-me($msg where .args[1].starts-with(‘file’ | ‘tree’) &&
                                   /^ \s* [ || ‘/’ $<regex>=[.*] ‘/’
                                            || $<regex>=[.*?]       ] \s* $/) {
-    my $result = run :out, :cwd($ECO-PATH), ‘git’, ‘ls-files’, ‘-z’;
+    my $result = run :out, :cwd($ECO-PATH), <git ls-files -z>;
     my $out = perl6-grep $result.out, $<regex>;
     my $gist = $out.map({ process-ls-line $_ }).join(“\n”);
     return ‘Found nothing!’ unless $gist;
@@ -91,10 +91,10 @@ multi method irc-to-me($msg where .args[1].starts-with(‘file’ | ‘tree’) 
 }
 
 multi method irc-to-me($msg) {
-    my @cmd = ‘git’, ‘grep’, ‘--color=always’, ‘-z’, ‘-I’,
-              ‘--perl-regexp’, ‘--line-number’, ‘--’, $msg;
+    my @cmd = <git grep --color=always -z -I
+              --perl-regexp --line-number -->, $msg;
 
-    run :out(Nil), :cwd($ECO-PATH), ‘git’, ‘pull’;
+    run :out(Nil), :cwd($ECO-PATH), <git pull>;
     my $result = get-output :cwd($ECO-PATH), |@cmd;
 
     grumble ‘Sorry, can't do that’ if $result<exit-code> ≠ 0 | 1 or $result<signal> ≠ 0;
@@ -113,7 +113,7 @@ multi method irc-to-me($msg) {
 
 
 if $ECO-PATH.IO !~~ :d {
-    run ‘git’, ‘clone’, $ECO-ORIGIN, $ECO-PATH
+    run <git clone>, $ECO-ORIGIN, $ECO-PATH
 }
 
 
