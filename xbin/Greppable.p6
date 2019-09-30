@@ -91,7 +91,7 @@ multi method irc-to-me($msg where .args[1].starts-with(‘file’ | ‘tree’) 
 }
 
 multi method irc-to-me($msg) {
-    my @cmd = <git grep --color=always -z -I
+    my @cmd = |<git grep --color=always -z -I
               --perl-regexp --line-number -->, $msg;
 
     run :out(Nil), :cwd($ECO-PATH), <git pull>;
