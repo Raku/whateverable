@@ -217,7 +217,7 @@ method selfrun($nick is copy, @alias?) {
                   ?? ‘#whateverable’
                   !! %*ENV<TESTABLE>
                      ?? “#whateverable_$nick”
-                     !! (|<#perl6 #perl6-dev #zofbot #moarvm>, $CONFIG<cave>) )
+                     !! (|<#perl6 #perl6-dev #raku #raku-dev #zofbot #moarvm>, $CONFIG<cave>) )
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )
