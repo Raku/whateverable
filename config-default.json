@@ -51,7 +51,7 @@
         "port": 42434
     },
     "releasable": {
-        "spammed-channels": ["#perl6-dev", "#whateverable"],
+        "spammed-channels": ["#raku-dev", "#whateverable"],
         "spam-before":          604800,
         "spam-every":            72000,
         "spam-exception-delay":   3600

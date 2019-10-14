@@ -95,7 +95,7 @@ sub run-snippet($full-commit-hash, $file,
         %tweaked-env<PATH> = join ‘:’, $binary-path.parent, (%tweaked-env<PATH> // Empty);
         %tweaked-env<PERL6LIB> = ‘sandbox/lib’;
         $binary-path.IO !~~ :e
-        ?? %(output => ‘Commit exists, but a perl6 executable could not be built for it’,
+        ?? %(output => ‘Commit exists, but an executable could not be built for it’,
              exit-code => -1, signal => -1, time => -1,)
         !! get-output $binary-path, |@args,
                       ‘--’, $file, :$stdin, :$timeout, ENV => %tweaked-env, :!chomp
