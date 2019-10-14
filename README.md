@@ -1,10 +1,10 @@
 ## Whateverable
 
 The Whateverables are a collection of IRC bots primarily useful for
-Perl 6 developers. They are written in Perl 6 and are based on
+Raku developers. They are written in Raku and are based on
 [IRC::Client](https://github.com/zoffixznet/perl6-IRC-Client). Many of
-the use cases involve running Perl 6 code using pre-built versions of
-the [Rakudo](https://github.com/rakudo/rakudo) Perl 6 compiler for
+the use cases involve running Raku code using pre-built versions of
+the [Rakudo](https://github.com/rakudo/rakudo) compiler for
 each commit.
 
 
