@@ -30,7 +30,6 @@ unit class Releasable does Whateverable;
 # ↓ when needed
 my $SHA-LENGTH       = 8;
 my $RELEASE-HOUR     = 19; # GMT+0
-my $BLOCKERS-URL-RT  = ‘https://fail.rakudo.party/release/blockers.json’;
 my $BLOCKERS-URL-GH  = ‘https://api.github.com/repos/rakudo/rakudo/issues?state=open&labels=BLOCKER’;
 my $DRAFT-URL        = ‘https://raw.github.com/wiki/rakudo/rakudo/ChangeLog-Draft.md’;
 my $DRAFT-USER-URL   = ‘https://github.com/rakudo/rakudo/wiki/ChangeLog-Draft’;
@@ -134,20 +133,6 @@ sub changelog-to-stats($changelog) {
     { :$summary, :@unlogged, :@warnings }
 }
 
-sub blockers-rt() {
-    use HTTP::UserAgent;
-    my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
-    my $response = try { $ua.get: $BLOCKERS-URL-RT };
-    return ‘R6 is down’ without $response;
-    return ‘R6 is down’ unless $response.is-success;
-    if $response.content-type ne ‘application/json;charset=UTF-8’ {
-        return ‘Cannot parse the data from R6’
-    }
-    my %data = from-json $response.decoded-content;
-    return ‘Cannot parse the data from R6’ unless %data<tickets>:exists;
-    %data<tickets>.List
-}
-
 sub blockers-github() {
     use HTTP::UserAgent;
     my $ua = HTTP::UserAgent.new: :useragent<Whateverable>;
@@ -163,7 +148,7 @@ sub blockers-github() {
 sub blockers {
     my @tickets;
     my $summary = ‘’;
-    for (blockers-rt(), blockers-github()) {
+    for (blockers-github(),) {
         when Str        { $summary ~= ‘, ’ if $summary; $summary ~= $_ }
         when Positional { @tickets.append: $_ }
         default         { die “Expected Str or Positional but got {.^name}” }
@@ -181,7 +166,7 @@ sub blockers {
         my $url   = .<html_url> // .<url>;
         my $id    = .<number>   // .<ticket_id>;
         my $title = .<title>    // .<subject>;
-        $id = (.<html_url> ?? ‘GH#’ !! ‘RT#’) ~ $id; # ha-ha 🙈
+        $id = ‘GH#’ ~ $id;
         $id .= fmt: ‘% 9s’;
         “<a href="$url">” ~ $id ~ “</a> {html-escape $title}\n”
     }
