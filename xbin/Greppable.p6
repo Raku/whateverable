@@ -103,7 +103,9 @@ multi method irc-to-me($msg) {
     my %commits = ();
     my $gist = “| File | Code |\n|--|--|\n”;
     my $stats = gather {
-        $gist ~= $result<output>.split(“\n”).map({process-grep-line $_, %commits}).join: “\n”;
+        $gist ~= $result<output>.split(/“\n”|“\r\n”/).map({process-grep-line $_, %commits}).join: “\n”;
+        # 🙈 after touching the .split part three times, I think this should work…
+        # 🙈 it will eat \r but that's not too bad
     }
     my $total   = $stats.elems;
     my $modules = $stats.Set.elems;
