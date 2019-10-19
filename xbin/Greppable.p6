@@ -42,6 +42,8 @@ sub process-grep-line($line, %commits) { # 🙈
     my $backticks = ｢`｣ x (($line.comb(/｢`｣+/) || ｢｣).max.chars + 1);
     my ($path, $line-number, $text) = $line.split: “\x0”, 3;
 
+    return Empty if $path.ends-with: ‘.pdf’; # somehow pdf files are not considered binary
+
     my $start = “perl6-all-modules/$path”; # Not a module, unless…
     if $path ~~ /^ $<source>=[<-[/]>+] ‘/’ $<repo>=[ <-[/]>+ ‘/’ <-[/]>+ ]
                                        ‘/’ $<path>=.* $/ {
