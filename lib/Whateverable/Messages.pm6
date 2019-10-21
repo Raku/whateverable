@@ -39,7 +39,7 @@ sub handle-exception($exception, $msg?) is export {
     given $msg {
         # TODO handle other types
         when IRC::Client::Message::Privmsg::Channel {
-            .irc.send-cmd: ‘PRIVMSG’, $CONFIG<cave>, “I'm acting stupid on {.channel}. Help me.”,
+            .irc.send-cmd: ‘PRIVMSG’, $CONFIG<cave>, “I have a bug! See {.channel}. Help me!”,
                            :server(.server), :prefix($CONFIG<caregivers>.join(‘, ’) ~ ‘: ’)
                 if .channel ne $CONFIG<cave>
         }
