@@ -55,8 +55,8 @@ sub handle-exception($exception, $msg?) is export {
     @files.push: ‘result.md’ => $text;
 
     my $return = (‘’ but FileStore(%@files))
-      but PrettyLink({“No! It wasn't me! It was the one-armed man! Backtrace: $_”});
-    # https://youtu.be/MC6bzR9qmxM?t=97
+      but PrettyLink({“and I oop! Backtrace: $_”});
+    # previously: “No! It wasn't me! It was the one-armed man!” https://youtu.be/MC6bzR9qmxM?t=97
     $return = $return but Reply($_) with $msg;
     if $msg !~~ IRC::Client::Message::Privmsg::Channel {
         $msg.irc.send-cmd: ‘PRIVMSG’, $CONFIG<cave>, $return but Enough,
