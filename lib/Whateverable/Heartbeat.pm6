@@ -16,7 +16,7 @@
 
 unit module Whateverable::Heartbeat;
 
-#↓ Tells the watchdog that we're still rolling.
+#| Tells the watchdog that we're still rolling.
 sub I'm-alive is export {
     return if %*ENV<TESTABLE> or %*ENV<DEBUGGABLE>;
     use NativeCall;
@@ -25,13 +25,13 @@ sub I'm-alive is export {
     sd_notify 0, ‘WATCHDOG=1’; # this may be called too often, see TODO below
 }
 
-#↓ Asks the test suite to delay the test failure (for 0.5s)
+#| Asks the test suite to delay the test failure (for 0.5s)
 sub test-delay is export {
     use NativeCall;
     sub kill(int32, int32) is native {*};
     sub getppid(--> int32) is native {*};
     my $sig-compat = SIGUSR1;
-    # ↓ Fragile platform-specific hack
+    # ↓ TODO Fragile platform-specific hack
     $sig-compat = 10 if $*PERL.compiler.version ≤ v2018.05;
     kill getppid, +$sig-compat; # SIGUSR1
 }
