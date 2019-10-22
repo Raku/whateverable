@@ -22,6 +22,7 @@ unit module Whateverable::Config;
 our $CONFIG is export;
 
 sub ensure-config($handle = $*IN) is export {
+    return if $CONFIG;
     $CONFIG //= from-json slurp $handle;
 
     # TODO use a special config file for tests
