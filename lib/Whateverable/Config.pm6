@@ -36,6 +36,7 @@ sub ensure-required-config-values {
     $CONFIG<source>               //= ‘There is no public repo yet!’;
     $CONFIG<wiki>                 //= ‘There is no documentation for me yet!’;
     $CONFIG<default-stdin>        //= ‘’;
+    $CONFIG<sandbox-path>         //= ~$*TMPDIR.add(‘whateverable’).add(‘sandbox’);
 }
 
 sub ensure-config($handle = $*IN) is export {

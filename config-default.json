@@ -6,6 +6,7 @@
 
     "archives-location"        : "./data/builds",
     "builds-location"          : "/tmp/whateverable/",
+    "sandbox-path"             : "./sandbox",
 
     "moarvm" : "./data/moarvm",
 

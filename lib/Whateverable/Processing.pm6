@@ -21,6 +21,7 @@ use HTTP::UserAgent;
 
 use Whateverable::Bits;
 use Whateverable::Builds;
+use Whateverable::Config;
 use Whateverable::Running;
 
 unit module Whateverable::Processing;
@@ -102,7 +103,7 @@ sub process-gist($url, $msg) is export {
     my %data = from-json $response.decoded-content;
     grumble ‘Refusing to handle truncated gist’ if %data<truncated>;
 
-    sub path($filename) { “sandbox/$filename”.IO }
+    sub path($filename) { “$CONFIG<sandbox-path>/$filename”.IO }
 
     for %data<files>.values {
         grumble ‘Invalid filename returned’ if .<filename>.contains: ‘/’|“\0”;
@@ -121,9 +122,10 @@ sub process-gist($url, $msg) is export {
         if .<truncated> {
             $score -= 100;
             grumble ‘Can't handle truncated files yet’; # TODO?
-        } else {
-            spurt $path, .<content>;
         }
+
+        mkdir $path.parent;
+        spurt $path, .<content>;
 
         if .<filename>.ends-with: ‘.md’ | ‘.markdown’ {
             for ‘perl6’, ‘perl’, ‘’ -> $type {
@@ -142,7 +144,7 @@ sub process-gist($url, $msg) is export {
 
     my $main-file = %scores.max(*.value).key;
     if $msg and %scores > 1 {
-        $msg.reply: “Using file “$main-file” as a main file, other files are placed in “sandbox/””
+        $msg.reply: “Using file “$main-file” as a main file, other files are placed in “$CONFIG<sandbox-path>””
     }
     path $main-file
 }
