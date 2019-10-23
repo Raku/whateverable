@@ -21,9 +21,30 @@ unit module Whateverable::Config;
 
 our $CONFIG is export;
 
+sub ensure-required-config-values {
+    $CONFIG<message-limit>        //= 260;
+    $CONFIG<gist-limit>           //= 10_000;
+    $CONFIG<commits-limit>        //= 500; # TODO this shouldn't be required
+    $CONFIG<github>               //= $();
+    $CONFIG<github><login>        //= ‘’;
+    $CONFIG<github><access_token> //= ‘’;
+    $CONFIG<irc>                  //= $();
+    $CONFIG<irc><login>           //= ‘’;
+    $CONFIG<irc><password>        //= ‘’;
+    $CONFIG<cave>                 //= Empty;
+    $CONFIG<caregivers>           //= [];
+    $CONFIG<source>               //= ‘There is no public repo yet!’;
+    $CONFIG<wiki>                 //= ‘There is no documentation for me yet!’;
+    $CONFIG<default-stdin>        //= ‘’;
+}
+
 sub ensure-config($handle = $*IN) is export {
-    return if $CONFIG;
+    if $CONFIG {
+        ensure-required-config-values;
+        return;
+    }
     $CONFIG //= from-json slurp $handle;
+    ensure-required-config-values;
 
     # TODO use a special config file for tests
     $CONFIG<rakudo> //= (%*ENV<TESTABLE> // ‘’).contains(‘rakudo-mock’)

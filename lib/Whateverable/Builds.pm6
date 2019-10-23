@@ -28,16 +28,16 @@ unit module Whateverable::Builds;
 #↓ Clones Rakudo and Moar repos and ensures some directory structure.
 sub ensure-cloned-repos is export {
     # TODO racing (calling this too often when nothing is cloned yet)
-    if $CONFIG<repo-current-rakudo-moar>.IO !~~ :d  {
-        run <git clone -->, $CONFIG<repo-origin-rakudo>,
-                            $CONFIG<repo-current-rakudo-moar>;
+    with $CONFIG<repo-current-rakudo-moar> {
+        run <git clone -->, $CONFIG<repo-origin-rakudo>, $_ if not .IO.d
     }
-    if $CONFIG<repo-current-moarvm>     .IO !~~ :d  {
-        run <git clone -->, $CONFIG<repo-origin-moarvm>,
-                            $CONFIG<repo-current-moarvm>;
+    with $CONFIG<repo-current-moarvm> {
+        run <git clone -->, $CONFIG<repo-origin-moarvm>, $_ if not .IO.d;
     }
-    mkdir “$CONFIG<archives-location>/rakudo-moar”;
-    mkdir “$CONFIG<archives-location>/moarvm”;
+    with $CONFIG<archives-location> {
+        mkdir “$_/rakudo-moar”;
+        mkdir “$_/moarvm”;
+    }
     True
 }
 
@@ -46,8 +46,8 @@ sub ensure-cloned-repos is export {
 #↓ doing anything.
 sub pull-cloned-repos is export {
     ensure-cloned-repos;
-    run :cwd($CONFIG<repo-current-rakudo-moar>), <git pull>;
-    run :cwd($CONFIG<repo-current-moarvm     >), <git pull>;
+    run :cwd($_), <git pull> with $CONFIG<repo-current-rakudo-moar>;
+    run :cwd($_), <git pull> with $CONFIG<repo-current-moarvm>;
     True
 }
 
