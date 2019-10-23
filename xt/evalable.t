@@ -11,7 +11,7 @@ my $t = Testable.new: bot => ‘Evalable’;
 
 $t.common-tests: help => “Like this: {$t.bot-nick}: say ‘hello’; say ‘world’”;
 
-$t.shortcut-tests: <e: e6: eval: eval6:>,
+$t.shortcut-tests: <e: e6: eval: eval6: raku:>,
                    <e e, e6 e6, eval eval, eval6 eval6, what:>;# what what,>;
 
 # Basics

@@ -113,7 +113,7 @@ method process($msg, $code, :$good-only?) {
 
 my %*BOT-ENV = commit => ‘HEAD’;
 
-Evalable.new.selfrun: ‘evalable6’, [/ [ | \s*[master|rakudo|‘r-m’|m|p6|perl6]
+Evalable.new.selfrun: ‘evalable6’, [/ [ | \s*[master|rakudo|‘r-m’|m|p6|perl6|raku]
                                         | e[val]?6? | what ] <before ‘:’> /,
                                     fuzzy-nick(‘evalable6’, 1) ]
 
