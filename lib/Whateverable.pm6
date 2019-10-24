@@ -214,10 +214,10 @@ method selfrun($nick is copy, @alias?) {
         :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! <chat.freenode.net 195.154.200.232>.pick)
         :port(%*ENV<TESTABLE> ?? %*ENV<TESTABLE_PORT> !! 6667)
         :channels(%*ENV<DEBUGGABLE>
-                  ?? ‘#whateverable’
+                  ?? $CONFIG<cave>
                   !! %*ENV<TESTABLE>
                      ?? “#whateverable_$nick”
-                     !! (|<#perl6 #raku #raku-dev #zofbot #moarvm>, $CONFIG<cave>) )
+                     !! (|$CONFIG<channels>, $CONFIG<cave>) )
         :debug(?%*ENV<DEBUGGABLE>)
         :plugins(self)
         :filters( -> |c { self.filter(|c) } )
