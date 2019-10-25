@@ -30,7 +30,7 @@ unit class Releasable does Whateverable;
 # ↓ when needed
 my $SHA-LENGTH       = 8;
 my $RELEASE-HOUR     = 19; # GMT+0
-my $BLOCKERS-URL-GH  = ‘https://api.github.com/repos/rakudo/rakudo/issues?state=open&labels=BLOCKER’;
+my $BLOCKERS-URL-GH  = ‘https://api.github.com/search/issues?q=is:open%20is:issue%20archived:false%20user:rakudo%20user:moarvm%20user:perl6%20label:BLOCKER’;
 my $DRAFT-URL        = ‘https://raw.github.com/wiki/rakudo/rakudo/ChangeLog-Draft.md’;
 my $DRAFT-USER-URL   = ‘https://github.com/rakudo/rakudo/wiki/ChangeLog-Draft’;
 
@@ -142,7 +142,7 @@ sub blockers-github() {
     if $response.content-type ne ‘application/json; charset=utf-8’ {
         return ‘Cannot parse the data from GitHub’
     }
-    from-json($response.decoded-content).List
+    from-json($response.decoded-content)<items>.List
 }
 
 sub blockers {
