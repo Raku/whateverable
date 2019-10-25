@@ -25,6 +25,7 @@ sub ensure-required-config-values {
     $CONFIG<message-limit>        //= 260;
     $CONFIG<gist-limit>           //= 10_000;
     $CONFIG<commits-limit>        //= 500; # TODO this shouldn't be required
+    $CONFIG<join-delay>           //= 0;
     $CONFIG<github>               //= $();
     $CONFIG<github><login>        //= ‘’;
     $CONFIG<github><access_token> //= ‘’;
