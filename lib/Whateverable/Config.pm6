@@ -32,7 +32,7 @@ sub ensure-required-config-values {
     $CONFIG<irc>                  //= $();
     $CONFIG<irc><login>           //= ‘’;
     $CONFIG<irc><password>        //= ‘’;
-    $CONFIG<channels>             //= <#perl6 #raku #raku-dev #zofbot #moarvm>;
+    $CONFIG<channels>             //= <#raku #raku-dev #zofbot #moarvm>;
     $CONFIG<cave>                 //= Empty;
     $CONFIG<caregivers>           //= [];
     $CONFIG<source>               //= ‘There is no public repo yet!’;
