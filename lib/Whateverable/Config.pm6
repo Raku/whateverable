@@ -22,7 +22,7 @@ unit module Whateverable::Config;
 our $CONFIG is export;
 
 sub ensure-required-config-values {
-    $CONFIG<message-limit>        //= 260;
+    $CONFIG<message-limit>        //= 390;
     $CONFIG<gist-limit>           //= 10_000;
     $CONFIG<commits-limit>        //= 500; # TODO this shouldn't be required
     $CONFIG<join-delay>           //= 0;

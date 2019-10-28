@@ -99,7 +99,7 @@ method process($msg, $code, :$good-only?) {
     $reply-end = ‘…’ ~ $reply-end;
     my $extra-size = ($reply-start, $reply-end).map(*.encode.elems).sum;
     my $output-size = 0;
-    my $SHORT-MESSAGE-LIMIT = $CONFIG<message-limit> ÷ 2;
+    my $SHORT-MESSAGE-LIMIT = $CONFIG<message-limit> × ⅓;
     my $output-cut = $output.comb.grep({
         $output-size += .encode.elems;
         $output-size + $extra-size < $SHORT-MESSAGE-LIMIT

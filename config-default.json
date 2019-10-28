@@ -13,7 +13,7 @@
     "source" : "https://github.com/perl6/whateverable",
     "wiki"   : "https://github.com/perl6/whateverable/wiki/",
 
-    "message-limit" :   260,
+    "message-limit" :   390,
     "gist-limit"    : 10000,
     "commits-limit" :   500,
     "cave"          : "#whateverable",

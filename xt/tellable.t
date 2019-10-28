@@ -180,6 +180,23 @@ $t.test(:!both, ‘receiving multiple messages’,
         /^ ‘2’\S+‘Z #whateverable_tellable6 <’<me($t)>‘> ’<me($t)>‘ secret message two’ $/,
        );
 
+$t.test(:!both, ‘passing a long message works’,
+        “.tell {$t.our-nick} x{‘y’ x 310}z”,
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
+
+$t.test(:!both, ‘receiving a long message works’,
+        ‘I'm back!’,
+        /^ ‘2’\S+‘Z #whateverable_tellable6 <’<me($t)>‘> ’<me($t)>‘ x’[y**310]‘z’ $/
+       );
+
+$t.test(:!both, ‘passing a too long message works’,
+        “.tell {$t.our-nick} x{‘y’ x 360}z”,
+        “{$t.our-nick}, I'll pass your message to {$t.our-nick}”);
+
+$t.test(:!both, ‘receiving a too long message works’,
+        ‘I'm back!’,
+        “hey {$t.our-nick}, you have a message: https://whatever.able/fakeupload”
+       );
 
 $t.test(:!both, ‘passing messages to the bot itself’,
         “.tell {$t.bot-nick} I love you”,
