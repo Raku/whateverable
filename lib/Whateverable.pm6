@@ -198,7 +198,7 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
 method selfrun($nick is copy, @alias?) {
     ensure-config;
     if $nick eq ‘tellable6’ | ‘evalable6’ {
-        $CONFIG<channels> = |$CONFIG<channels>, |<#perl6 #perl6-dev>
+        $CONFIG<channels> = |$CONFIG<channels>, |<#perl6 #perl6-dev #cro>
     }
 
     use Whateverable::Builds;
