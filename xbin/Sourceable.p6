@@ -2,36 +2,24 @@
 
 use Whateverable;
 use Whateverable::Bits;
+use Whateverable::Output;
 
 unit class Sourceable does Whateverable;
 
 method help($msg) {
-    "Like this s: Int, 'base'";
+    "Like this: sourceable6: Int, 'base'";
 }
 
-multi method irc-to-me($msg where /^ 's:' \s+ $<code>=.+/) {
-    my $code = ~$<code>;
-    is-safeish $code or return "Ehhh... I'm too scared to run that code.";
+multi method irc-to-me($msg) {
+    is-safeish $msg.text or return "Ehhh... I'm too scared to run that code.";
 
     indir $*TMPDIR, sub {
-        my $p = run(
-            :err,
-            :out,  './perl6-m', '-MCoreHackers::Sourcery',
-            '-e', qq:to/END/
-                BEGIN \{
-                    \%*ENV<SOURCERY_SETTING>
-                    = {$*EXECUTABLE.parent.parent.parent.child('gen/moar/CORE.setting')};
-                \};
-                use CoreHackers::Sourcery;
-                put sourcery( $code )[1];
-            END
-        );
-        my $result = $p.out.slurp-rest;
-        my $merge = $result ~ "\nERR: " ~ $p.err.slurp-rest;
-        return "Something's wrong: $merge.subst("\n", '␤', :g)"
-            unless $result ~~ /github/;
-
-        return "Sauce is at $result";
+        my $result = get-output($*EXECUTABLE.absolute, '-MCoreHackers::Sourcery', '-e', "put sourcery($msg.text())[1];");
+        if $result<exit-code> == 0 {
+            return "Sauce is at $result<output>";
+        } else {
+            return "No idea, boss";
+        }
     }
 }
 
