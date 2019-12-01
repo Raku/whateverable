@@ -11,8 +11,6 @@ method help($msg) {
 }
 
 multi method irc-to-me($msg) {
-    is-safeish $msg.text or return "Ehhh... I'm too scared to run that code.";
-
     indir $*TMPDIR, sub {
         my $result = get-output($*EXECUTABLE.absolute, '-MCoreHackers::Sourcery', '-e', "put sourcery($msg.text())[1];");
         if $result<exit-code> == 0 {
@@ -21,15 +19,6 @@ multi method irc-to-me($msg) {
             return "No idea, boss";
         }
     }
-}
-
-sub is-safeish ($code) {
-    return if $code ~~ /<[;{]>/;
-    return if $code.comb('(') != $code.comb(')');
-    for <run shell qx EVAL> -> $danger {
-        return if $code ~~ /«$danger»/
-    }
-    return True;
 }
 
 my %*BOT-ENV;
