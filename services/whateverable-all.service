@@ -17,6 +17,7 @@ Wants=whateverable@Quotable.service
 Wants=whateverable@Releasable.service
 Wants=whateverable@Reportable.service
 Wants=whateverable@Shareable.service
+Wants=whateverable@Sourceable.service
 Wants=whateverable@Squashable.service
 Wants=whateverable@Statisfiable.service
 Wants=whateverable@Tellable.service
