@@ -47,8 +47,7 @@
         "Sake",
         "Stats",
         "Terminal::ANSIColor",
-        "Text::Diff::Sift4",
-        "CoreHackers::Sourcery"
+        "Text::Diff::Sift4"
     ],
     "resources"   : [ ],
     "source-url"  : "https://github.com/perl6/whateverable.git"
