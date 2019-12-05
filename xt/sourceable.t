@@ -90,7 +90,7 @@ $t.test(‘concrete with parens’,
         “{$t.bot-nick}: 42.hash()”,
         /$link .+? ‘src/core.c/Any.pm6#L’(\d+) {$concrete-line=+~$0} $/);
 
-cmp-ok $proto-line, &[<], $concrete-line, ‘’;
+cmp-ok $proto-line, &[<], $concrete-line, ‘proto line is before the actual method’;
 
 
 # More complex cases
