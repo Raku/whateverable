@@ -28,7 +28,8 @@ unit module Whateverable::Running;
 
 #↓ Unpacks a build, runs $code and cleans up.
 sub run-smth($full-commit-hash, Code $code,
-             :$backend=‘rakudo-moar’, :$wipe = True) is export {
+             :$backend=‘rakudo-moar’,
+             :$wipe = True, :$lock = True) is export {
     my $build-path    = run-smth-build-path $full-commit-hash, :$backend;
     my $archive-path  = “$CONFIG<archives-location>/$backend/$full-commit-hash.zst”;
     my $archive-link  = “$CONFIG<archives-location>/$backend/$full-commit-hash”;
@@ -37,37 +38,40 @@ sub run-smth($full-commit-hash, Code $code,
     # (may be needed for isolated /tmp)
     mkdir $build-path.IO.parent;
 
-    # lock on the destination directory to make
-    # sure that other bots will not get in our way.
-    while run(:err(Nil), ‘mkdir’, ‘--’, $build-path).exitcode ≠ 0 {
-        test-delay if %*ENV<TESTABLE>;
-        note “$build-path is locked. Waiting…”;
-        sleep 0.5 # should never happen if configured correctly (kinda)
-    }
-    my $proc1;
-    my $proc2;
-    if $archive-path.IO ~~ :e {
-        if run :err(Nil), <pzstd --version> { # check that pzstd is available
-            $proc1 = run :out, :bin, <pzstd --decompress --quiet --stdout -->, $archive-path;
-            $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names>;
-        } else {
-            die ‘zstd is not installed’ unless run :out(Nil), <unzstd --version>;
-            # OK we are using zstd from the Mesozoic Era
-            $proc1 = run :out, :bin, <unzstd -qc -->, $archive-path;
-            $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names>;
+    if $lock {
+        # lock on the destination directory to make
+        # sure that other bots will not get in our way.
+        while run(:err(Nil), ‘mkdir’, ‘--’, $build-path).exitcode ≠ 0 {
+            test-delay if %*ENV<TESTABLE>;
+            note “$build-path is locked. Waiting…”;
+            sleep 0.5 # should never happen if configured correctly (kinda)
         }
-    } else {
-        die ‘lrzip is not installed’ unless run :err(Nil), <lrzip --version>; # check that lrzip is available
-        $proc1 = run :out, :bin, <lrzip --decompress --quiet --outfile - -->, $archive-link;
-        $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names -->, $build-path;
-    }
 
-    if not $proc1 or not $proc2 {
-        note “Broken archive for $full-commit-hash, removing…”;
-        try unlink $archive-path;
-        try unlink $archive-link;
-        rmtree $build-path;
-        return %(output => ‘Broken archive’, exit-code => -1, signal => -1, time => -1,)
+        my $proc1;
+        my $proc2;
+        if $archive-path.IO ~~ :e {
+            if run :err(Nil), <pzstd --version> { # check that pzstd is available
+                $proc1 = run :out, :bin, <pzstd --decompress --quiet --stdout -->, $archive-path;
+                $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names>;
+            } else {
+                die ‘zstd is not installed’ unless run :out(Nil), <unzstd --version>;
+                # OK we are using zstd from the Mesozoic Era
+                $proc1 = run :out, :bin, <unzstd -qc -->, $archive-path;
+                $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names>;
+            }
+        } else {
+            die ‘lrzip is not installed’ unless run :err(Nil), <lrzip --version>; # check that lrzip is available
+            $proc1 = run :out, :bin, <lrzip --decompress --quiet --outfile - -->, $archive-link;
+            $proc2 = run :in($proc1.out), :bin, <tar --extract --absolute-names -->, $build-path;
+        }
+
+        if not $proc1 or not $proc2 {
+            note “Broken archive for $full-commit-hash, removing…”;
+            try unlink $archive-path;
+            try unlink $archive-link;
+            rmtree $build-path;
+            return %(output => ‘Broken archive’, exit-code => -1, signal => -1, time => -1,)
+        }
     }
 
     my $return = $code($build-path); # basically, we wrap around $code
@@ -88,8 +92,10 @@ sub run-snippet($full-commit-hash, $file,
                 :@args=Empty,
                 :$timeout=%*BOT-ENV<timeout> // 10,
                 :$stdin=$CONFIG<stdin>,
-                :$ENV) is export {
-    run-smth :$backend, $full-commit-hash, -> $path {
+                :$ENV,
+                :$wipe = True, :$lock = True,
+               ) is export {
+    run-smth :$wipe, :$lock, :$backend, $full-commit-hash, -> $path {
         my $binary-path = $path.IO.add: ‘bin/perl6’;
         my %tweaked-env = $ENV // %*ENV;
         %tweaked-env<PATH> = join ‘:’, $binary-path.parent, (%tweaked-env<PATH> // Empty);
