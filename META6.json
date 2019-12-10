@@ -44,7 +44,7 @@
         "Number::Denominate",
         "Pastebin::Gist",
         "SVG::Plot",
-        "Sake",
+        "sake",
         "Stats",
         "Terminal::ANSIColor",
         "Text::Diff::Sift4"
