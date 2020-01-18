@@ -57,7 +57,7 @@ sub get-output(*@run-args, :$timeout = %*BOT-ENV<timeout> // 10,
             #      is easier to kill afterwards
             $buf.push: “«timed out after $timeout seconds»”.encode;
             whenever Promise.in(10) {
-                $buf.push: ‘«SIGKILL after another 10 seconds»’;
+                $buf.push: ‘«SIGKILL after another 10 seconds»’.encode;
                 $proc.kill: SIGKILL
             }
         }
