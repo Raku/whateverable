@@ -69,6 +69,13 @@ my $application = route {
         my $archive-link  = “$CONFIG<archives-location>/$backend/$full-commit”;
 
         my $file = $archive-path.IO.e ?? $archive-path !! $archive-link.IO.resolve.Str;
+
+        # Expose full commit sha in headers.
+        # This header will never be standardized, so I'm
+        # including the X- prefix.
+        # https://stackoverflow.com/questions/3561381/custom-http-headers-naming-conventions
+        header ‘X-Full-Commit’, $full-commit;
+
         header ‘Content-Disposition’, “attachment; filename="{$file.IO.basename}"”;
         static $file
     }
