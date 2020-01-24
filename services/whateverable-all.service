@@ -11,6 +11,7 @@ Wants=whateverable@Committable.service
 Wants=whateverable@Coverable.service
 Wants=whateverable@Evalable.service
 Wants=whateverable@Greppable.service
+Wants=whateverable@Linkable.service
 Wants=whateverable@Nativecallable.service
 Wants=whateverable@Notable.service
 Wants=whateverable@Quotable.service
