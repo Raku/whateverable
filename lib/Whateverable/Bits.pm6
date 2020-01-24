@@ -115,6 +115,20 @@ sub write-code($code --> IO) is export {
     $filename.IO
 }
 
+#| Use Cro to fetch from a URL (like GitHub API)
+sub curl($url, :@headers) is export {
+    use Cro::HTTP::Client;
+    use Whateverable::Config;
+    my @new-headers = @headers;
+    @new-headers.push: (User-Agent => ‘Whateverable’);
+    if $url.starts-with: ‘https://api.github.com/’ and $CONFIG<github><access_token> {
+        @new-headers.push: Authorization => ‘token ’ ~ $CONFIG<github><access_token>;
+    }
+    my Cro::HTTP::Client $client .= new: headers => @new-headers;
+    my $resp = await $client.get: $url;
+    await $resp.body
+}
+
 # Exceptions
 class Whateverable::X::HandleableAdHoc is X::AdHoc is export {}
 
