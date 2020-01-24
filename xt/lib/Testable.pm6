@@ -106,14 +106,14 @@ class Testable {
         ok $connected.status ~~ Kept, ‘bridge client connected’;
     }
 
-    method test($description, :$both = True, |c) {
-        self!do-test($description, |c);
-        self!do-test($description ~ " (bridged)", :bridge, |c) if $both;
+    method test(|c ($description, :$both = True, |rest)) {
+        $!first-test = c without $!first-test;
+        self!do-test($description, |rest);
+        self!do-test($description ~ " (bridged)", :bridge, |rest) if $both;
     }
 
     method !do-test(|c ($description, $command, *@expected, :$timeout is copy = 25, :$delay = 0.5, :$bridge = False)) {
         $timeout ×= 1.5 if %*ENV<HARNESS_ACTIVE>; # expect some load (relevant for parallelized tests)
-        $!first-test = c without $!first-test;
 
         my $gists-path = “/tmp/whateverable/tist/$!bot-nick”;
         rmtree $gists-path if $gists-path.IO ~~ :d;
