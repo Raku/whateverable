@@ -1,4 +1,4 @@
-# Copyright © 2016-2017
+# Copyright © 2016-2020
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 # Copyright © 2016
 #     Daniel Green <ddgreen@gmail.com>
@@ -119,7 +119,7 @@ sub write-code($code --> IO) is export {
 class Whateverable::X::HandleableAdHoc is X::AdHoc is export {}
 
 sub grumble(|c) is export {
-     Whateverable::X::HandleableAdHoc.new(payload => c).throw
+    Whateverable::X::HandleableAdHoc.new(payload => c).throw
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6
