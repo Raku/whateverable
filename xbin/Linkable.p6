@@ -154,7 +154,7 @@ sub match-and-dispatch($msg) {
     }
     # Commits
     if not $by-bot {
-        for $msg.text.match: :g, / <!after ‘/’|‘...’|‘: ’> « $<id>=[<xdigit>**{8..40}] » / {
+        for $msg.text.match: :g, / <!after ‘:’> [^|\s+] « $<id>=[<xdigit>**{8..40}] » [\s+|$] / {
             next if .<id>.comb.unique < 4; # doesn't look like a random commit!
             link-commit $msg, $_;
         }

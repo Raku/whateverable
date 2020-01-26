@@ -185,6 +185,8 @@ $t.test(:!both, ‘basic commit with description’,
         ‘524f98cdc95c3d’,
         ‘(2017-01-10) https://github.com/MasterDuke17/Text-Diff-Sift4/commit/524f98cdc9 Make it 13x faster by making the code unreadable’);
 
+$t.test(:!both, ‘ignore messages from eval bots’,
+        ‘rakudo-moar 37ddd5984: OUTPUT: «Instant:1580038306␤»’);
 
 # Everything at the same time
 
