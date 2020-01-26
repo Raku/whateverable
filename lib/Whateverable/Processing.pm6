@@ -72,7 +72,7 @@ sub process-url($url, $msg) is export {
 
     my $body = $response.decoded-content;
     .reply: ‘Successfully fetched the code from the provided URL’ with $msg;
-    sleep 0.02; # https://github.com/perl6/whateverable/issues/163
+    sleep 0.02; # https://github.com/Raku/whateverable/issues/163
     $body
 }
 
@@ -128,7 +128,7 @@ sub process-gist($url, $msg) is export {
         spurt $path, .<content>;
 
         if .<filename>.ends-with: ‘.md’ | ‘.markdown’ {
-            for ‘perl6’, ‘perl’, ‘’ -> $type {
+            for ‘raku’, ‘perl6’, ‘perl’, ‘’ -> $type {
                 if .<content> ~~ /‘```’ $type \s* \n ~ ‘```’ (.+?) / {
                     .<content> = ~$0;
                     #↓ XXX resave the file with just the code. Total hack but it works

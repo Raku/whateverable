@@ -50,7 +50,7 @@ method TWEAK {
             return if $msg.channel ne $CONFIG<cave> and $msg.args[1].starts-with: ‘what:’;
             # ↑ ideally this check shouldn't be here, but it's much harder otherwise
 
-            LEAVE sleep 0.02; # https://github.com/perl6/whateverable/issues/163
+            LEAVE sleep 0.02; # https://github.com/Raku/whateverable/issues/163
             try {
                 my $result = callsame;
                 return without $result;
@@ -198,7 +198,7 @@ method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
 method selfrun($nick is copy, @alias?) {
     ensure-config;
     if $nick eq ‘tellable6’ | ‘evalable6’ {
-        $CONFIG<channels> = |$CONFIG<channels>, |<#perl6 #perl6-dev #cro>
+        $CONFIG<channels> = |$CONFIG<channels>, |<#raku #raku-dev #cro>
     }
 
     use Whateverable::Builds;

@@ -179,60 +179,60 @@ class Testable {
 
         self.test(‘source link’,
                   “$.bot-nick: Source   ”,
-                  “$.our-nick, https://github.com/perl6/whateverable”);
+                  “$.our-nick, https://github.com/Raku/whateverable”);
 
         self.test(‘source link’,
                   “$.bot-nick:   sourcE?  ”,
-                  “$.our-nick, https://github.com/perl6/whateverable”);
+                  “$.our-nick, https://github.com/Raku/whateverable”);
 
         self.test(‘source link’,
                   “$.bot-nick:   URl ”,
-                  “$.our-nick, https://github.com/perl6/whateverable”);
+                  “$.our-nick, https://github.com/Raku/whateverable”);
 
         self.test(‘source link’,
                   “$.bot-nick:  urL?   ”,
-                  “$.our-nick, https://github.com/perl6/whateverable”);
+                  “$.our-nick, https://github.com/Raku/whateverable”);
 
         self.test(‘source link’,
                   “$.bot-nick: wIki”,
-                  “$.our-nick, https://github.com/perl6/whateverable/wiki/$.bot”);
+                  “$.our-nick, https://github.com/Raku/whateverable/wiki/$.bot”);
 
         self.test(‘source link’,
                   “$.bot-nick:   wiki? ”,
-                  “$.our-nick, https://github.com/perl6/whateverable/wiki/$.bot”);
+                  “$.our-nick, https://github.com/Raku/whateverable/wiki/$.bot”);
 
 
         self.test(‘help message’,
                   “$.bot-nick, helP”,
                   “$.our-nick, $help # See wiki for more examples: ”
-                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
+                      ~ “https://github.com/Raku/whateverable/wiki/$.bot”);
 
         self.test(‘help message’,
                   “$.bot-nick,   HElp?  ”,
                   “$.our-nick, $help # See wiki for more examples: ”
-                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
+                      ~ “https://github.com/Raku/whateverable/wiki/$.bot”);
 
         self.test(‘usage message’,
                   “$.bot-nick, usage”,
                   “$.our-nick, $help # See wiki for more examples: ”
-                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
+                      ~ “https://github.com/Raku/whateverable/wiki/$.bot”);
 
         self.test(‘usage message’,
                   “$.bot-nick,   usage?  ”,
                   “$.our-nick, $help # See wiki for more examples: ”
-                      ~ “https://github.com/perl6/whateverable/wiki/$.bot”);
+                      ~ “https://github.com/Raku/whateverable/wiki/$.bot”);
 
         self.test(‘typoed name’,
                   “z{$.bot-nick.substr: 1}: source”, # mangle it just a little bit
-                  “$.our-nick, https://github.com/perl6/whateverable”);
+                  “$.our-nick, https://github.com/Raku/whateverable”);
 
         self.test(‘no space after name (semicolon delimiter)’,
                   “{$.bot-nick}:url”,
-                  “$.our-nick, https://github.com/perl6/whateverable”);
+                  “$.our-nick, https://github.com/Raku/whateverable”);
 
         self.test(‘no space after name (comma delimiter)’,
                   “$.bot-nick,url”,
-                  “$.our-nick, https://github.com/perl6/whateverable”);
+                  “$.our-nick, https://github.com/Raku/whateverable”);
 
         use Whateverable;
         self.test(‘thank you (directly)’,
@@ -257,10 +257,10 @@ class Testable {
         for @yes {
             self.test(““$_” shortcut”,
                       “{$_}url”,
-                      “$.our-nick, https://github.com/perl6/whateverable”);
+                      “$.our-nick, https://github.com/Raku/whateverable”);
             self.test(““$_ ” shortcut”,
                       “$_ url”,
-                      “$.our-nick, https://github.com/perl6/whateverable”);
+                      “$.our-nick, https://github.com/Raku/whateverable”);
         }
         for @no {
             self.test(““$_” shortcut does not work”,

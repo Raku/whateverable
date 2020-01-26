@@ -10,8 +10,8 @@
 
     "moarvm" : "./data/moarvm",
 
-    "source" : "https://github.com/perl6/whateverable",
-    "wiki"   : "https://github.com/perl6/whateverable/wiki/",
+    "source" : "https://github.com/Raku/whateverable",
+    "wiki"   : "https://github.com/Raku/whateverable/wiki/",
 
     "message-limit" :   390,
     "gist-limit"    : 10000,

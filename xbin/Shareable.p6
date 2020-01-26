@@ -53,7 +53,7 @@ sub cached-archive($build where ‘HEAD.tar.gz’, :$backend=‘rakudo-moar’, 
 }
 
 my $application = route {
-    get sub () { redirect :temporary, ‘https://github.com/perl6/whateverable’ }
+    get sub () { redirect :temporary, ‘https://github.com/Raku/whateverable’ }
     get sub ($build, :$type=‘rakudo-moar’, :$arch) {
         return not-found if $arch and $arch ne $host-arch;
         my $backend = $type; # “backend” is used internally but sounds weird
