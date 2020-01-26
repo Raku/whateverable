@@ -14,6 +14,13 @@ $t.common-tests: help => ‘Like this: R#1946 D#1234 MOAR#768 NQP#509 SPEC#242 R
 $t.shortcut-tests: (),
                    <link link, link:>;
 
+
+# .bots command
+$t.test(:!both, ‘.bots command’,
+        ‘.bots’,
+        “{$t.our-nick}, Docs for all whateverable bots: https://github.com/Raku/whateverable/wiki”);
+
+
 # GitHub
 $t.test(:!both, ‘github (rakudo)’,
         ‘R#1946’,
@@ -210,8 +217,6 @@ $t.test(:!both, ‘everything at the same time, more than once’,
         ‘RT#126800 [resolved]: Shaped arrays with negative sizes (my @a[-9999999999999999]) https://rt.perl.org/Ticket/Display.html?id=126800 https://rt-archive.perl.org/perl6/Ticket/Display.html?id=126800’,
         ‘(2017-01-10) https://github.com/MasterDuke17/Text-Diff-Sift4/commit/524f98cdc9 Make it 13x faster by making the code unreadable’);
 
-
-sleep 5;
 
 $t.last-test;
 done-testing;

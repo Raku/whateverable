@@ -162,6 +162,10 @@ sub match-and-dispatch($msg) {
     Nil # This is important!
 }
 
+multi method irc-privmsg-channel($msg where /^ ‘.bots’ \s* $/) {
+    ‘Docs for all whateverable bots: https://github.com/Raku/whateverable/wiki’
+}
+
 # TODO Currently there's a chance that it will not respond to some
 #      direct messages at all, it should *always* say something.
 multi method irc-privmsg-channel($msg) { match-and-dispatch $msg }
