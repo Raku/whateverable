@@ -102,7 +102,7 @@ multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime \s* $/) {
     use Telemetry;
     (denominate now - $*INIT-INSTANT) ~ ‘, ’
     ~ T<max-rss>.fmt(‘%.2f’) ÷ 1024 ~ ‘MiB maxrss. ’
-    ~ (with (nqp::getcomp("Raku") // nqp::getcomp("perl6")) {
+    ~ (with (nqp::getcomp("Raku") || nqp::getcomp("perl6")) {
         “This is {.implementation} version {.config<version>} ”
         ~ “built on {.backend.version_string} ”
         ~ “implementing {.language_name} {.language_version}.”
