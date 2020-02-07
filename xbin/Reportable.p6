@@ -23,6 +23,7 @@ use IRC::Client;
 
 unit class Reportable does Whateverable;
 
+my $RETRY-ATTEMPTS = 5;
 my $dir = ‘data/reportable’.IO;
 mkdir $dir;
 
@@ -92,11 +93,28 @@ multi method irc-to-me($msg where .Str.words == 2) {
     ‘’ but FileStore({ ‘report.md’ => $report })
 }
 
+sub pull-gh($dir, $repo) {
+    mkdir $dir;
+    my $url = “https://api.github.com/repos/$repo/issues?per_page=100&direction=asc&state=all”;
+    my $attempts;
+    while $url {
+        for ^$RETRY-ATTEMPTS {
+            my @tickets := curl $url;
+            say @tickets.elems;
+            spurt “$dir/{.<number>}”, to-json :sorted-keys, $_ for @tickets;
+            $url = @tickets.?next-url;
+            sleep $_ with @tickets.?rate-limit-reset-in;
+            last;
+            CATCH { default { note “Retrying $url”; sleep 5; redo } }
+        }
+    }
+}
+
 sub snapshot($msg?) {
     start {
         use File::Temp;
         use File::Directory::Tree;
-        LEAVE $semaphore.release; # TODO so what if the thread exits abruptly?
+        LEAVE $semaphore.release; # TODO what if the thread exits abruptly?
         my ($temp-folder,) = tempdir, :!unlink;
         CATCH {
             # TODO the message is not send when the snapshot is scheduled
@@ -107,19 +125,15 @@ sub snapshot($msg?) {
         }
 
         my $datetime = now.DateTime.truncated-to: ‘minute’;
-        .reply: ‘OK! Working on it. This will take forever, so don't hold your breath.’ with $msg;
+        .reply: ‘OK! Working on it. This will take around 5 minutes.’ with $msg;
 
-        my $env = %*ENV.clone;
-        $env<PATH> = join ‘:’, $*EXECUTABLE.parent, $env<PATH>;
-        mkdir “$temp-folder/GH”;
-        run :$env, ‘maintenance/pull-gh’, “$temp-folder/GH”; # TODO authenticate on github to get rid of unlikely rate limiting
-        mkdir “$temp-folder/RT”;
-        run :$env, ‘maintenance/pull-rt’, “$temp-folder/RT”, |$CONFIG<reportable><RT><user pass>;
+        pull-gh “$temp-folder/GH”,  ‘rakudo/rakudo’           ;
+        pull-gh “$temp-folder/OIT”,   ‘Raku/old-issue-tracker’;
 
         # .move does not work with directories and .rename does not
         # work across devices, so just run ‘mv’
-        run ‘mv’, ‘--’, $temp-folder, $dir.add: $datetime;
-        True
+        run <mv -->, $temp-folder, $dir.add: $datetime;
+        ‘Done!’
     }
 }
 
@@ -162,8 +176,16 @@ sub analyze(IO() $before-dir where .d, IO() $after-dir where .d) {
 
     sub process-gh(IO $file) {
         my %data = from-json $file.slurp;
-        %data<uni-id>  = ‘GH#’ ~ %data<number>;
-        %data<tracker> = ‘GH’;
+        if      %data<repository_url>.ends-with: ‘/rakudo’ {
+            %data<uni-id>  = ‘GH#’ ~ %data<number>;
+            %data<tracker> = ‘GH’;
+        } elsif %data<repository_url>.ends-with: ‘/old-issue-tracker’ {
+            %data<uni-id>  = ‘OIT#’ ~ %data<number>;
+            %data<tracker> = ‘OIT’;
+        } else {
+            %data<uni-id>  = ‘WTF#’ ~ %data<number>; # there has to be a better way to handle this
+            %data<tracker> = ‘UNKNOWN’;
+        }
         %data<is-open> = %data<state> eq ‘open’;
         %data<tags>    = %data<labels>»<name>».lc;
         %data
@@ -172,14 +194,12 @@ sub analyze(IO() $before-dir where .d, IO() $after-dir where .d) {
     # TODO race-ize it once it stops SEGV-ing
     sub add(%where, %data) { %where{%data<uni-id>} = %data }
     my $before = now;
-    note “RT before…”; add %before, process-rt $_ for $before-dir.add(‘RT’).dir;
-    if $before-dir.add(‘GH’).d {
-        note “GH before…”; add %before, process-gh $_ for $before-dir.add(‘GH’).dir;
-    }
-    note “RT after…”;  add  %after, process-rt $_ for  $after-dir.add(‘RT’).dir;
-    if $after-dir.add(‘GH’).d {
-        note “GH after…”;  add  %after, process-gh $_ for  $after-dir.add(‘GH’).dir;
-    }
+    if $before-dir.add(‘GH’ ).d { note  ‘GH before…’; add %before, process-gh $_ for $before-dir.add(‘GH’ ).dir }
+    if $before-dir.add(‘OIT’).d { note ‘OIT before…’; add %before, process-gh $_ for $before-dir.add(‘OIT’).dir }
+    if $before-dir.add(‘RT’ ).d { note  ‘RT before…’; add %before, process-rt $_ for $before-dir.add(‘RT’ ).dir }
+    if  $after-dir.add(‘GH’ ).d { note  ‘GH after…’;  add  %after, process-gh $_ for  $after-dir.add(‘GH’ ).dir }
+    if  $after-dir.add(‘OIT’).d { note ‘OIT after…’;  add  %after, process-gh $_ for  $after-dir.add(‘OIT’).dir }
+    if  $after-dir.add(‘RT’ ).d { note  ‘RT after…’;  add  %after, process-rt $_ for  $after-dir.add(‘RT’ ).dir }
     say now - $before;
 
     my @resolved;
