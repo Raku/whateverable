@@ -139,7 +139,7 @@ sub curl($url, :@headers) is export {
     # Rate limiting
     my $rate-limit       = $resp.headers.first(*.name eq ‘X-RateLimit-Remaining’).?value;
     my $rate-limit-reset = $resp.headers.first(*.name eq ‘X-RateLimit-Reset’).?value;
-    $rate-limit-reset -= time(); # time to sleep instead of when to wake up
+    $rate-limit-reset -= time; # time to sleep instead of when to wake up
     if $rate-limit.defined and $rate-limit < 5 {
         role RateLimited { has $.rate-limit-reset-in }
         $return = $return but RateLimited($rate-limit-reset);
