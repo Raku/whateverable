@@ -126,7 +126,26 @@ sub curl($url, :@headers) is export {
     }
     my Cro::HTTP::Client $client .= new: headers => @new-headers;
     my $resp = await $client.get: $url;
-    await $resp.body
+    my $return = await $resp.body;
+
+    # Extra stuff in case you need it
+    # Next url
+    my $next = $resp.headers.first(*.name eq ‘Link’).?value;
+    if $next && $next ~~ /‘<’ (<-[>]>*?) ‘>; rel="next"’/ {
+        my $next-url = ~$0;
+        role NextURL { has $.next-url };
+        $return = $return but NextURL($next-url);
+    }
+    # Rate limiting
+    my $rate-limit       = $resp.headers.first(*.name eq ‘X-RateLimit-Remaining’).?value;
+    my $rate-limit-reset = $resp.headers.first(*.name eq ‘X-RateLimit-Reset’).?value;
+    $rate-limit-reset -= time(); # time to sleep instead of when to wake up
+    if $rate-limit.defined and $rate-limit < 5 {
+        role RateLimited { has $.rate-limit-reset-in }
+        $return = $return but RateLimited($rate-limit-reset);
+    }
+
+    $return
 }
 
 # Exceptions
