@@ -122,7 +122,7 @@ sub curl($url, :@headers) is export {
     my @new-headers = @headers;
     @new-headers.push: (User-Agent => ‘Whateverable’);
     if $url.starts-with: ‘https://api.github.com/’ and $CONFIG<github><access_token> {
-        @new-headers.push: Authorization => ‘token ’ ~ $CONFIG<github><access_token>;
+        @new-headers.push: (Authorization => ‘token ’ ~ $CONFIG<github><access_token>);
     }
     my Cro::HTTP::Client $client .= new: headers => @new-headers;
     my $resp = await $client.get: $url;
