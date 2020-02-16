@@ -53,6 +53,7 @@ my Channel $channel-messages .= new;
 
 sub reply($msg, $answer) {
     return if recent “$msg.channel()\0$answer”;
+    sleep 3 if $msg.nick eq ‘Geth’;
     $channel-messages.send: %(:$msg, :$answer)
 }
 
