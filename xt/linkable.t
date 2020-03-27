@@ -39,11 +39,11 @@ $t.test(:!both, ‘github (moarvm)’,
 
 $t.test(:!both, ‘github (nqp)’,
         ‘NQP#509’,
-        ‘NQP#509 [closed]: https://github.com/perl6/nqp/issues/509 Role mixing is fussy’);
+        ‘NQP#509 [closed]: https://github.com/Raku/nqp/issues/509 Role mixing is fussy’);
 
 $t.test(:!both, ‘github (spec)’,
         ‘SPEC#242’,
-        ‘SPEC#242 [open]: https://github.com/perl6/roast/issues/242 notandthen is untested’);
+        ‘SPEC#242 [open]: https://github.com/Raku/roast/issues/242 notandthen is untested’);
 
 sleep 5;
 
@@ -65,11 +65,11 @@ $t.test(:!both, ‘github (moarvm), directly’,
 
 $t.test(:!both, ‘github (NQP), directly’,
         “{$t.bot-nick}: NQP#509”,
-        ‘NQP#509 [closed]: https://github.com/perl6/nqp/issues/509 Role mixing is fussy’);
+        ‘NQP#509 [closed]: https://github.com/Raku/nqp/issues/509 Role mixing is fussy’);
 
 $t.test(:!both, ‘github (spec), directly’,
         “{$t.bot-nick}: SPEC#242”,
-        ‘SPEC#242 [open]: https://github.com/perl6/roast/issues/242 notandthen is untested’);
+        ‘SPEC#242 [open]: https://github.com/Raku/roast/issues/242 notandthen is untested’);
 
 # RT
 $t.test(:!both, ‘RT’,
