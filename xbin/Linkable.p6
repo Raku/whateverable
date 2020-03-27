@@ -25,6 +25,7 @@ unit class Linkable does Whateverable;
 method help($msg) {
     ‘Like this: R#1946 D#1234 MOAR#768 NQP#509 SPEC#242 RT#126800 S09:320 524f98cdc’
 }
+method private-messages-allowed() { True }
 
 constant %TICKET-URLS = %(
     ‘R’ | ‘RAKUDO’ | ‘GH’   => ‘https://api.github.com/repos/rakudo/rakudo/issues/’,
@@ -52,13 +53,13 @@ sub recent($what) {
 my Channel $channel-messages .= new;
 
 sub reply($msg, $answer) {
-    return if recent “$msg.channel()\0$answer”;
+    return if recent “{$msg.?channel // $msg.nick}\0$answer”;
     sleep 3 if $msg.nick eq ‘Geth’;
     $channel-messages.send: %(:$msg, :$answer)
 }
 
 start react whenever $channel-messages.Supply.throttle: 3, 3 -> $ (:$msg, :$answer) {
-    $msg.irc.send: :where($msg.channel), text => $answer;
+    $msg.irc.send: :where($msg.?channel // $msg.nick), text => $answer;
 }
 
 sub link-doc-page($msg, $match) {

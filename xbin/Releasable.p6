@@ -37,6 +37,7 @@ my $DRAFT-USER-URL   = ‘https://github.com/rakudo/rakudo/wiki/ChangeLog-Draft�
 method help($msg) {
     “status | status link”
 }
+method private-messages-allowed() { True }
 
 sub ignored-commits() {
     my $last-release = to-full-commit chomp slurp “$CONFIG<rakudo>/VERSION”;

@@ -31,12 +31,16 @@ write %() unless $db.e;
 method help($msg) {
     “Like this: {$msg.server.current-nick}: weekly rakudo is now 10x as fast”
 }
+method private-messages-allowed() { True }
 
 sub read()       { from-json slurp $db                }
 sub write(%data) {           spurt $db, to-json %data }
 
+# XXX The logic here is a bit convoluted. It is meant to be a
+#     zero-width match (only then things work), but I don't think this
+#     was what I meant when I originaly wrote it.
 my regex shortcut($msg) { <?{ my $shortcut = $msg.args[1].split(‘:’)[0];
-                            make $shortcut if $shortcut eq @shortcuts.any      }> }
+                            make $shortcut if $msg.?channel and $shortcut eq @shortcuts.any }> }
 my regex topic { <[\w:_-]>+ }
 
 #| List topics

@@ -47,7 +47,8 @@ method TWEAK {
     # wrap around everything to catch exceptions
     once { # per class
         self.^lookup(‘irc-to-me’).wrap: sub ($self, $msg) {
-            return if $msg.channel ne $CONFIG<cave> and $msg.args[1].starts-with: ‘what:’;
+            return if $msg.?channel and $msg.channel ne $CONFIG<cave>
+                      and $msg.args[1].starts-with: ‘what:’;
             # ↑ ideally this check shouldn't be here, but it's much harder otherwise
 
             LEAVE sleep 0.02; # https://github.com/Raku/whateverable/issues/163
@@ -130,7 +131,10 @@ multi method irc-privmsg-channel($msg where .text ~~ /:i [‘thank you’|‘tha
 #↓ Notices
 multi method irc-notice-me( $ --> Nil)                             {} # Issue #321
 #↓ Private messages
-multi method irc-privmsg-me($ --> ‘Sorry, it is too private here. You can join #whateverable channel instead’) {} # TODO issue #16
+method private-messages-allowed() { False }
+multi method irc-privmsg-me($ where not $.private-messages-allowed) { # TODO issue #16
+    ‘Sorry, it is too private here. You can join #whateverable channel instead’
+}
 #↓ Fallback
 multi method irc-to-me($) {
     ‘I cannot recognize this command. See wiki for some examples: ’ ~ self.get-wiki-link
