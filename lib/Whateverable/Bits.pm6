@@ -40,6 +40,9 @@ sub signal-to-text($signal) is export {
     “$signal ({$signal ?? Signal($signal) !! ‘None’})”
 }
 
+sub ss($var is rw) is export {
+    s(+$var, $var.VAR.name.trans(‘-’ => ‘ ’, /\W/ => ‘’, /s$/ => ‘’))
+}
 sub s($count, $word) is export {
     +$count ~ ‘ ’ ~ $word ~ ($count == 1 ?? ‘’ !! ‘s’)
 }
@@ -95,12 +98,11 @@ sub time-left(Instant() $then, :$already-there?, :$simple=False) is export {
     my ($seconds, $minutes, $hours, $days) = $time-left.polymod: 60, 60, 24;
     if not $days and not $hours {
         return $simple ?? ‘in a minute’ !! ‘is just a few moments away’ unless $minutes;
-        return $simple ??    “in $minutes minute{‘s’ unless $minutes == 1}”
-                       !! “is in $minutes minute{‘s’ unless $minutes == 1}”;
+        return ($simple ?? ‘in ’ !! ‘is in ’) ~ ss $minutes;
     }
     my $answer = ‘in ’;
-    $answer ~= “$days day{$days ≠ 1 ?? ‘s’ !! ‘’} and ” if $days;
-    $answer ~= “≈$hours hour{$hours ≠ 1 ?? ‘s’ !! ‘’}”;
+    $answer ~= ss($days) ~ ‘ and ’ if $days;
+    $answer ~= ‘≈’ ~ ss $hours;
     $answer
 }
 
