@@ -89,13 +89,14 @@ sub did-you-mean($string, @options, :$default=Nil,
     $answer
 }
 
-sub time-left(Instant() $then, :$already-there?) is export {
+sub time-left(Instant() $then, :$already-there?, :$simple=False) is export {
     my $time-left = $then - now;
     return $already-there if $already-there and $time-left < 0;
     my ($seconds, $minutes, $hours, $days) = $time-left.polymod: 60, 60, 24;
     if not $days and not $hours {
-        return ‘is just a few moments away’ unless $minutes;
-        return “is in $minutes minute{‘s’ unless $minutes == 1}”;
+        return $simple ?? ‘in a minute’ !! ‘is just a few moments away’ unless $minutes;
+        return $simple ??    “in $minutes minute{‘s’ unless $minutes == 1}”
+                       !! “is in $minutes minute{‘s’ unless $minutes == 1}”;
     }
     my $answer = ‘in ’;
     $answer ~= “$days day{$days ≠ 1 ?? ‘s’ !! ‘’} and ” if $days;
