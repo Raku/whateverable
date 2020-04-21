@@ -16,7 +16,7 @@ $t.shortcut-tests: < to: tell: ask: seen:>,
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,
-        “{$t.our-nick}, I cannot recognize this command. See wiki for some examples: https://github.com/perl6/whateverable/wiki/Tellable”);
+        “{$t.our-nick}, I cannot recognize this command. See wiki for some examples: https://github.com/Raku/whateverable/wiki/Tellable”);
 
 
 $t.test(‘send a message’,

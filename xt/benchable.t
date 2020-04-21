@@ -16,7 +16,7 @@ $t.shortcut-tests: <bench: bench6:>,
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,
-        “{$t.our-nick}, I cannot recognize this command. See wiki for some examples: https://github.com/perl6/whateverable/wiki/Benchable”);
+        “{$t.our-nick}, I cannot recognize this command. See wiki for some examples: https://github.com/Raku/whateverable/wiki/Benchable”);
 
 # Basics
 
@@ -131,7 +131,7 @@ $t.test(‘wrong mime type’,
 
 $t.test(‘malformed link (failed to resolve)’,
         ‘bench: HEAD https://perl6.or’,
-        /^ <me($t)>‘, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name 'perl6.or' with family ’\w+‘. Error: 'Name or service not known')’ $/);
+        /^ <me($t)>‘, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name 'perl6.or' with family ’\w+‘.␤Error: ’\'?‘Name or service not known’\'?‘)’ $/);
 
 $t.test(‘malformed link (could not parse)’,
         ‘bench: HEAD https://:P’,
