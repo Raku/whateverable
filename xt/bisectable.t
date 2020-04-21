@@ -138,14 +138,14 @@ $t.test(‘forgot the right syntax (one revision only)’,
         “{$t.our-nick}, Output on both points: «42␤»”);
 
 $t.test(‘did not forget the right syntax (one suspicious)’,
-        ‘bisect: old=2014.01,new=2014.02 2014.03 say 42’,
-        “{$t.our-nick}, On both starting points (old=2014.01 new=2014.02) the exit code is 1 and the output is identical as well”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”);
+        ‘bisect: old=2020.01,new=2020.02 2014.03 .say’,
+        “{$t.our-nick}, On both starting points (old=2020.01 new=2020.02) the exit code is 0 and the output is identical as well”,
+        “{$t.our-nick}, Output on both points: «2014.03␤»”);
 
 $t.test(‘did not forget the right syntax (two suspicious)’,
-        ‘bisect: old=2014.01,new=2014.02 2014.03,2014.04 say 42’,
-        “{$t.our-nick}, On both starting points (old=2014.01 new=2014.02) the exit code is 1 and the output is identical as well”,
-        “{$t.our-nick}, https://whatever.able/fakeupload”);
+        ‘bisect: old=2014.01,new=2014.02 2014.03,2014.04 ... 2014.04 for 1’,
+        “{$t.our-nick}, On both starting points (old=2014.01 new=2014.02) the exit code is 0 and the output is identical as well”,
+        “{$t.our-nick}, Output on both points: «»”);
 
 $t.test(‘non-revisions are ignored (one revision)’,
         ‘bisect: 2015.13 .say # heh’,
@@ -206,7 +206,7 @@ $t.test(‘wrong mime type’,
 
 $t.test(‘malformed link (failed to resolve)’,
         ‘bisect: https://perl6.or’,
-        /^ <me($t)>‘, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name 'perl6.or' with family ’\w+‘. Error: 'Name or service not known')’ $/);
+        /^ <me($t)>‘, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name 'perl6.or' with family ’\w+‘.␤Error: ’\'?‘Name or service not known’\'?‘)’ $/);
 
 $t.test(‘malformed link (could not parse)’,
         ‘bisect: https://:P’,
@@ -258,7 +258,7 @@ $t.test(:50timeout, ‘Result is different on every revision’,
 
 # Timeouts
 
-$t.test(:!both, :21timeout, ‘timeout’,
+$t.test(:!both, :23timeout, ‘timeout’,
         ‘bisect: say ‘Zzzz…’; sleep ∞’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0, exit signal is 1 (SIGHUP) and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «Zzzz…␤«timed out after 10 seconds»»”);

@@ -248,7 +248,7 @@ class Testable {
                   /^“{$.our-nick}”‘, ’\d+‘ second’s?‘, ’\d+[‘.’\d+]?
                     ‘MiB maxrss. This is Rakudo version ’
                     <[\dabcdefg.-]>+‘ built on MoarVM version ’
-                    <[\dabcdefg.-]>+‘ implementing Perl 6.’\w‘.’$/);
+                    <[\dabcdefg.-]>+‘ implementing ’[Perl|Raku]‘ 6.’\w‘.’$/);
     }
 
     method shortcut-tests(@yes, @no) {

@@ -20,7 +20,7 @@ $t.shortcut-tests: <c: c6: commit: commit6:
 
 $t.test(‘fallback’,
         “{$t.bot-nick}: wazzup?”,
-        “{$t.our-nick}, I cannot recognize this command. See wiki for some examples: https://github.com/perl6/whateverable/wiki/Committable”);
+        “{$t.our-nick}, I cannot recognize this command. See wiki for some examples: https://github.com/Raku/whateverable/wiki/Committable”);
 
 # Basics
 
@@ -128,24 +128,24 @@ $t.test(‘huge stdin is not replied back fully’,
 # Ranges and multiple commits
 
 $t.test(‘“releases” query’,
-        ‘commit: releases say $*PERL’,
-        /^ $($t.our-nick) ‘, ¦releases (’\d+‘ commits): «Perl 6 (6.c)␤»’ $/,
-        :20timeout);
+        ‘commit: releases say $*VM.name’,
+        /^ $($t.our-nick) ‘, ¦releases (’\d+‘ commits): «moar␤»’ $/,
+        :50timeout);
 
 $t.test(‘“v6c” query’,
-        ‘commit: v6c say $*PERL’,
-        /^ $($t.our-nick) ‘, ¦v6c (’\d+‘ commits): «Perl 6 (6.c)␤»’ $/,
-        :20timeout);
+        ‘commit: v6c say $*VM.name’,
+        /^ $($t.our-nick) ‘, ¦v6c (’\d+‘ commits): «moar␤»’ $/,
+        :30timeout);
 
 $t.test(‘“6.c” query’,
-        ‘commit: 6.c say $*PERL’,
-        /^ $($t.our-nick) ‘, ¦6.c (’\d+‘ commits): «Perl 6 (6.c)␤»’ $/,
-        :20timeout);
+        ‘commit: 6.c say $*VM.name’,
+        /^ $($t.our-nick) ‘, ¦6.c (’\d+‘ commits): «moar␤»’ $/,
+        :30timeout);
 
 $t.test(‘“6c” query’,
-        ‘commit: 6c say $*PERL’,
-        /^ $($t.our-nick) ‘, ¦6c (’\d+‘ commits): «Perl 6 (6.c)␤»’ $/,
-        :20timeout);
+        ‘commit: 6c say $*VM.name’,
+        /^ $($t.our-nick) ‘, ¦6c (’\d+‘ commits): «moar␤»’ $/,
+        :30timeout);
 
 $t.test(‘“6c,” does not work’,
         ‘6c, say ‘6c, is actually working…’’);
@@ -153,12 +153,12 @@ $t.test(‘“6c,” does not work’,
 $t.test(‘“all” query (same output everywhere)’,
         ‘commit: all say 'hi'’, # ASCII quotes because they are supported everywhere
         /^ $($t.our-nick) ‘, ¦all (’\d+‘ commits): «hi␤»’ $/,
-        :30timeout);
+        :50timeout);
 
 $t.test(‘“all” query (different output everywhere)’,
         ‘commit: all say rand’,
         “{$t.our-nick}, https://whatever.able/fakeupload”,
-        :30timeout);
+        :50timeout);
 
 $t.test(‘multiple commits separated by comma’,
         “commit: 2016.02,2016.03,9ccd848,HEAD say ‘hello’”,
@@ -218,7 +218,7 @@ $t.test(‘wrong mime type’,
 
 $t.test(‘malformed link (failed to resolve)’,
         ‘commit: HEAD https://perl6.or’,
-        /^ <me($t)>‘, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name 'perl6.or' with family ’\w+‘. Error: 'Name or service not known')’ $/);
+        /^ <me($t)>‘, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name 'perl6.or' with family ’\w+‘.␤Error: ’\'?‘Name or service not known’\'?‘)’ $/);
 
 $t.test(‘malformed link (could not parse)’,
         ‘commit: HEAD https://:P’,
