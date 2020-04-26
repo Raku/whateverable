@@ -60,16 +60,16 @@ mkdir BUILDS-LOCATION;
 mkdir ARCHIVES-LOCATION;
 
 # TODO IO::Handle.lock ? run ‘flock’? P5 modules?
-exit 0 unless run ‘mkdir’, :err(Nil), ‘--’, BUILD-LOCK; # only one instance running
+exit 0 unless run :err(Nil), <mkdir -->, BUILD-LOCK; # only one instance running
 my $locked = True;
 END BUILD-LOCK.IO.rmdir if $locked;
 
 sub pull-or-clone($repo-origin, $repo-path) {
     if $repo-path.IO ~~ :d  {
         my $old-dir = $*CWD;
-        run :cwd($repo-path), ‘git’, ‘pull’;
+        run :cwd($repo-path), <git pull>;
     } else {
-        exit unless run ‘git’, ‘clone’, ‘--’, $repo-origin, $repo-path;
+        exit unless run <git clone -->, $repo-origin, $repo-path;
     }
 }
 
@@ -80,17 +80,17 @@ if RAKUDOISH {
 }
 
 if REPO-CURRENT.IO !~~ :d  {
-    run ‘git’, ‘clone’, ‘--’, REPO-LATEST, REPO-CURRENT;
+    run <git clone -->, REPO-LATEST, REPO-CURRENT;
     # make sure we can still pull branch info and other stuff from the actual origin
     run :cwd(REPO-CURRENT), <git remote add real-origin>, REPO-LATEST;
 }
 
 my $channel = Channel.new;
 
-my @git-log     = ‘git’, ‘log’, ‘-z’, ‘--pretty=%H’;
-my @args-tags   = |@git-log, ‘--tags’, ‘--no-walk’, ‘--since’, TAGS-SINCE;
+my @git-log     = <git log -z --pretty=%H>;
+my @args-tags   = |@git-log, |<--tags --no-walk --since>, TAGS-SINCE;
 my @args-latest = |@git-log, COMMIT-RANGE;
-my @args-recent = |@git-log, ‘--all’, ‘--since’, ALL-SINCE;
+my @args-recent = |@git-log, |<--all --since>, ALL-SINCE;
 my @args-old    = |@git-log, ‘--reverse’, EVERYTHING-RANGE;
 
 my %commits;
@@ -151,7 +151,7 @@ await (for ^PARALLEL-COUNT { # TODO rewrite when .race starts working in rakudo
           });
 
 # update repo so that bots know about latest commits
-run ‘git’, ‘--git-dir’, “{REPO-CURRENT}/.git”, ‘--work-tree’, REPO-CURRENT, ‘pull’, ‘--tags’, REPO-LATEST;
+run :cwd(REPO-CURRENT), <git pull --tags>, REPO-LATEST;
 run :cwd(REPO-CURRENT), <git fetch --all>;
 
 sub process-commit($commit) {
@@ -165,10 +165,9 @@ sub process-commit($commit) {
     my $archive-path = “{ARCHIVES-LOCATION}/$commit.zst”.IO.absolute;
 
     # ⚡ clone
-    run ‘git’, ‘clone’, ‘-q’, ‘--’, REPO-LATEST, $temp-folder;
+    run <git clone -q -->, REPO-LATEST, $temp-folder;
     # ⚡ checkout to $commit
-    my @git-temp = ‘git’, ‘--git-dir’, “$temp-folder/.git”, ‘--work-tree’, $temp-folder;
-    run |@git-temp, ‘reset’, ‘-q’, ‘--hard’, $commit;
+    run :cwd($temp-folder), <git reset -q --hard>, $commit;
 
     # No :merge for log files because RT #125756 RT #128594
 
@@ -185,16 +184,16 @@ sub process-commit($commit) {
 
         my @args = do given PROJECT {
             when MoarVM {
-                ‘perl’, ‘--’, ‘Configure.pl’, “--prefix=$build-path”,
-                        ‘--debug=3’
+                |<perl -- Configure.pl>, “--prefix=$build-path”,
+                     ‘--debug=3’
             }
             when Rakudo-Moar {
-                 ‘perl’, ‘--’, ‘Configure.pl’, “--prefix=$build-path”,
-                         ‘--gen-moar’, ‘--gen-nqp’, ‘--backends=moar’
+                |<perl -- Configure.pl>, “--prefix=$build-path”,
+                     <--gen-moar --gen-nqp --backends=moar>
             }
         }
-        if PROJECT == Rakudo-Moar and run ‘grep’, ‘-m1’, ‘-q’, ‘--’,
-                                          ‘--git-reference’, ‘Configure.pl’ {
+        if PROJECT == Rakudo-Moar
+        and run <grep -m1 -q -- --git-reference Configure.pl> {
             @args.push: “--git-reference={GIT-REFERENCE}”
         }
 
@@ -212,10 +211,10 @@ sub process-commit($commit) {
         my $make-log-fh = open :w, “$log-path/make.log”;
         my $make-err-fh = open :w, “$log-path/make.err”;
         my @args = do given PROJECT {
-            when MoarVM      { ‘make’, ‘-j’, ‘7’, ‘-C’, $temp-folder }
-            when Rakudo-Moar { ‘make’,            ‘-C’, $temp-folder }
+            when MoarVM      { |<make -j 7 -C>, $temp-folder }
+            when Rakudo-Moar { |<make      -C>, $temp-folder }
         }
-        $make-ok = run :out($make-log-fh), :err($make-err-fh), |@args;
+        $make-ok = run :out($make-log-fh), :err($make-err-fh), @args;
         $make-log-fh.close;
         $make-err-fh.close;
         say “»»»»» Cannot make $commit” unless $make-ok;
@@ -226,7 +225,7 @@ sub process-commit($commit) {
         my $install-log-fh = open :w, “$log-path/make-install.log”;
         my $install-err-fh = open :w, “$log-path/make-install.err”;
         my $install-ok = run(:out($install-log-fh), :err($install-err-fh),
-                             ‘make’, ‘-C’, $temp-folder, ‘install’);
+                             <make -C>, $temp-folder, ‘install’);
         $install-log-fh.close;
         $install-err-fh.close;
         say “»»»»» Cannot install $commit” unless $install-ok;
@@ -235,8 +234,8 @@ sub process-commit($commit) {
     # ⚡ compress
     # No matter what we got, compress it
     say “»»»»» $commit: compressing”;
-    my $proc = run(:out, :bin, ‘tar’, ‘cf’, ‘-’, ‘--absolute-names’, ‘--remove-files’, ‘--’, $build-path);
-    run(:in($proc.out), :bin, ‘zstd’, ‘-c’, ‘-19’, ‘-q’, ‘-o’, $archive-path);
+    my $proc = run(:out, :bin, <tar cf - --absolute-names --remove-files -->, $build-path);
+    run(:in($proc.out), :bin, <zstd -c -19 -q -o>, $archive-path);
 
     rmtree $temp-folder;
 }
