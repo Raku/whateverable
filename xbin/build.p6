@@ -81,6 +81,8 @@ if RAKUDOISH {
 
 if REPO-CURRENT.IO !~~ :d  {
     run ‘git’, ‘clone’, ‘--’, REPO-LATEST, REPO-CURRENT;
+    # make sure we can still pull branch info and other stuff from the actual origin
+    run :cwd(REPO-CURRENT), <git remote add real-origin>, REPO-LATEST;
 }
 
 my $channel = Channel.new;
@@ -150,6 +152,7 @@ await (for ^PARALLEL-COUNT { # TODO rewrite when .race starts working in rakudo
 
 # update repo so that bots know about latest commits
 run ‘git’, ‘--git-dir’, “{REPO-CURRENT}/.git”, ‘--work-tree’, REPO-CURRENT, ‘pull’, ‘--tags’, REPO-LATEST;
+run :cwd(REPO-CURRENT), <git fetch --all>;
 
 sub process-commit($commit) {
     return if “{ARCHIVES-LOCATION}/$commit.zst”.IO ~~ :e; # already exists
