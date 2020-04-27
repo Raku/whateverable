@@ -58,19 +58,24 @@ sub get-short-commit($original-commit) is export { # TODO proper solution please
     !! $original-commit
 }
 
-
-#↓ Turns anything into a full SHA (returns Nil if can't).
-sub to-full-commit($commit, :$short=False, :$repo=$CONFIG<rakudo>) is export {
+sub anything-to-sha($commit, :$short=False, :$repo=$CONFIG<rakudo>) {
     return if run(:out(Nil), :err(Nil), :cwd($repo),
                   <git rev-parse --verify>, $commit).exitcode ≠ 0; # make sure that $commit is valid
 
     my $result = get-output cwd => $repo,
-                            |(|<git rev-list -1>, # use rev-list to handle tags
+                            |(|<git rev-list -1>, # use rev-list to handle tags and abbrevs
                               ($short ?? ‘--abbrev-commit’ !! Empty), $commit);
 
     return if     $result<exit-code> ≠ 0;
     return unless $result<output>;
     $result<output>
+}
+
+#| Turns anything into a full SHA (returns Nil if can't).
+sub to-full-commit($commit, :$short=False, :$repo=$CONFIG<rakudo>) is export {
+    anything-to-sha(        $commit , :$short, :$repo)
+    ||
+    anything-to-sha(“origin/$commit”, :$short, :$repo)
 }
 
 #↓ Pulls an archive with rakudo build from mothership (Whateverable
@@ -188,17 +193,25 @@ sub get-similar($tag-or-hash, @other?, :$repo=$CONFIG<rakudo>) is export {
                           ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,
                           ‘--sort=-taggerdate’)<output>.lines
                           .map(*.split(‘/’))
-                          .grep({ build-exists .[0] || .[1],
+                          .grep({ build-exists .[0] || .[1], # no thinko here, .[0] will be empty sometimes
                                                :force-local })
                           .map(*[2]);
 
+    my @branches = get-output(cwd => $repo, <git branch --remotes>,
+                              ‘--format=%(objectname)/%(refname:strip=3)’,
+                              ‘--sort=-authordate’)<output>.lines
+                              .map(*.split(‘/’))
+                              .grep({ build-exists .[0],
+                                                   :force-local })
+                              .map(*[1]);
+
     my $cutoff = $tag-or-hash.chars max 7;
-    my @commits = get-output(cwd => $repo, ‘git’, ‘rev-list’,
-                             ‘--all’, ‘--since=2014-01-01’)<output>
+    my @commits = get-output(cwd => $repo, <git rev-list --all>,
+                             ‘--since=2014-01-01’)<output>
                       .lines.map(*.substr: 0, $cutoff);
 
     # flat(@options, @tags, @commits).min: { sift4($_, $tag-or-hash, 5, 8) }
-    did-you-mean $tag-or-hash, flat(@options, @tags, @commits),
+    did-you-mean $tag-or-hash, flat(@options, @tags, @branches, @commits),
                  :default(‘HEAD’), :max-offset($cutoff);
 }
 

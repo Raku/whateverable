@@ -180,6 +180,10 @@ $t.test(‘very old tags’,
         ‘commit: 2014.01,2014.02,2014.03 say 42’,
         “{$t.our-nick}, ¦2014.01,2014.02,2014.03: «42␤»”);
 
+$t.test(‘branches’,
+        ‘c: nom say $*PERL.compiler.version’,
+        “{$t.our-nick}, ¦nom: «v2017.10.4.g.4.fca.94743␤»”);
+
 # Special characters
 #`{ What should we do with colors?
 $t.test(‘special characters’,
@@ -258,6 +262,10 @@ $t.test(‘Only one commit is wrong (did you mean … ?)’,
 $t.test(‘Both commits are wrong (did you mean … ?)’,
         ‘commit: 2015.12^,2015.13,d2c5694e50 say 42’,
         “{$t.our-nick}, ¦2015.12^: «42␤» ¦2015.13: «Cannot find this revision (did you mean “2015.12”?)» ¦d2c5694: «Cannot find this revision (did you mean “d2c5684”?)»”);
+
+$t.test(‘Did you mean a branch?’,
+        ‘commit: venom say 42’,
+        “{$t.our-nick}, ¦venom: «Cannot find this revision (did you mean “nom”?)»”);
 
 $t.test(‘Did you forget to specify a revision?’,
         ‘commit: say ‘hello world’’,
