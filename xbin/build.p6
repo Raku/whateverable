@@ -80,9 +80,9 @@ if RAKUDOISH {
 }
 
 if REPO-CURRENT.IO !~~ :d  {
-    run <git clone -->, REPO-LATEST, REPO-CURRENT;
+    run <git clone --origin local-origin -->, REPO-LATEST, REPO-CURRENT;
     # make sure we can still pull branch info and other stuff from the actual origin
-    run :cwd(REPO-CURRENT), <git remote add real-origin>, REPO-LATEST;
+    run :cwd(REPO-CURRENT), <git remote add origin>, REPO-LATEST;
 }
 
 my $channel = Channel.new;
