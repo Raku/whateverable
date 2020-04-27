@@ -189,7 +189,7 @@ sub process-commit($commit) {
             }
             when Rakudo-Moar {
                 |<perl -- Configure.pl>, “--prefix=$build-path”,
-                     <--gen-moar --gen-nqp --backends=moar>
+                     |<--gen-moar --gen-nqp --backends=moar>
             }
         }
         if PROJECT == Rakudo-Moar
