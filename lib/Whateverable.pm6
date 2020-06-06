@@ -57,7 +57,9 @@ method TWEAK {
                 return without $result;
                 return $result but Reply($msg) if $result !~~ Promise;
                 return start sub {
-                    try return (await $result) but Reply($msg);
+                    my $awaited = try await $result;
+                    return without $awaited;
+                    return $awaited but Reply($msg);
                     handle-exception $!, $msg
                 }()
             }
