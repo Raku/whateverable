@@ -106,6 +106,23 @@ sub time-left(Instant() $then, :$already-there?, :$simple=False) is export {
     $answer
 }
 
+#| Just like .join but wraps around
+sub limited-join(@list, :$limit=70) is export {
+    my @strs;
+    my $cur = ‘’;
+    gather for @list {
+        if $cur and ($cur ~ $_).chars > $limit { # wrap
+            @strs.push: “$cur,”;
+            $cur = ‘’
+        }
+        $cur ~= ‘,’ if $cur;
+        $cur ~= $_;
+        LAST take $cur
+    }
+    @strs.push: $cur if $cur;
+    @strs.join: “\n  ”
+}
+
 #| Get current timestamp (DateTime)
 sub timestampish is export { DateTime.now(:0timezone).truncated-to: ‘seconds’ }
 

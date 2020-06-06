@@ -107,14 +107,6 @@ method process($msg, $config is copy, $code is copy, :%ENV) {
     ?? “¦{$config} ({+%shas{@outputs[0]}} commits): «{@outputs[0]}»”
     !! ‘¦’ ~ @outputs.map({ “{%shas{$_}.join: ‘,’}: «$_»” }).join: ‘ ¦’;
 
-    my &limited-join = sub (@sha-list) {
-        my $l = ‘’;
-        gather for @sha-list -> $sha {
-            { take “$l,”; $l = ‘’ } if $l and ($l ~ $sha).chars > 70;
-            $l ~= $l ?? “,$sha” !! $sha;
-            LAST take $l
-        }.join: “\n  ”
-    }
     my $long-str  = ‘¦’ ~ @outputs.map({ “«{limited-join %shas{$_}}»:\n$_” }).join: “\n¦”;
     $short-str but ProperStr($long-str);
 }
