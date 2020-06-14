@@ -50,5 +50,5 @@
         "Text::Diff::Sift4"
     ],
     "resources"   : [ ],
-    "source-url"  : "https://github.com/perl6/whateverable.git"
+    "source-url"  : "https://github.com/Raku/whateverable.git"
 }
