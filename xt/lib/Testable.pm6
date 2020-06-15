@@ -42,7 +42,7 @@ class Testable {
                                          “--listen=$host”, “--ports=$port”;
         END .kill with $!server-proc;
         %*ENV<TESTABLE_PORT> = $port;
-        %*ENV<TESTABLE_GISTS> = ‘/tmp/whateverable/tist/$nick’;
+        %*ENV<TESTABLE_GISTS> = “/tmp/whateverable/tist/$bot”;
         my $started = $!server-proc.start;
         sleep 1;
         if $started.status ~~ Broken {
