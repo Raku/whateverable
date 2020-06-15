@@ -48,7 +48,6 @@ subtest ‘all channels have recent data’, {
     my @tracked-channels = dir ‘data/irc’, test => { .starts-with(‘#’) && “data/irc/$_”.IO.d };
     ok @tracked-channels > 0, ‘at least one channel is tracked’;
     for @tracked-channels {
-        dd $_;
         my $exists = “$_/{DateTime.now.earlier(:2days).Date}”.IO.e;
         todo ‘outdated data (issue #192)’, 3;
         ok $exists, “{.basename} is up-to-date (or was up-to-date 2 days ago)”;
