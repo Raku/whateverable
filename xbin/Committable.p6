@@ -84,7 +84,8 @@ sub process($msg, $config is copy, $code is copy, :%ENV) {
 
     proccess-and-group-commits @outputs, %shas, $file, @commits,
                                :intermingle, :!prepend,
-                               :$start-time, time-limit => TOTAL-TIME;
+                               :$start-time, time-limit => TOTAL-TIME,
+                               :%ENV;
 
     commit-groups-to-gisted-reply @outputs, %shas, $config;
 }
