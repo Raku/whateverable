@@ -50,7 +50,7 @@ multi method irc-to-me($msg where .args[1] ~~ ?(my $prefix = m/^ $<shortcut>=@(s
                                   && .text ~~ /^ \s* $<code>=.+ /) is default {
     my $code     = ~$<code>;
     my $shortcut = shortcuts{$prefix<shortcut>};
-    start self.process: $msg, $shortcut, $code
+    start process $msg, $shortcut, $code
 }
 
 multi method irc-to-me($msg where /^ \s* [ @<envs>=((<[\w-]>+)‘=’(\S*)) ]* %% \s+
@@ -64,25 +64,11 @@ multi method irc-to-me($msg where /^ \s* [ @<envs>=((<[\w-]>+)‘=’(\S*)) ]* %
     %ENV ,= %*ENV;
     my $config = ~$<config>;
     my $code   = ~$<code>;
-    start self.process: $msg, $config, $code, :%ENV
+    start process $msg, $config, $code, :%ENV
 
 }
 
-method process-commit($commit, $filename, :%ENV) {
-    # convert to real ids so we can look up the builds
-    my $full-commit = to-full-commit    $commit;
-    my $short-commit = get-short-commit $commit;
-    $short-commit ~= “({get-short-commit $full-commit})” if $commit eq ‘HEAD’;
-
-    without $full-commit {
-        return $short-commit R=> ‘Cannot find this revision (did you mean “’ ~
-          get-short-commit(get-similar $commit, <HEAD v6.c releases all>) ~
-          ‘”?)’
-    }
-    $short-commit R=> subprocess-commit $commit, $filename, $full-commit, :%ENV;
-}
-
-method process($msg, $config is copy, $code is copy, :%ENV) {
+sub process($msg, $config is copy, $code is copy, :%ENV) {
     my $start-time = now;
     if $config ~~ /^ [say|sub] $/ {
         $msg.reply: “Seems like you forgot to specify a revision (will use “v6.c” instead of “$config”)”;
@@ -95,20 +81,12 @@ method process($msg, $config is copy, $code is copy, :%ENV) {
 
     my @outputs; # unlike %shas this is ordered
     my %shas;    # { output => [sha, sha, …], … }
-    %shas.categorize-list: as => *.value, {
-        if now - $start-time > TOTAL-TIME { # bail out if needed
-            grumble “«hit the total time limit of {TOTAL-TIME} seconds»”
-        }
-        @outputs.push: .key if %shas{.key}:!exists;
-        .key
-    }, @commits.map: { self.process-commit: $_, $file, :%ENV };
 
-    my $short-str = @outputs == 1 && %shas{@outputs[0]} > 3 && $config.chars < 20
-    ?? “¦{$config} ({+%shas{@outputs[0]}} commits): «{@outputs[0]}»”
-    !! ‘¦’ ~ @outputs.map({ “{%shas{$_}.join: ‘,’}: «$_»” }).join: ‘ ¦’;
+    proccess-and-group-commits @outputs, %shas, $file, @commits,
+                               :intermingle, :!prepend,
+                               :$start-time, time-limit => TOTAL-TIME;
 
-    my $long-str  = ‘¦’ ~ @outputs.map({ “«{limited-join %shas{$_}}»:\n$_” }).join: “\n¦”;
-    $short-str but ProperStr($long-str);
+    commit-groups-to-gisted-reply @outputs, %shas, $config;
 }
 
 

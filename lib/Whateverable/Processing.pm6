@@ -41,6 +41,60 @@ sub subprocess-commit($commit, $filename, $full-commit, :%ENV) is export {
     $output
 }
 
+#| Transform a revision into `output => short SHA` pair
+sub process-commit($commit, $filename, :%ENV) is export {
+    # convert to real ids so we can look up the builds
+    my $full-commit = to-full-commit    $commit;
+    my $short-commit = get-short-commit $commit;
+    $short-commit ~= “({get-short-commit $full-commit})” if $commit eq ‘HEAD’;
+
+    without $full-commit {
+        return $short-commit R=> ‘Cannot find this revision (did you mean “’ ~
+          get-short-commit(get-similar $commit, <HEAD v6.c releases all>) ~
+          ‘”?)’
+    }
+    $short-commit R=> subprocess-commit $commit, $filename, $full-commit, :%ENV;
+}
+
+#| Runs process-commit on each commit and saves the
+#| results in a given array and hash
+sub proccess-and-group-commits(@outputs, # unlike %shas this is ordered
+                               %shas,    # { output => [sha, sha, …], … }
+                               $file,
+                               *@commits,
+                               :$intermingle=True, :$prepend=False,
+                               :$start-time, :$time-limit,
+                               :%ENV=%*ENV) is export {
+    for @commits.map: { process-commit $_, $file, :%ENV } {
+        if $start-time && $time-limit && now - $start-time > $time-limit { # bail out if needed
+            grumble “«hit the total time limit of $time-limit seconds»”
+        }
+        my $push-needed = $intermingle
+                          ?? (%shas{.key}:!exists)
+                          !! !@outputs || @outputs.tail ne .key;
+        @outputs.push: .key if $push-needed;
+        if $prepend {
+            %shas{.key}.prepend: .value;
+        } else {
+            %shas{.key}.append:  .value;
+        }
+    }
+}
+
+#| Takes the array and hash produced by `proccess-and-group-commits`
+#| and turns it into a beautiful gist (or a short reply).
+#| Note that it can list the same commit set more than once if you're
+#| not using intermingle feature in proccess-and-group-commits.
+#| Arguably it's a feature, but please judge yourself.
+sub commit-groups-to-gisted-reply(@outputs, %shas, $config) is export {
+    my $short-str = @outputs == 1 && %shas{@outputs[0]} > 3 && $config.chars < 20
+    ?? “¦{$config} ({+%shas{@outputs[0]}} commits): «{@outputs[0]}»”
+    !! ‘¦’ ~ @outputs.map({ “{%shas{$_}.join: ‘,’}: «$_»” }).join: ‘ ¦’;
+
+    my $long-str  = ‘¦’ ~ @outputs.map({ “«{limited-join %shas{$_}}»:\n$_” }).join: “\n¦”;
+    $short-str but ProperStr($long-str);
+}
+
 #↓ Substitutes some characters in $code if it looks like code, or
 #↓ fetches code from a url if $code looks like one.
 sub process-code($code is copy, $msg) is export {
