@@ -5,6 +5,8 @@ use Test;
 my regex sha    is export { <.xdigit>**7..10 }
 my regex me($t) is export { $($t.our-nick)   }
 
+sub bot-gist-dir($bot) { “/tmp/whateverable/tist/$bot”.IO }
+
 class Testable {
     has $.bot;
     has $.our-nick;
@@ -42,7 +44,7 @@ class Testable {
                                          “--listen=$host”, “--ports=$port”;
         END .kill with $!server-proc;
         %*ENV<TESTABLE_PORT> = $port;
-        %*ENV<TESTABLE_GISTS> = “/tmp/whateverable/tist/$bot”;
+        %*ENV<TESTABLE_GISTS> = bot-gist-dir $!bot;
         my $started = $!server-proc.start;
         sleep 1;
         if $started.status ~~ Broken {
@@ -116,7 +118,7 @@ class Testable {
     method !do-test(|c ($description, $command, *@expected, :$timeout is copy = 25, :$delay = 0.5, :$bridge = False)) {
         $timeout ×= 1.5 if %*ENV<HARNESS_ACTIVE>; # expect some load (relevant for parallelized tests)
 
-        my $gists-path = “/tmp/whateverable/tist/$!bot-nick”;
+        my $gists-path = bot-gist-dir $!bot;
         rmtree $gists-path if $gists-path.IO ~~ :d;
 
         my @got;
@@ -150,7 +152,7 @@ class Testable {
 
     method test-gist($description, %files) {
         for %files.kv -> $file, $tests {
-            my $path = “/tmp/whateverable/tist/$!bot-nick/$file”;
+            my $path = bot-gist-dir($!bot).add: $file;
             ok $path.IO ~~ :f, “gist file $file exists”;
             cmp-ok slurp($path), &[~~], $_, “gist file {$file}: $description” for @$tests;
         }
