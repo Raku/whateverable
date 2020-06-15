@@ -69,10 +69,10 @@ multi method irc-to-me($msg where .text ~~ &bisect-cmd) {
         $code = $<maybe-code>;
         $msg.reply: “Using old=$old new=$new in an attempt to do what you mean”
     }
-    self.process: $msg, ~$code, ~$old, ~$new
+    process $msg, ~$code, ~$old, ~$new
 }
 
-method process($msg, $code, $old, $new) {
+sub process($msg, $code, $old, $new) {
     # convert to real ids so we can look up the builds
     my @options = <HEAD>;
     my $full-old = to-full-commit $old;
@@ -139,10 +139,10 @@ method process($msg, $code, $old, $new) {
 
     my $init-result = get-output cwd => $repo-cwd, <git bisect new>, $full-new;
     if $init-result<exit-code> ≠ 0 {
-        $msg.reply: ‘bisect log: ’ ~ self.upload: { query  => $msg.text,
-                                                    result => colorstrip($init-result<output>), },
-                                                  description => $msg.server.current-nick,
-                                                  public => !%*ENV<DEBUGGABLE>;
+        $msg.reply: ‘bisect log: ’ ~ upload { query  => $msg.text,
+                                              result => colorstrip($init-result<output>), },
+                                            description => $msg.server.current-nick,
+                                            public => !%*ENV<DEBUGGABLE>;
         grumble ‘bisect init failure. See the log for more details’
     }
     my $bisect-result;
@@ -174,10 +174,10 @@ method process($msg, $code, $old, $new) {
     my $bisect-status = $bisect-result<status>;
     my $bisect-output = $bisect-result<log>;
 
-    $msg.reply: ‘bisect log: ’ ~ self.upload: { ‘query’   => $msg.text,
-                                                ‘result’  => colorstrip(“$init-result<output>\n$bisect-output”), },
-                                              description => $msg.server.current-nick,
-                                              public => !%*ENV<DEBUGGABLE>;
+    $msg.reply: ‘bisect log: ’ ~ upload { ‘query’   => $msg.text,
+                                          ‘result’  => colorstrip(“$init-result<output>\n$bisect-output”), },
+                                        description => $msg.server.current-nick,
+                                        public => !%*ENV<DEBUGGABLE>;
 
     if $bisect-result<first-new-commit>.list > 1 {
         grumble “There are {+$bisect-result<first-new-commit>} candidates for the”

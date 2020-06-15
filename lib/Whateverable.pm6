@@ -167,7 +167,7 @@ multi method filter($response where
         %files<query> = $_ with $response.?msg.?text;
         %files<query>:delete unless %files<query>;
     }
-    my $url = self.upload: %files, public => !%*ENV<DEBUGGABLE>, :$description;
+    my $url = upload %files, public => !%*ENV<DEBUGGABLE>, :$description;
     $url = $response.link-msg()($url) if $response ~~ PrettyLink;
     $url
 }
@@ -184,10 +184,9 @@ multi method filter($text is copy) {
 }
 
 #↓ Gists %files and returns a link
-method upload(%files is copy, :$description = ‘’, Bool :$public = True) {
+sub upload(%files is copy, :$description = ‘’, Bool :$public = True) is export {
     if %*ENV<TESTABLE> {
-        my $nick = $.irc.servers.values[0].current-nick;
-        my $gists-path = “$CONFIG<builds-location>/tist/$nick”;
+        my $gists-path = %*ENV<TESTABLE_GISTS>;
         rmtree $gists-path if $gists-path.IO ~~ :d;
         mkdir $gists-path;
         spurt “$gists-path/{.key}”, .value for %files;
