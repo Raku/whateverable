@@ -16,19 +16,19 @@ $t.shortcut-tests: <b: b6: bisect: bisect6:>,
 # Basics
 
 $t.test(:50timeout, ‘bisect by exit code’,
-        ‘bisect: exit 1 unless $*VM.version.Str.starts-with(‘2015’)’,
+        ‘bisect: old=2015.12 new=HEAD exit 1 unless $*VM.version.Str.starts-with(‘2015’)’,
         /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
 
 $t.test(:50timeout, ‘inverted exit code’,
-        ‘bisect: exit 1 if     $*VM.version.Str.starts-with(‘2015’)’,
+        ‘bisect: old=2015.12 new=HEAD exit 1 if     $*VM.version.Str.starts-with(‘2015’)’,
         /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 1’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
 
 $t.test(:50timeout, ‘bisect by output’,
-        ‘bisect: say $*VM.version.Str.split(‘.’).first # same but without proper exit codes’,
+        ‘bisect: old=2015.12 new=HEAD say $*VM.version.Str.split(‘.’).first # same but without proper exit codes’,
         /^ <me($t)>‘, Bisecting by output (old=2015.12 new=’<sha>‘) because on both starting points the exit code is 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-02-04) https://github.com/rakudo/rakudo/commit/241e6c06a9ec4c918effffc30258f2658aad7b79”);
@@ -40,13 +40,13 @@ $t.test(:50timeout, ‘bisect by exit signal’,
         “{$t.our-nick}, (2015-11-09) https://github.com/rakudo/rakudo/commit/3fddcb57f66a44d1a8adb7ecee1a3b403ab9f5d8”);
 
 $t.test(:50timeout, ‘inverted exit signal’,
-        ‘bisect: Buf.new(0xFE).decode(‘utf8-c8’) # RT 126756’,
+        ‘bisect: old=2015.12 new=HEAD Buf.new(0xFE).decode(‘utf8-c8’) # RT 126756’,
         /^ <me($t)>‘, Bisecting by exit signal (old=2015.12 new=’<sha>‘). Old exit signal: 11 (SIGSEGV)’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-04-01) https://github.com/rakudo/rakudo/commit/a87fb43b6c85a496ef0358197625b5b417a0d372”);
 
 $t.test(:50timeout, ‘nothing to bisect’,
-        ‘bisect: say ‘hello world’; exit 42’,
+        ‘bisect: old=2015.12 new=HEAD say ‘hello world’; exit 42’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 42 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «hello world␤»”);
 
@@ -56,16 +56,16 @@ $t.test(:50timeout, ‘nothing to bisect, segmentation fault everywhere’,
         “{$t.our-nick}, Output on both points: «»”);
 
 $t.test(‘large output is uploaded’,
-        ‘bisect: .say for ^1000; exit 5’,
+        ‘bisect: old=2015.12 new=HEAD .say for ^1000; exit 5’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 5 and the output is identical as well’ $/,
         “{$t.our-nick}, https://whatever.able/fakeupload”);
 
 $t.test(‘exit code on old revision is 125’,
-        ‘bisect: exit 125 if $*VM.gist eq ‘moar (2015.12)’’,
+        ‘bisect: old=2015.12 new=HEAD exit 125 if $*VM.gist eq ‘moar (2015.12)’’,
         “{$t.our-nick}, Exit code on “old” revision is 125, which means skip this commit. Please try another old revision”);
 
 $t.test(‘exit code on new revision is 125’,
-        ‘bisect: exit 125 unless $*VM.gist eq ‘moar (2015.12)’’,
+        ‘bisect: old=2015.12 new=HEAD exit 125 unless $*VM.gist eq ‘moar (2015.12)’’,
         “{$t.our-nick}, Exit code on “new” revision is 125, which means skip this commit. Please try another new revision”);
 
 # Custom starting points
@@ -149,19 +149,61 @@ $t.test(‘did not forget the right syntax (two suspicious)’,
 
 $t.test(:100timeout, ‘non-revisions are ignored (one revision)’,
         ‘bisect: 2015.13 .say # heh’,
-        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
-        “{$t.our-nick}, Output on both points: «2015.13␤»”);
+        “{$t.our-nick}, Will bisect the whole range automagically because no endpoints were provided, hang tight”,
+        “{$t.our-nick}, ¦6c (42 commits): «2015.13␤»”,
+        “{$t.our-nick}, Nothing to bisect!”);
 
 $t.test(:100timeout, ‘non-revisions are ignored (two revisions)’,
         ‘bisect: 2016.12,2016.13 … BEGIN { say 42; exit 0 }’,
-        /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
-        “{$t.our-nick}, Output on both points: «42␤»”);
+        “{$t.our-nick}, Will bisect the whole range automagically because no endpoints were provided, hang tight”,
+        “{$t.our-nick}, ¦6c (42 commits): «42␤»”,
+        “{$t.our-nick}, Nothing to bisect!”);
 
 $t.test(‘some non-revisions are ignored (one is correct)’,
         ‘bisect: 2016.05 2017.13 .say # heh’,
         “{$t.our-nick}, Using old=2016.05 new=HEAD in an attempt to do what you mean”,
         /^ <me($t)>‘, On both starting points (old=2016.05 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «2017.13␤»”);
+
+
+# Automated magic thing
+$t.test(:100timeout, ‘Magic can't help here’,
+        ‘bisect: say rand’,
+        “{$t.our-nick}, Will bisect the whole range automagically because no endpoints were provided, hang tight”,
+        “{$t.our-nick}, Output on all releases: https://whatever.able/fakeupload”,
+        /^ <me($t)>‘, More than 4 changes to bisect, please try a narrower range like old=’\S+‘ new=HEAD’ $/);
+
+$t.test(:100timeout, ‘Magic is unnecessary’,
+        ‘bisect: say ‘foo’’,
+        “{$t.our-nick}, Will bisect the whole range automagically because no endpoints were provided, hang tight”,
+        “{$t.our-nick}, ¦6c (42 commits): «foo␤»”,
+        “{$t.our-nick}, Nothing to bisect!”);
+
+$t.test(:300timeout, ‘Magic finds two commits’,
+        ‘bisect: say $*PERL.gist.contains(‘6.c’ | ‘6.d’) ?? $*PERL !! ‘Raku (6.d)’’,
+        “{$t.our-nick}, Will bisect the whole range automagically because no endpoints were provided, hang tight”,
+        “{$t.our-nick}, Output on all releases: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, Bisecting by output (old=2019.11 new=2020.01) because on both starting points the exit code is 0”,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2020-01-23) https://github.com/rakudo/rakudo/commit/666f95c1ab73dce29caa68afafb3e395e4b9d4c7”,
+        “{$t.our-nick}, Bisecting by output (old=2018.10 new=2018.11) because on both starting points the exit code is 0”,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2018-10-27) https://github.com/rakudo/rakudo/commit/46ef0ea08cae96db25c7b5a9543ba696034408c8”,
+        “{$t.our-nick}, Output on all releases and bisected commits: https://whatever.able/fakeupload”);
+
+$t.test(:300timeout, ‘Magic finds new output’,
+        ‘bisect: dd “2020-05-24T10:10:00.034Z”.DateTime.Str’,
+        “{$t.our-nick}, Will bisect the whole range automagically because no endpoints were provided, hang tight”,
+        “{$t.our-nick}, Output on all releases: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, Bisecting by exit code (old=2020.02.1 new=5610764). Old exit code: 1”,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2020-02-29) https://github.com/rakudo/rakudo/commit/d95d218f3192b06f0bb52bceb90e43d198747f09”,
+        “{$t.our-nick}, Bisecting by output (old=2016.09 new=2016.10) because on both starting points the exit code is 1”,
+        “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
+        “{$t.our-nick}, (2016-09-27) https://github.com/rakudo/rakudo/commit/222d16b0b94911fdedb06ee6ad817d0f14b9c05c”,
+        “{$t.our-nick}, ⚠ New output detected, please review the results manually”,
+        “{$t.our-nick}, Output on all releases and bisected commits: https://whatever.able/fakeupload”);
+
 
 # Special characters
 #`{ What should we do with colors?
@@ -172,60 +214,60 @@ $t.test(‘special characters’,
 }
 
 $t.test(‘␤ works like an actual newline’,
-        ‘bisect: # newline test ␤ say ‘hello world’; exit 42’,
+        ‘bisect: old=2015.12 new=HEAD # newline test ␤ say ‘hello world’; exit 42’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 42 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «hello world␤»”);
 
 # URLs
 
 $t.test(:50timeout, ‘fetching code from urls’,
-        ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
+        ‘bisect: old=2015.12 new=HEAD https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(:50timeout, ‘comment after a url’,
-        ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 # this is a comment’,
+        ‘bisect: old=2015.12 new=HEAD https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 # this is a comment’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(:50timeout, ‘comment after a url (without #)’,
-        ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 ← like this!’,
+        ‘bisect: old=2015.12 new=HEAD https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 ← like this!’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «url test␤»”);
 
 $t.test(‘wrong url’,
-        ‘bisect: http://github.com/sntoheausnteoahuseoau’,
+        ‘bisect: old=2015.12 new=HEAD http://github.com/sntoheausnteoahuseoau’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (HTTP status line is 404 Not Found)”);
 
 $t.test(‘wrong mime type’,
-        ‘bisect: https://www.wikipedia.org/’,
+        ‘bisect: old=2015.12 new=HEAD https://www.wikipedia.org/’,
         “{$t.our-nick}, It looks like a URL, but mime type is ‘text/html’ while I was expecting something with ‘text/plain’ or ‘perl’ in it. I can only understand raw links, sorry.”);
 
 $t.test(‘malformed link (failed to resolve)’,
-        ‘bisect: https://perl6.or’,
+        ‘bisect: old=2015.12 new=HEAD https://perl6.or’,
         /^ <me($t)>‘, It looks like a URL, but for some reason I cannot download it (Failed to resolve host name 'perl6.or' with family ’\w+‘.␤Error: ’\'?‘Name or service not known’\'?‘)’ $/);
 
 $t.test(‘malformed link (could not parse)’,
-        ‘bisect: https://:P’,
+        ‘bisect: old=2015.12 new=HEAD https://:P’,
         “{$t.our-nick}, It looks like a URL, but for some reason I cannot download it (Could not parse URI: https://:P)”);
 
 # markdown gists
 
 $t.test(‘perl6 code block in a markdown file’,
-        ‘bisect: https://gist.github.com/AlexDaniel/06a5d19e13264b14a585e7c5990d4680’,
+        ‘bisect: old=2015.12 new=HEAD https://gist.github.com/AlexDaniel/06a5d19e13264b14a585e7c5990d4680’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «43␤43␤»”);
 
 $t.test(‘unknown code block in a markdown file’,
-        ‘bisect: https://gist.github.com/AlexDaniel/227d3eeb65ec5bb1b06dd59b85c7ebbd’,
+        ‘bisect: old=2015.12 new=HEAD https://gist.github.com/AlexDaniel/227d3eeb65ec5bb1b06dd59b85c7ebbd’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «42␤42␤»”);
 
 $t.test(‘multiple code blocks in a markdown file’,
-        ‘bisect: https://gist.github.com/AlexDaniel/c5c1aa0fdcee3fd1f74cbb099d0f9b19’,
+        ‘bisect: old=2015.12 new=HEAD https://gist.github.com/AlexDaniel/c5c1aa0fdcee3fd1f74cbb099d0f9b19’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «41␤41␤»”);
 
@@ -250,7 +292,7 @@ $t.test(‘Did you mean some commit? (old)’,
         “{$t.our-nick}, Cannot find revision “a7L479b49dbd1” (did you mean “a71479b”?)”);
 
 $t.test(:50timeout, ‘Result is different on every revision’,
-        ‘bisect: say rand’,
+        ‘bisect: old=2015.12 new=HEAD say rand’,
         /^ <me($t)>‘, Bisecting by output (old=2015.12 new=’<sha>‘) because on both starting points the exit code is 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2015-12-25) https://github.com/rakudo/rakudo/commit/07fecb52eb1fd07397659f19a5cf36dc61f84053”,
@@ -259,7 +301,7 @@ $t.test(:50timeout, ‘Result is different on every revision’,
 # Timeouts
 
 $t.test(:!both, :23timeout, ‘timeout’,
-        ‘bisect: say ‘Zzzz…’; sleep ∞’,
+        ‘bisect: old=2015.12 new=HEAD say ‘Zzzz…’; sleep ∞’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0, exit signal is 1 (SIGHUP) and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «Zzzz…␤«timed out after 10 seconds»»”);
 
@@ -269,7 +311,7 @@ $t.test(:!both, :23timeout, ‘timeout’,
 
 # https://github.com/perl6/whateverable/issues/90
 $t.test(‘working directory unchanged’,
-        ‘bisect: for dir(‘lib’) { say ‘X’ }’,
+        ‘bisect: old=2015.12 new=HEAD for dir(‘lib’) { say ‘X’ }’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         /^ <me($t)>‘, Output on both points: «’ ‘X␤’+ ‘»’ $/);
 
@@ -281,7 +323,7 @@ $t.test(:50timeout, ‘another working query #1’,
         “{$t.our-nick}, (2016-05-02) https://github.com/rakudo/rakudo/commit/e2f1fa735132b9f43e7aa9390b42f42a17ea815f”);
 
 $t.test(:50timeout, ‘another working query #2’,
-        ‘bisect: for ‘q b c d’.words -> $a, $b { }; CATCH { exit 0 }; exit 1’,
+        ‘bisect: old=2015.12 new=HEAD for ‘q b c d’.words -> $a, $b { }; CATCH { exit 0 }; exit 1’,
         /^ <me($t)>‘, Bisecting by exit code (old=2015.12 new=’<sha>‘). Old exit code: 0’ $/,
         “{$t.our-nick}, bisect log: https://whatever.able/fakeupload”,
         “{$t.our-nick}, (2016-03-01) https://github.com/rakudo/rakudo/commit/1b6c901c10a0f9f65ac2d2cb8e7a362915fadc61”);

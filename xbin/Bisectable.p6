@@ -22,6 +22,7 @@ use Whateverable::Bisection;
 use Whateverable::Bits;
 use Whateverable::Builds;
 use Whateverable::Config;
+use Whateverable::Messages;
 use Whateverable::Output;
 use Whateverable::Processing;
 use Whateverable::Running;
@@ -36,6 +37,73 @@ unit class Bisectable does Whateverable;
 method help($msg) {
     “Like this: {$msg.server.current-nick}”
     ~ ‘: old=2015.12 new=HEAD exit 1 if (^∞).grep({ last })[5] // 0 == 4’ # TODO better example
+}
+
+sub autobisect($msg, $code) {
+    my $start-time = now;
+    my $config = ‘6c’;
+    my @commits = get-commits $config;
+    my $file = process-code $code, $msg;
+
+    constant TOTAL-TIME = 60 × 15;
+    my @outputs; # unlike %shas this is ordered
+    my %shas;    # { output => [sha, sha, …], … }
+
+    # This feature differs from committable because it does *not*
+    # intermingle the results!
+    proccess-and-group-commits @outputs, %shas, $file,
+                               @commits,
+                               :!intermingle, :!prepend,
+                               :$start-time, time-limit => TOTAL-TIME;
+
+    $msg.reply: commit-groups-to-gisted-reply(@outputs, %shas, $config)
+                but PrettyLink({ “Output on all releases: $_” });
+    sleep 1; # OK this kinda sucks but otherwise the order can be wrong
+    # The magic begins now 🪄
+    return ‘Nothing to bisect!’ if @outputs == 1;
+    my $changes-limit = 4;
+    if @outputs - 1 > $changes-limit {
+        return “More than $changes-limit changes to bisect, ”
+        ~ “please try a narrower range like old={%shas{@outputs[*-2]}.tail} new=HEAD”
+    }
+    start {
+        my @sha-gatherer;
+        for @outputs.rotor(2 => -1).reverse -> ($from, $to) {
+            my $from-sha = %shas{$from}.tail;
+            my   $to-sha = %shas{  $to}.head;
+            $to-sha = ‘HEAD’ if $to-sha.starts-with: ‘HEAD(’; # total hack but it works
+            try { # we need to handle it and move forward
+                process $msg, $code, $from-sha, $to-sha, @sha-gatherer; # bisect!
+                CATCH { default { handle-exception $_, $msg } }
+            }
+        }
+        my $outputs-before = +@outputs;
+        for @sha-gatherer {
+            my $short = get-short-commit $_;
+            proccess-and-group-commits @outputs, %shas, $file,
+                                       $short ~ ‘^’,
+                                       :intermingle, :!prepend,
+                                       :$start-time, time-limit => TOTAL-TIME;
+            proccess-and-group-commits @outputs, %shas, $file,
+                                       $short,
+                                       :intermingle, :prepend,
+                                       :$start-time, time-limit => TOTAL-TIME;
+        }
+        if @outputs ≠ $outputs-before {
+            # Ideally all commits will fall into one of the
+            # existing categories that were created by running
+            # the code on releases. If we find new output it
+            # simply means the behavior changed multiple times
+            # between two releases, and people should interpret
+            # the results manually and rerun on different
+            # endpoints if necessary.
+            $msg.reply: ‘⚠ New output detected, please review the results manually’;
+        }
+        LEAVE .unlink with $file; # XXX we have to do it here…
+        $msg.reply: commit-groups-to-gisted-reply(@outputs, %shas, $config)
+                    but PrettyLink({ “Output on all releases and bisected commits: $_” });
+        Nil
+    }
 }
 
 my regex spaceeq { \s* ‘=’ \s* | \s+ }
@@ -63,16 +131,21 @@ multi method irc-to-me($msg where .text ~~ &bisect-cmd) {
     my $old  = $<old> // ‘2015.12’;
     my $new  = $<new> // ‘HEAD’;
     my $code = $<code>;
-    if ($<maybe-rev> without $<old> // $<new>) {
-        $old  =         $<maybe-rev>[0];
-        $new  = $_ with $<maybe-rev>[1];
-        $code = $<maybe-code>;
-        $msg.reply: “Using old=$old new=$new in an attempt to do what you mean”
+    if !$<old>.defined and !$<new>.defined {
+        if $<maybe-rev> {
+            $old  =         $<maybe-rev>[0];
+            $new  = $_ with $<maybe-rev>[1];
+            $code = $<maybe-code>;
+            $msg.reply: “Using old=$old new=$new in an attempt to do what you mean”
+        } else {
+            $msg.reply: ‘Will bisect the whole range automagically because no endpoints were provided, hang tight’;
+            return autobisect $msg, $code
+        }
     }
     process $msg, ~$code, ~$old, ~$new
 }
 
-sub process($msg, $code, $old, $new) {
+sub process($msg, $code, $old, $new, @sha-gatherer?) {
     # convert to real ids so we can look up the builds
     my @options = <HEAD>;
     my $full-old = to-full-commit $old;
@@ -194,6 +267,7 @@ sub process($msg, $code, $old, $new) {
         grumble ‘The result looks a bit unrealistic. Most probably the output’
         ~ ‘ is different on every commit (e.g. ｢bisect: say rand｣)’
     }
+    .push: $bisect-result<first-new-commit> with @sha-gatherer;
     LEAVE sleep 0.02;
     Nil
 }
