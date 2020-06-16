@@ -147,12 +147,12 @@ $t.test(‘did not forget the right syntax (two suspicious)’,
         “{$t.our-nick}, On both starting points (old=2014.01 new=2014.02) the exit code is 0 and the output is identical as well”,
         “{$t.our-nick}, Output on both points: «»”);
 
-$t.test(‘non-revisions are ignored (one revision)’,
+$t.test(:100timeout, ‘non-revisions are ignored (one revision)’,
         ‘bisect: 2015.13 .say # heh’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «2015.13␤»”);
 
-$t.test(‘non-revisions are ignored (two revisions)’,
+$t.test(:100timeout, ‘non-revisions are ignored (two revisions)’,
         ‘bisect: 2016.12,2016.13 … BEGIN { say 42; exit 0 }’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «42␤»”);
@@ -178,19 +178,19 @@ $t.test(‘␤ works like an actual newline’,
 
 # URLs
 
-$t.test(‘fetching code from urls’,
+$t.test(:50timeout, ‘fetching code from urls’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «url test␤»”);
 
-$t.test(‘comment after a url’,
+$t.test(:50timeout, ‘comment after a url’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 # this is a comment’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
         “{$t.our-nick}, Output on both points: «url test␤»”);
 
-$t.test(‘comment after a url (without #)’,
+$t.test(:50timeout, ‘comment after a url (without #)’,
         ‘bisect: https://gist.githubusercontent.com/AlexDaniel/147bfa34b5a1b7d1ebc50ddc32f95f86/raw/9e90da9f0d95ae8c1c3bae24313fb10a7b766595/test.p6 ← like this!’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,
