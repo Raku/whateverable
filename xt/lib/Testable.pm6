@@ -73,7 +73,7 @@ class Testable {
         start $!irc-client.run;
         # The bridge client might be needed later. We don't start it yet.
         $!bridge-client = IRC::Client.new(
-            :nick<discord6>
+            :nick<raku-bridge>
             :host<127.0.0.1> :$port
             :channels(“#whateverable_{$bot.lc}6”)
         );
