@@ -25,7 +25,7 @@ unit role Whateverable::Configurable;
 # Create a global %PROCESS::BOT-ENV variable that is
 # accessible as %*BOT-ENV.
 INIT { # XXX Total hack, but is there a better way?
-    my %PROCESS::BOT-ENV := %*BOT-ENV // %();
+    my %PROCESS::BOT-ENV = %*BOT-ENV // %(); # this doesn't do much
     %*BOT-ENV<timeout> = 10; # most bots expect this
 }
 
