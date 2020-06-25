@@ -30,57 +30,44 @@ use SVG::Plot;
 
 unit class Statisfiable does Whateverable;
 
-constant STATS-LOCATION = ‘./data/stats’.IO.absolute;
-
-# TODO gah… fix this stuff…
-my %*BOT-ENV;
-my %BOT-ENV = %(
+%*BOT-ENV = %(
     range      => ‘2014.01..HEAD’,
     background => ‘white’,
     width      => 1000,
     height     =>  800,
 );
 
-constant OPTIONS = %(
+my $STATS-LOCATION = ‘./data/stats’.IO.absolute.IO;
+my %OPTIONS = %(
     core         => ‘CORE.setting.moarvm file size (MB)’,
-#   ‘core.lines’ => ‘Lines in CORE.setting.moarvm file (count)’,
+    lines        => ‘Lines in CORE.setting.moarvm file (count)’,
     install      => ‘Space taken by a full installation (MB)’,
     libmoar      => ‘libmoar.so file size (MB)’,
 );
 
-has %stats;
-has %stat-locks;
+my %stats;
+my %stat-locks;
 
-method TWEAK { # TODO it breaks exception handling
-    mkdir STATS-LOCATION if STATS-LOCATION.IO !~~ :d;
-    for OPTIONS.keys {
-        %stat-locks{$_} = Lock.new;
-        %stats{$_} = “{STATS-LOCATION}/$_”.IO.e
-          ?? from-json slurp “{STATS-LOCATION}/$_”
-          !! %()
-    }
-}
-
-method help($) {
+method help($msg) {
     ‘Available stats: ’ ~ join ‘, ’,
         ‘core (CORE.setting size)’,
-#        ‘core.lines (lines in CORE.setting)’,
+        ‘lines (lines in CORE.setting)’,
         ‘install (size of the installation)’,
         ‘libmoar (libmoar.so size)’
 }
 
-multi method stat-for-commit(‘core’, $full-hash) {
+multi stat-for-commit(‘core’, $full-hash) {
     run-smth $full-hash, {
         my $file = “$_/share/perl6/runtime/CORE.setting.moarvm”.IO;
         $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
     }
 }
 
-#multi method stat-for-commit(‘core.lines’, $full-hash) {
-#    # TODO
-#}
+multi method stat-for-commit(‘lines’, $full-hash) {
+    # TODO
+}
 
-multi method stat-for-commit(‘install’, $full-hash) {
+multi stat-for-commit(‘install’, $full-hash) {
     run-smth $full-hash, {
         # ↓ scary, but works
         my $result = Rakudo::Internals.DIR-RECURSE($_).map(*.IO.s).sum ÷ 10⁶;
@@ -88,54 +75,56 @@ multi method stat-for-commit(‘install’, $full-hash) {
     }
 }
 
-multi method stat-for-commit(‘libmoar’, $full-hash) {
+multi stat-for-commit(‘libmoar’, $full-hash) {
     run-smth $full-hash, {
         my $file = “$_/lib/libmoar.so”.IO;
         $file.IO.e ?? $file.IO.s ÷ 10⁶ !! Nil
     }
 }
 
-multi method irc-to-me($msg where /:i ( @(OPTIONS.keys) ) (‘0’)? /) {
+multi method irc-to-me($msg where /:i ( @(%OPTIONS.keys) ) (‘0’)? /) {
     my $type   = ~$0;
     my $zeroed = ?$1;
-    start self.process: $msg, $type, $zeroed
+    start process $msg, $type, $zeroed
 }
 
-multi method process($msg, $type, $zeroed) {
+sub process($msg, $type, $zeroed) {
     $msg.reply: ‘OK! Working on it…’;
 
     my @results;
     %stat-locks{$type}.protect: {
         my %data := %stats{$type};
         my $let's-save = False;
-        my @command = |<git log -z --pretty=%H>, |%BOT-ENV<range>;
+        my @command = |<git log -z --pretty=%H>, |%*BOT-ENV<range>;
+
+        sub save { spurt “$STATS-LOCATION/$type”, to-json %data }
 
         for run(:out, :cwd($CONFIG<rakudo>), |@command).out.split: 0.chr, :skip-empty -> $full {
             next unless $full;
-            #my $short = to-full-commit $_, :short;
 
             if %data{$full}:!exists and build-exists $full {
-                %data{$full} = self.stat-for-commit: $type, $full;
-                $let's-save = True
+                %data{$full} = stat-for-commit $type, $full;
+                $let's-save++;
+                save if $let's-save %% 50; # save periodically for very long runs
             }
             @results.push: $full => $_ with %data{$full}
         }
-        spurt “{STATS-LOCATION}/$type”, to-json %data if $let's-save;
+        save if $let's-save;
     }
 
     my $pfilename = ‘plot.svg’;
-    my $title = OPTIONS{$type};
+    my $title = %OPTIONS{$type};
     my @values = @results.reverse».value;
     my @labels = @results.reverse».key».substr: 0, 8;
 
     my $plot = SVG::Plot.new(
-        width => %BOT-ENV<width>,
-        height => %BOT-ENV<height>,
+        width => %*BOT-ENV<width>,
+        height => %*BOT-ENV<height>,
         min-y-axis => $zeroed ?? 0 !! Nil,
         :$title,
         values     => (@values,),
         :@labels,
-        background => %BOT-ENV<background>,
+        background => %*BOT-ENV<background>,
     ).plot(:lines);
     my %graph = $pfilename => SVG.serialize: $plot;
 
@@ -144,6 +133,14 @@ multi method process($msg, $type, $zeroed) {
     $msg-response but FileStore(%graph)
 }
 
+
+mkdir $STATS-LOCATION if $STATS-LOCATION.IO !~~ :d;
+for %OPTIONS.keys {
+    %stat-locks{$_} = Lock.new;
+    %stats{$_} = $STATS-LOCATION.add($_).IO.e
+          ?? from-json slurp $STATS-LOCATION.add($_)
+          !! %()
+}
 
 Statisfiable.new.selfrun: ‘statisfiable6’, [ / stat[s]?6? <before ‘:’> /,
                                              fuzzy-nick(‘statisfiable6’, 3) ]
