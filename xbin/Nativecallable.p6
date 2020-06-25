@@ -38,7 +38,5 @@ multi method irc-to-me($msg where /^ \s* $<code>=.+ /) {
 }
 
 
-my %*BOT-ENV;
-
 Nativecallable.new.selfrun: ‘nativecallable6’, [ / nativecall6? <before ‘:’> /,
                                                  fuzzy-nick(‘nativecallable6’, 2) ];

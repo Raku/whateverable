@@ -94,7 +94,6 @@ multi method irc-to-me($msg where { m:r/^ [$<maybe-rev>=\S+ \s+]? $<maybe-code>=
     return $cry
 }
 
-my %*BOT-ENV;
 
 Sourceable.new.selfrun: 'sourceable6', [ / s <before ':'> /,
                                          fuzzy-nick('sourceable6', 2) ];

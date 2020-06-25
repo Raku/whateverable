@@ -141,8 +141,6 @@ method process($msg, $config is copy, $grep, $code is copy) {
 }
 
 
-my %*BOT-ENV;
-
 Coverable.new.selfrun: ‘coverable6’, [ / cover6? <before ‘:’> /,
                                        fuzzy-nick(‘coverable6’, 3) ];
 

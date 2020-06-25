@@ -273,8 +273,6 @@ sub process($msg, $code, $old, $new, @sha-gatherer?) {
 }
 
 
-my %*BOT-ENV;
-
 Bisectable.new.selfrun: ‘bisectable6’, [ / [ b[isect]?6? | ‘what’ ] <before ‘:’> /,
                                          fuzzy-nick(‘bisectable6’, 2) ]
 

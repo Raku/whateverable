@@ -175,7 +175,6 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]? $<text>=[
     “I'll pass your message to {%seen{$normalized}<nick>}”
 }
 
-my %*BOT-ENV = %();
 
 {
     # Renormalize on startup in case the rules were updated

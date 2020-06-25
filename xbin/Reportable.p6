@@ -275,8 +275,6 @@ sub analyze(IO() $before-dir where .d, IO() $after-dir where .d) {
 }
 
 
-my %*BOT-ENV;
-
 Reportable.new.selfrun: ‘reportable6’, [ / report6? <before ‘:’> /,
                                            fuzzy-nick(‘reportable6’, 2) ]
 

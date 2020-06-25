@@ -22,7 +22,12 @@ unit role Whateverable::Configurable;
 # Keep in mind that the variables are not saved anywhere and will
 # be reset on bot restart.
 
-# This role expects the class to have %.variables attribute.
+# Create a global %PROCESS::BOT-ENV variable that is
+# accessible as %*BOT-ENV.
+INIT { # XXX Total hack, but is there a better way?
+    my %PROCESS::BOT-ENV := %*BOT-ENV // %();
+    %*BOT-ENV<timeout> = 10; # most bots expect this
+}
 
 has %!default-values; #← autopopulated based on the first encountered value
 

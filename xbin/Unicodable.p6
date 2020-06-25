@@ -214,7 +214,7 @@ method propdump($msg, $query) {
 }
 
 
-my %*BOT-ENV = :30timeout;
+%*BOT-ENV<timeout> = 30;
 
 Unicodable.new.selfrun: ‘unicodable6’, [/ u[ni]?6? <before ‘:’> /, ‘propdump’, ‘unidump’,
                                         fuzzy-nick(‘unicodable6’, 3)];

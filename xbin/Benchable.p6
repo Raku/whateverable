@@ -189,8 +189,6 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
 }
 
 
-my %*BOT-ENV;
-
 Benchable.new.selfrun: ‘benchable6’, [ / bench6? <before ‘:’> /,
                                        fuzzy-nick(‘benchable6’, 2) ];
 

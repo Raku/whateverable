@@ -43,7 +43,6 @@ also does Whateverable::Configurable;
 also does Whateverable::Discordable;
 
 method TWEAK {
-    %*BOT-ENV<timeout> //= 10;
     # wrap around everything to catch exceptions
     once { # per class
         self.^lookup(‘irc-to-me’).wrap: sub ($self, $msg) {

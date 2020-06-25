@@ -123,8 +123,6 @@ method process($msg, $config, $sources is copy) {
 }
 
 
-my %*BOT-ENV;
-
 Bloatable.new.selfrun: ‘bloatable6’, [ / bloat[y]?6? <before ‘:’> /,
                                        fuzzy-nick(‘bloatable6’, 2) ]
 

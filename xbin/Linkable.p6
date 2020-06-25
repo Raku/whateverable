@@ -186,7 +186,6 @@ sub fetch($prefix, $id) {
     )
 }
 
-my %*BOT-ENV;
 
 Linkable.new.selfrun: ‘linkable6’, [ fuzzy-nick(‘linkable6’, 2) ]
 
