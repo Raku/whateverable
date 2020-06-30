@@ -102,10 +102,10 @@ multi method irc-to-me($msg where /^ \s* [log|status|info|when|next]
     if $msg !~~ /‘log’/ and not $date {
         if now < $next-range.min {
             my $warn = ($next-range.min - now)÷60÷60÷24 < 7 ?? ‘⚠🍕 ’ !! ‘’;
-            $msg.reply: “{$warn}Next SQUASHathon {time-left $next-range.min} $when”
+            reply $msg, “{$warn}Next SQUASHathon {time-left $next-range.min} $when”
                             ~ “. See $WIKI-PAGE-URL”
         } else {
-            $msg.reply: “🍕🍕 SQUASHathon is in progress!”
+            reply $msg, “🍕🍕 SQUASHathon is in progress!”
                          ~ “ The end of the event {time-left $next-range.max}”
                          ~ “. See $WIKI-PAGE-URL”
         }

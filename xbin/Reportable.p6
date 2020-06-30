@@ -82,13 +82,13 @@ multi method irc-to-me($msg where .Str.words == 2) {
     grumble “Couldn't find a snapshot for $from $hint.” without $from-dir;
     grumble “Couldn't find a snapshot for $to $hint.”   without $to-dir;
     if $from-dir.basename gt $to-dir.basename {
-        $msg.reply: ‘Anti-reports are not useful, so I switched the arguments for you.’;
+        reply $msg, ‘Anti-reports are not useful, so I switched the arguments for you.’;
         ($from-dir, $to-dir) = $to-dir, $from-dir
     }
     if $from-dir.basename eq $to-dir.basename {
         grumble “Can only generate a report from two different snapshots (both are {$from-dir.basename})”
     }
-    $msg.reply: ‘OK, working on it! This may take up to 40 seconds’;
+    reply $msg, ‘OK, working on it! This may take up to 40 seconds’;
     my $report = join “\n”, gather analyze $from-dir, $to-dir;
     ‘’ but FileStore({ ‘report.md’ => $report })
 }
@@ -125,7 +125,7 @@ sub snapshot($msg?) {
         }
 
         my $datetime = now.DateTime.truncated-to: ‘minute’;
-        .reply: ‘OK! Working on it. This will take around 5 minutes.’ with $msg;
+        reply $msg, ‘OK! Working on it. This will take around 5 minutes.’ with $msg;
 
         pull-gh “$temp-folder/GH”,  ‘rakudo/rakudo’           ;
         pull-gh “$temp-folder/OIT”,   ‘Raku/old-issue-tracker’;

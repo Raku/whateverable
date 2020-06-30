@@ -38,7 +38,7 @@ multi method irc-to-me($msg where /^ \s* [ || ‘/’ $<regex>=[.*] ‘/’
     $hack ⚛= 0;
     my $regex = $<regex>;
     my $messages = $CACHE-DIR.dir(test => *.ends-with: ‘.total’)».slurp».trim».Int.sum;
-    $msg.reply: “OK, working on it! This may take up to three minutes ($messages messages to process)”;
+    reply $msg, “OK, working on it! This may take up to three minutes ($messages messages to process)”;
     my @processed = await do for $CACHE-DIR.dir(test => *.ends-with: ‘.cache’) {
         my $channel = .basename.subst(/ ^‘#’ /, ‘’).subst(/ ‘.cache’$ /, ‘’);
         start process-channel $_, $channel, ~$regex

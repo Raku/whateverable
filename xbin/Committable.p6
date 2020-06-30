@@ -71,7 +71,7 @@ multi method irc-to-me($msg where /^ \s* [ @<envs>=((<[\w-]>+)‘=’(\S*)) ]* %
 sub process($msg, $config is copy, $code is copy, :%ENV) {
     my $start-time = now;
     if $config ~~ /^ [say|sub] $/ {
-        $msg.reply: “Seems like you forgot to specify a revision (will use “v6.c” instead of “$config”)”;
+        reply $msg, “Seems like you forgot to specify a revision (will use “v6.c” instead of “$config”)”;
         $code = “$config $code”;
         $config = ‘v6.c’
     }

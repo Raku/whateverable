@@ -273,7 +273,7 @@ method check-version-mentions() {
 }
 
 multi method irc-to-me($msg where /check|status|info|test|log/) {
-    $msg.reply: ‘OK! Working on it…’;
+    reply $msg, ‘OK! Working on it…’;
     start {
         my @jobs = (
             { gather check-websites },

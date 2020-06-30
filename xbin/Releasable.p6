@@ -78,13 +78,13 @@ sub parse-next-release($msg) {
         if not to-full-commit $release {
             $important-date = $_;
             if not .<manager> and not $annoying-warning {
-                $msg.reply: “Release manager is not specified yet.”
+                reply $msg, “Release manager is not specified yet.”
             }
             last
         }
         if not $annoying-warning {
             $annoying-warning = True;
-            $msg.reply: “Release date for Rakudo $release is listed in”
+            reply $msg, “Release date for Rakudo $release is listed in”
                   ~ “ “Planned future releases”, but it was already released.”;
         }
     }
@@ -205,7 +205,7 @@ multi method irc-to-me($msg where /^ :i \s*
     $answer ~= “$_. ” with %blockers<summary>;
     $answer ~= %stats<summary>;
     $answer ~= “ (⚠ {+%stats<warnings>} warnings)” if %stats<warnings>;
-    $msg.reply: $answer;
+    reply $msg, $answer;
     return if none %blockers<list>, %stats<unlogged>, %stats<warnings>;
 
     # ↓ And here just to make a pretty gist ↓

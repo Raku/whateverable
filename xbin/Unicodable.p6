@@ -125,7 +125,7 @@ method process($msg, $query is copy) {
     if @numerics {
         for @numerics {
             @all.push: $_;
-            $msg.reply: self.get-description: $_ if @all [<] MESSAGE-LIMIT
+            reply $msg, self.get-description: $_ if @all [<] MESSAGE-LIMIT
         }
     } elsif $query.trim-trailing ~~ /^ <+[a..zA..Z] +[0..9] +[\-\ ]>+ $ && .*? \S / {
         my @words;
@@ -145,7 +145,7 @@ method process($msg, $query is copy) {
         for @$sieve {
             @all.push: $_;
             grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
-            $msg.reply: self.get-description: $_ if @all [<] MESSAGE-LIMIT
+            reply $msg, self.get-description: $_ if @all [<] MESSAGE-LIMIT
         }
     } elsif $query.starts-with: ‘/’ {
         grumble ‘Regexes are not supported yet, sorry! Try code blocks instead’
@@ -170,7 +170,7 @@ method process($msg, $query is copy) {
         for $output.split: “\c[31]”, :skip-empty {
             @all.push: +$_;
             grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
-            $msg.reply: self.get-description: +$_ if @all [<] MESSAGE-LIMIT
+            reply $msg, self.get-description: +$_ if @all [<] MESSAGE-LIMIT
         }
     } else {
         for $query.comb».ords.flat {
@@ -178,7 +178,7 @@ method process($msg, $query is copy) {
             grumble “Cowardly refusing to gist more than $LIMIT lines” if @all > $LIMIT;
             if @all [<] MESSAGE-LIMIT {
                 sleep 0.05 if @all > 1; # let's try to keep it in order
-                $msg.reply: self.get-description: $_
+                reply $msg, self.get-description: $_
             }
         }
     }

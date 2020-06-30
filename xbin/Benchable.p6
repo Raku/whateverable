@@ -107,7 +107,7 @@ method process($msg, $config, $code) {
             with $once {
                 my $c = +@commits;
                 my $s = $c == 1 ?? ‘’ !! ‘s’;
-                $msg.reply: “starting to benchmark the $c given commit$s”
+                reply $msg, “starting to benchmark the $c given commit$s”
             }
             my $arg = $config ~~ /:i compare / ?? $code.split: ‘|||’ !! $file;
             %times{$short-commit} = self.benchmark-code: $full-commit, $arg;
@@ -124,7 +124,7 @@ method process($msg, $config, $code) {
        ($config ~~ /:i ^ [ releases | v? 6 \.? c | all ] $ / or $config.contains: ‘,’) {
         if $num-commits < ITERATIONS {
             my @prelim-commits = @commits.map({ get-short-commit $_ });
-            $msg.reply: ‘¦’ ~ @prelim-commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join:  ‘ ¦’;
+            reply $msg, ‘¦’ ~ @prelim-commits.map({ “$_: ” ~ ‘«’ ~ (%times{$_}<err> // %times{$_}<min> // %times{$_}) ~ ‘»’ }).join:  ‘ ¦’;
         }
         sleep 0.05; # to prevent messages from being reordered
 
@@ -137,7 +137,7 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
             next unless %times{@commits[$x]}:exists and %times{@commits[$x + 1]}:exists;      # the commits have to have been run at all
             next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists; # and without error
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) ≥ %times{@commits[$x]}<min> × 0.1 {
-                once $msg.reply: ‘benchmarked the given commits and found a performance difference > 10%, now trying to bisect’;
+                once reply $msg, ‘benchmarked the given commits and found a performance difference > 10%, now trying to bisect’;
                 my $result = get-output :cwd($CONFIG<rakudo>), ‘git’, ‘rev-list’,
                                         ‘--bisect’, ‘--no-merges’,
                                          @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];

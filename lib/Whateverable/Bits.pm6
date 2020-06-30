@@ -27,6 +27,11 @@ role ProperStr  { has $.long-str         }
 role PrettyLink { has &.link-msg         }
 role FileStore  { has %.additional-files }
 
+#| Reply and also mix in the Reply role so that gists have more info
+sub reply($msg, $response) is export {
+    $msg.reply: $response but Reply($msg)
+}
+
 sub shorten($str, $max, $cutoff=$max ÷ 2) is export {
     $max ≥ $str.chars ?? $str !! $str.substr(0, $cutoff - 1) ~ ‘…’
 }

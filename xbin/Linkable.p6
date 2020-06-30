@@ -52,7 +52,7 @@ sub recent($what) {
 
 my Channel $channel-messages .= new;
 
-sub reply($msg, $answer) {
+sub link-reply($msg, $answer) {
     return if recent “{$msg.?channel // $msg.nick}\0$answer”;
     sleep 3 if $msg.nick eq ‘Geth’;
     $channel-messages.send: %(:$msg, :$answer)
@@ -72,21 +72,21 @@ sub link-doc-page($msg, $match) {
     } else {
         $path .= subst: ‘Language’, ‘language’
     }
-    reply $msg, “Link: https://docs.raku.org/$path”
+    link-reply $msg, “Link: https://docs.raku.org/$path”
 }
 
 sub link-old-design-docs($msg, $match) {
     $/ = $match;
     my $syn    = $<subsyn> ?? “$<syn>/$<subsyn>” !! $<syn>;
     my $anchor = $<line>   ?? “line_” ~ $<line>  !! $<entry>;
-    reply $msg, “Link: https://design.Raku.org/$syn.html#$anchor”
+    link-reply $msg, “Link: https://design.Raku.org/$syn.html#$anchor”
 }
 
 sub link-github-ticket($msg, $match) {
     my $prefix = ($match<prefix-explicit> // $match<prefix>).uc;
     my $id     = $match<id>;
     with fetch $prefix, $id {
-        reply $msg, “{bold “$prefix#{.<id>} [{.<status>}]”}: {.<url>} {bold .<title>}”
+        link-reply $msg, “{bold “$prefix#{.<id>} [{.<status>}]”}: {.<url>} {bold .<title>}”
     }
 }
 
@@ -99,7 +99,7 @@ sub link-rt-ticket($msg, $match) {
     my $url = “https://rt.perl.org/Ticket/Display.html?id=$id”;
     $url ~= “ https://rt-archive.perl.org/perl6/Ticket/Display.html?id=$id”;
     with $data {
-        reply $msg, “{bold “RT#$id [{.<Status>}]”}: {bold .<Subject>} $url”
+        link-reply $msg, “{bold “RT#$id [{.<Status>}]”}: {bold .<Subject>} $url”
     }
 }
 
@@ -115,7 +115,7 @@ sub link-commit($msg, $match) {
         my $url = $commit<html_url>.subst: $commit<sha>, $short-sha;
         my $title = $commit<commit><message>.lines[0];
         my $date = DateTime.new($commit<commit><author><date>).Date;
-        reply $msg, “($date) $url $title”
+        link-reply $msg, “($date) $url $title”
     }
 }
 

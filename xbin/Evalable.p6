@@ -104,7 +104,7 @@ method process($msg, $code, :$good-only?) {
         $output-size += .encode.elems;
         $output-size + $extra-size < $SHORT-MESSAGE-LIMIT
     })[0..*-2].join;
-    $msg.reply: $reply-start ~ $output-cut ~ $reply-end;
+    reply $msg, $reply-start ~ $output-cut ~ $reply-end;
     sleep 0.02;
     my $gist = ($extra ?? “$extra\n” !! ‘’) ~ colorstrip $output;
     (‘’ but ProperStr($gist)) but PrettyLink({ “Full output: $_” })
