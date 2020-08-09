@@ -65,23 +65,23 @@ sub pack-it {
         # TODO Of course it should lock on the directory like everything else does.
         #      The reason why we get away with this is because we run this script
         #      once in forever.
-        my $proc = run :out, :bin, ‘pzstd’, ‘-dqc’, ‘--’, $archive-path;
-        exit 1 unless run :in($proc.out), :bin, ‘tar’, ‘x’, ‘--absolute-names’;
+        my $proc = run :out, :bin, <pzstd -dqc -->, $archive-path;
+        exit 1 unless run :in($proc.out), :bin, <tar x --absolute-names>;
     }
 
     my @bytes = @pack.join.comb(2)».parse-base: 16;
-    my $sha-proc = run :out, :in, :bin, ‘sha256sum’, ‘-b’;
+    my $sha-proc = run :out, :in, :bin, <sha256sum -b>;
     $sha-proc.in.write: Blob.new(@bytes);
     $sha-proc.in.close;
     my $sha = $sha-proc.out.slurp(:close).decode.words.head; # could also be a random name, doesn't matter
     exit 1 unless $sha;
     my $large-archive-path = “{ARCHIVES-LOCATION}/$sha.lrz”;
 
-    my $proc = run :out, :bin, ‘tar’, ‘cf’, ‘-’, ‘--absolute-names’, ‘--remove-files’, ‘--’, |@paths;
+    my $proc = run :out, :bin, <tar cf - --absolute-names --remove-files -->, |@paths;
     if $large-archive-path.IO.e {
         $large-archive-path.IO.unlink # remove existing (just in case)
     }
-    if run :in($proc.out), :bin, ‘lrzip’, ‘-q’, ‘-L’, ‘9’, ‘-o’, $large-archive-path {
+    if run :in($proc.out), :bin, <lrzip -q -L 9 -o>, $large-archive-path {
         for @pack {
             if “{ARCHIVES-LOCATION}/$_”.IO.e {
                 “{ARCHIVES-LOCATION}/$_”.IO.unlink # remove existing (just in case)
