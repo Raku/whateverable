@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-# Copyright © 2017
+# Copyright © 2017-2020
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,14 +15,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use File::Directory::Tree;
+use Whateverable;
+use Whateverable::Bits;
+use Whateverable::Config;
 
-my \WORKING-DIRECTORY = ‘.’; # TODO not supported yet
-enum Project <Rakudo-Moar Rakudo-JVM Rakudo-JS MoarVM>;
-my \PROJECT = do given @*ARGS[0] // ‘’ {
-    when /:i ^‘moarvm’$ / { MoarVM }
-    default { Rakudo-Moar }
-}
+use File::Directory::Tree;
+use IRC::Client;
+
+unit class Buildable does Whateverable;
+
+my $CHANNEL = %*ENV<DEBUGGABLE> ?? ‘#whateverable’ !! ‘#raku-dev’;
+
+enum Project <rakudo-moar moarvm>; # rakudo-jvm rakudo-js # TODO extract it
 my \DIR-BASE          = PROJECT.lc;
 my \BUILDS-LOCATION   = “/tmp/whateverable/{DIR-BASE}”;
 my \ARCHIVES-LOCATION = “{WORKING-DIRECTORY}/data/builds/{DIR-BASE}”.IO.absolute;
@@ -30,30 +34,27 @@ my \REPO-LATEST       = “/tmp/whateverable/{DIR-BASE}-repo”;
 my \CUTOFF-DATE       = PROJECT == MoarVM ?? ‘2018-10-01’ !! ‘2018-02-01’;
 my \TAGS-SINCE        = ‘2014-01-01’;
 
-my @git-latest = ‘git’, ‘--git-dir’, “{REPO-LATEST}/.git”, ‘--work-tree’, REPO-LATEST;
-my @args-tags  = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’, ‘--since’, TAGS-SINCE;
-my @args       = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--all’, ‘--before’, CUTOFF-DATE, ‘--reverse’;
+sub pack-all() {
+    my @git-latest = ‘git’, ‘--git-dir’, “{REPO-LATEST}/.git”, ‘--work-tree’, REPO-LATEST;
+    my @args-tags  = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--tags’, ‘--no-walk’, ‘--since’, TAGS-SINCE;
+    my @args       = |@git-latest, ‘log’, ‘-z’, ‘--pretty=%H’, ‘--all’, ‘--before’, CUTOFF-DATE, ‘--reverse’;
 
-my %ignore;
-for run(:out, |@args-tags).out.split(0.chr, :skip-empty) {
-    %ignore{$_}++;
-}
+    my %ignore;
+    for run(:out, |@args-tags).out.split(0.chr, :skip-empty) {
+        %ignore{$_}++;
+    }
 
-my @pack;
-for run(:out, |@args).out.split(0.chr, :skip-empty) {
-    next if %ignore{$_}:exists; # skip tags
-    next unless “{ARCHIVES-LOCATION}/$_.tar.zst”.IO ~~ :e;
-    @pack.push: $_;
-    if @pack == 20 {
-        pack-it @pack;
-        @pack = ();
-        exit # TODO this should not be here, but it doesn't work otherwise…
-             # Just put it into a loop…
-             # (ノಠ益ಠ)ノ 🗩( Rakudo! Why⁈ )
+    my @pack;
+    for run(:out, |@args).out.split(0.chr, :skip-empty) {
+        next if %ignore{$_}:exists; # skip tags
+        next unless “{ARCHIVES-LOCATION}/$_.tar.zst”.IO ~~ :e;
+        @pack.push: $_;
+        if @pack == 20 {
+            pack-it @pack;
+            @pack = ();
+        }
     }
 }
-
-# TODO handle fails correctly
 
 sub pack-it(@pack) {
     my @paths;
@@ -91,3 +92,34 @@ sub pack-it(@pack) {
         }
     }
 }
+
+multi method keep-building($msg) {
+    # TODO multi-server setup not supported (this will be irrelevant after #284)
+    ensure-config;
+    my $channel = listen-to-webhooks …;
+
+    sleep 60 × 5; # let other bots start up and stuff
+    react {
+        whenever $channel {
+            # build-all
+        }
+        whenever Supply.interval: 60 × 30 {
+            # build-all
+        }
+        whenever Supply.interval: 60 × 60 {
+            pack-all
+        }
+    }
+
+    CATCH { default { self.handle-exception: $_, $msg } }
+}
+
+multi method irc-connected($msg) {
+    once start self.keep-building: $msg
+}
+
+
+Buildable.new.selfrun: ‘buildable6’, [ / build[s]?6? <before ‘:’> /,
+                                       fuzzy-nick(‘buildable6’, 2) ]
+
+# vim: expandtab shiftwidth=4 ft=perl6
