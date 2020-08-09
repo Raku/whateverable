@@ -45,7 +45,7 @@ for run(:out, |@args).out.split(0.chr, :skip-empty) {
     next unless “{ARCHIVES-LOCATION}/$_.zst”.IO ~~ :e;
     @pack.push: $_;
     if @pack == 20 {
-        pack-it;
+        pack-it @pack;
         @pack = ();
         exit # TODO this should not be here, but it doesn't work otherwise…
              # Just put it into a loop…
@@ -55,7 +55,7 @@ for run(:out, |@args).out.split(0.chr, :skip-empty) {
 
 # TODO handle fails correctly
 
-sub pack-it {
+sub pack-it(@pack) {
     my @paths;
     for @pack {
         my $archive-path = “{ARCHIVES-LOCATION}/$_.zst”;
