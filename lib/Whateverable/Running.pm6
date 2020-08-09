@@ -31,7 +31,7 @@ sub run-smth($full-commit-hash, Code $code,
              :$backend=‘rakudo-moar’,
              :$wipe = True, :$lock = True) is export {
     my $build-path    = run-smth-build-path $full-commit-hash, :$backend;
-    my $archive-path  = “$CONFIG<archives-location>/$backend/$full-commit-hash.zst”;
+    my $archive-path  = “$CONFIG<archives-location>/$backend/$full-commit-hash.tar.zst”;
     my $archive-link  = “$CONFIG<archives-location>/$backend/$full-commit-hash”;
 
     # create all parent directories just in case

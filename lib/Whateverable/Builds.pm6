@@ -105,7 +105,7 @@ sub fetch-build($full-commit-hash, :$backend!) is export {
     return unless $response.is-success;
 
     my $disposition = $response.header.field(‘Content-Disposition’).values[0];
-    return unless $disposition ~~ /‘filename=’\s*(<.xdigit>+[‘.zst’|‘.lrz’])/;
+    return unless $disposition ~~ /‘filename=’\s*(<.xdigit>+[‘.tar.zst’|‘.tar.lrz’])/;
 
     my $location = $CONFIG<archives-location>.IO.add: $backend;
     my $archive  = $location.add: ~$0;
@@ -134,7 +134,7 @@ sub fetch-build($full-commit-hash, :$backend!) is export {
 sub build-exists($full-commit-hash,
                  :$backend=‘rakudo-moar’,
                  :$force-local=False) is export {
-    my $archive     = “$CONFIG<archives-location>/$backend/$full-commit-hash.zst”.IO;
+    my $archive     = “$CONFIG<archives-location>/$backend/$full-commit-hash.tar.zst”.IO;
     my $archive-lts = “$CONFIG<archives-location>/$backend/$full-commit-hash”.IO;
     # ↑ long-term storage (symlink to a large archive)
 

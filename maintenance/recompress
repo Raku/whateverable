@@ -7,7 +7,7 @@ BUILDS_LOCATION='/tmp/whateverable/rakudo-moar'
 
 archive_path=$1
 archive_file=${1##*/}
-sha=${archive_file%%.zst}
+sha=${archive_file%%.tar.zst}
 
 printf "%s\n" "$sha"
 zstd -q -f -d -- "$archive_path" &&

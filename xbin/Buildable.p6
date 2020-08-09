@@ -42,7 +42,7 @@ for run(:out, |@args-tags).out.split(0.chr, :skip-empty) {
 my @pack;
 for run(:out, |@args).out.split(0.chr, :skip-empty) {
     next if %ignore{$_}:exists; # skip tags
-    next unless “{ARCHIVES-LOCATION}/$_.zst”.IO ~~ :e;
+    next unless “{ARCHIVES-LOCATION}/$_.tar.zst”.IO ~~ :e;
     @pack.push: $_;
     if @pack == 20 {
         pack-it @pack;
@@ -58,7 +58,7 @@ for run(:out, |@args).out.split(0.chr, :skip-empty) {
 sub pack-it(@pack) {
     my @paths;
     for @pack {
-        my $archive-path = “{ARCHIVES-LOCATION}/$_.zst”;
+        my $archive-path = “{ARCHIVES-LOCATION}/$_.tar.zst”;
         my $build-path = “{BUILDS-LOCATION}/$_”;
         @paths.push: $build-path;
 
@@ -75,7 +75,7 @@ sub pack-it(@pack) {
     $sha-proc.in.close;
     my $sha = $sha-proc.out.slurp(:close).decode.words.head; # could also be a random name, doesn't matter
     exit 1 unless $sha;
-    my $large-archive-path = “{ARCHIVES-LOCATION}/$sha.lrz”;
+    my $large-archive-path = “{ARCHIVES-LOCATION}/$sha.tar.lrz”;
 
     my $proc = run :out, :bin, <tar cf - --absolute-names --remove-files -->, |@paths;
     if $large-archive-path.IO.e {
@@ -87,7 +87,7 @@ sub pack-it(@pack) {
                 “{ARCHIVES-LOCATION}/$_”.IO.unlink # remove existing (just in case)
             }
             $large-archive-path.IO.symlink(“{ARCHIVES-LOCATION}/$_”);
-            unlink “{ARCHIVES-LOCATION}/$_.zst”
+            unlink “{ARCHIVES-LOCATION}/$_.tar.zst”
         }
     }
 }

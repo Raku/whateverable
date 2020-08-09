@@ -155,14 +155,14 @@ run :cwd(REPO-CURRENT), <git pull --tags>, REPO-LATEST;
 run :cwd(REPO-CURRENT), <git fetch --all>;
 
 sub process-commit($commit) {
-    return if “{ARCHIVES-LOCATION}/$commit.zst”.IO ~~ :e; # already exists
+    return if “{ARCHIVES-LOCATION}/$commit.tar.zst”.IO ~~ :e; # already exists
     return if “{ARCHIVES-LOCATION}/$commit”.IO     ~~ :e; # already exists (long-term storage)
     return if $++ ≥ 10; # refuse to build too many commits at once
 
     my ($temp-folder,) = tempdir, :!unlink;
     my $build-path   = “{BUILDS-LOCATION}/$commit”.IO.absolute;
     my $log-path     = $build-path;
-    my $archive-path = “{ARCHIVES-LOCATION}/$commit.zst”.IO.absolute;
+    my $archive-path = “{ARCHIVES-LOCATION}/$commit.tar.zst”.IO.absolute;
 
     # ⚡ clone
     run <git clone -q -->, REPO-LATEST, $temp-folder;
