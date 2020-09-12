@@ -109,7 +109,7 @@ sub fetch-build($full-commit-hash, :$backend!) is export {
 
     my $location = $CONFIG<archives-location>.IO.add: $backend;
     my $archive  = $location.add: ~$0;
-    spurt $archive, $response.content, :bin;
+    spurt $archive, $response.content;
 
     if $archive.ends-with: ‘.lrz’ { # populate symlinks
         my $proc = run :out, :bin, <lrzip -dqo - -->, $archive;
