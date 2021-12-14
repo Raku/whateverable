@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use File::Directory::Tree;
-use IRC::Client::Message;
 use IRC::Client;
 use IRC::TextColor;
 use JSON::Fast;
