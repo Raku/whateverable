@@ -18,44 +18,72 @@
 use Cro::HTTP::Router;
 use Cro::HTTP::Server;
 
-sub listen-to-webhooks(…) {
-    my $channel = Channel.new;
+use Whateverable::Config;
+
+unit module Whateverable::Webhooks;
+
+
+class StrictTransportSecurity does Cro::Transform {
+    has Str:D $.secret is required;
+
+    method consumes() { Cro::TCP::Message }
+    method produces() { Cro::TCP::Message }
+
+    method transformer(Supply $pipeline --> Supply) {
+        supply {
+            whenever $pipeline -> $response {
+                $response.append-header:
+                'Strict-Transport-Security',
+                "max-age=$!max-age";
+                emit $response;
+            }
+        }
+    }
+}
+
+#| Listen to github webhooks. Returns a channel that will provide
+#| payload objects.
+sub listen-to-webhooks($host, $port, $secret, $channel, $irc) is export {
+    my $c = Channel.new;
 
     my $application = route {
-        get {
-            with process-github-hook $_, $CONFIG<squashable><secret>, $msg.irc, $CHANNEL {
-                $channel.send: $_
+        post {
+            say ‘HERE!!!!’;
+            my $CHANNEL = %*ENV<DEBUGGABLE> ?? $CONFIG<cave> !! $channel;
+            with process-webhook $secret, $CHANNEL, $irc {
+                $c.send: $_
             }
         }
     };
 
     my $webhook-listener = Cro::HTTP::Server.new(
-        host => $CONFIG<buildable><host>,
-        port => $CONFIG<buildable><port>,
+        :$host, :$port,
         :$application,
+        before => WebhookChecker.new($secret)
     );
     $webhook-listener.start;
-    $channel
+    $c
 }
 
-sub process-webhook($body, $secret, $irc, $channel) {
+#| GitHub-specific processing of webhook payloads
+sub process-webhook($secret, $channel, $irc) {
     use Digest::SHA;
     use Digest::HMAC;
 
-    my $body = $request.data;
+    say ‘HERE!’;
+    my $body = request-body -> Blob { $_ };
+    dd $body;
     $body .= subbuf: 0..^($body - 1) if $body[*-1] == 0; # TODO trailing null byte. Why is it there?
 
     my $hmac = ‘sha1=’ ~ hmac-hex $secret, $body, &sha1;
-    if $hmac ne $request.headers<X-Hub-Signature> {
-        response.status = 400;
-        content ‘Signatures didn't match’;
+    if $hmac ne request.headers<X-Hub-Signature> {
+        bad-request ‘text/plain’, ‘Signatures didn't match’;
         return
     }
 
     my $data = try from-json $body.decode;
     without $data {
-        response.status = 400;
-        content ‘Invalid JSON’;
+        bad-request ‘text/plain’, ‘Signatures didn't match’;
         return
     }
 
@@ -66,7 +94,7 @@ sub process-webhook($body, $secret, $irc, $channel) {
         $irc.send: :$text, where => $channel;
     }
 
-    content ‘’;
+    content ‘text/plain’, ‘’;
     $data
 }
 

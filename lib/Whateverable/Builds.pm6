@@ -28,15 +28,14 @@ unit module Whateverable::Builds;
 #↓ Clones Rakudo and Moar repos and ensures some directory structure.
 sub ensure-cloned-repos is export {
     # TODO racing (calling this too often when nothing is cloned yet)
-    with $CONFIG<repo-current-rakudo-moar> {
-        run <git clone -->, $CONFIG<repo-origin-rakudo>, $_ if not .IO.d
-    }
-    with $CONFIG<repo-current-moarvm> {
-        run <git clone -->, $CONFIG<repo-origin-moarvm>, $_ if not .IO.d;
-    }
-    with $CONFIG<archives-location> {
-        mkdir “$_/rakudo-moar”;
-        mkdir “$_/moarvm”;
+    for $CONFIG<projects>.values {
+        if .<repo-path> and .<repo-origin> and not .<repo-path>.IO.e {
+            mkdir .<repo-path>.IO.parent;
+            run <git clone -->, .<repo-origin>, .<repo-path>;
+            # custom local origin
+            #run :cwd(.key), <git remote add local-origin>, …;
+            mkdir $_ with .<archives-location>;
+        }
     }
     True
 }
@@ -109,7 +108,7 @@ sub fetch-build($full-commit-hash, :$backend!) is export {
 
     my $location = $CONFIG<archives-location>.IO.add: $backend;
     my $archive  = $location.add: ~$0;
-    spurt $archive, $response.content, :bin;
+    spurt $archive, $response.content;
 
     if $archive.ends-with: ‘.lrz’ { # populate symlinks
         my $proc = run :out, :bin, <lrzip -dqo - -->, $archive;
