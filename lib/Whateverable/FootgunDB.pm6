@@ -31,8 +31,25 @@ method clean {
     $!db.unlink if %*ENV<TESTABLE>
 }
 
-method read()       { from-json slurp $!db                              }
-method write(%data) {           spurt $!db, to-json :sorted-keys, %data }
+method read() {
+    from-json slurp $!db
+}
+method write(%data) {
+    # We will first write the data into a temporary file and then we'll rename
+    # the file to replace the existing one.
+    # You might be wondering – Why? 🤔
+    # If the file system has no space available, then overwriting an existing
+    # file will essentially trash it (leaving an empty file or a file with half
+    # the data 🤦). Don't ask me how I know! 😭
+    # To avoid that, we should write the data to the same file system (therefore
+    # not /tmp, writing to the same directory with the original file is the best
+    # bet) and then just rename the file if writing was successful.
+    use File::Temp;
+    my ($filename, $filehandle) = tempfile :tempdir($!db.parent), :prefix($!db.basename);
+    spurt $filehandle, to-json :sorted-keys, %data;
+    $filehandle.close;
+    rename $filehandle, $!db;
+}
 method read-write(&code) {
     $!lock.protect: {
         my %data := self.read;
