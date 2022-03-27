@@ -31,8 +31,12 @@ method clean {
     $!db.unlink if %*ENV<TESTABLE>
 }
 
-method read()       { from-json slurp $!db                              }
-method write(%data) {           spurt $!db, to-json :sorted-keys, %data }
+method read() {
+    from-json slurp $!db
+}
+method write(%data) {
+    spurt $!db, to-json :sorted-keys, %data
+}
 method read-write(&code) {
     $!lock.protect: {
         my %data := self.read;
