@@ -181,9 +181,14 @@ multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]? $<text>=[
     $db-tell.write:   $db-tell.read.values».list.flat.classify: {
         normalize-weirdly .<to>
     };
-    $db-seen.write: %($db-seen.read.values.map: {
-        normalize-weirdly(.<nick>) => $_
-    });
+    my %seens = %();
+    for $db-seen.read.values {
+        my $normalized = normalize-weirdly .<nick>;
+        if %seens{$normalized}:!exists or DateTime.new(%seens{$normalized}<timestamp>) < DateTime.new(.<timestamp>) {
+            %seens{$normalized} = $_;
+        }
+    }
+    $db-seen.write: %seens;
 }
 
 Tellable.new.selfrun: ‘tellable6’, [/ [to|tell|ask|seen] 6? <before ‘:’> /,
