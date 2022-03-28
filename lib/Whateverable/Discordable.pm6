@@ -25,7 +25,7 @@ unit role Whateverable::Discordable;
 my role FromDiscord is export { }
 
 #| Nick of the discord bridge bot.
-my constant DISCORD-BRIDGE = any(‘raku-bridge’, ‘raku-bridge1’);
+my constant DISCORD-BRIDGE = any(‘discord-raku-bot’ X~ (‘_’ Xx ^4));
 
 #| Unpack messages from the discord bridge and restart processing.
 multi method irc-privmsg-channel(ChannelMessage $msg where .nick eq DISCORD-BRIDGE) {
