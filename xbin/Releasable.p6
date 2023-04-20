@@ -265,7 +265,7 @@ multi method irc-connected($msg) {
 }
 
 
-%*BOT-ENV<branch> = ‘master’;
+%*BOT-ENV<branch> = ‘main’;
 
 Releasable.new.selfrun: ‘releasable6’, [ / release6? <before ‘:’> /,
                                          fuzzy-nick(‘releasable6’, 2) ]
