@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use File::Directory::Tree;
-use IRC::Client;
+use IRC::Client:ver<4.0.9>:auth<zef:lizmat>;
 use IRC::TextColor;
 use JSON::Fast;
 use Number::Denominate;
@@ -32,8 +32,6 @@ use Whateverable::Discordable;
 use Whateverable::Heartbeat;
 use Whateverable::Messages;
 use Whateverable::Processing;
-
-constant Message = IRC::Client::Message;
 
 unit role Whateverable does IRC::Client::Plugin;
 
