@@ -30,8 +30,8 @@ unit class Tellable does Whateverable does Whateverable::Userlist;
 #| reacts immediately
 my $heard-timeout = 60 × 10; # should be a few minutes
 
-my $db-seen = FootgunDB.new: name => ‘tellable-seen’;
-my $db-tell = FootgunDB.new: name => ‘tellable-tell’;
+my $db-seen = FootgunDB.new: name => ‘tellable/tellable-seen’;
+my $db-tell = FootgunDB.new: name => ‘tellable/tellable-tell’;
 
 method help($msg) {
     ‘Like this: .tell AlexDaniel your bot is broken’

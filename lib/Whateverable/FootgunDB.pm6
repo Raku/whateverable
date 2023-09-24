@@ -25,6 +25,7 @@ has Lock $!lock .= new;
 
 method TWEAK {
     $!db = %*ENV<TESTABLE> ?? $*TMPDIR.add($!name ~ time) !! “data/$.name”.IO;
+    mkdir $!db.parent;
     self.write: %() unless $!db.e;
 }
 method clean {

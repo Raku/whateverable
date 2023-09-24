@@ -23,7 +23,8 @@ use JSON::Fast;
 
 unit class Notable does Whateverable;
 
-my $db = %*ENV<TESTABLE> ?? $*TMPDIR.add(“notable{time}”) !! ‘data/notes’.IO;
+# TODO use FootgunDB here
+my $db = %*ENV<TESTABLE> ?? $*TMPDIR.add(“notable{time}”) !! ‘data/notable/notes’.IO;
 END { $db.unlink if %*ENV<TESTABLE> }
 my @shortcuts = ‘weekly’; # first shortcut here is the default topic
 write %() unless $db.e;
