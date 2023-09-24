@@ -22,6 +22,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v4
         with:
+          context: .
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
@@ -34,6 +35,9 @@ jobs:
       - name: Auth
         if: github.ref == 'refs/heads/main'
         run: ssh-keyscan -H postmodern.alexdaniel.org >> ~/.ssh/known_hosts
+      - name: Get config
+        if: github.ref == 'refs/heads/main'
+        run: scp whateverable@postmodern.alexdaniel.org:./config.json ./config.json
       - name: Deploy
         if: github.ref == 'refs/heads/main'
         run: docker stack deploy --with-registry-auth -c compose.yaml whateverable

@@ -51,11 +51,14 @@ sub handle-exception($exception, $msg?) is export {
 
     my ($text, @files) = flat awesomify-exception $exception;
     @files .= map({ ‘uncommitted-’ ~ .split(‘/’).tail => .IO.slurp });
-    @files.push: ‘|git-diff-HEAD.patch’ => run(:out, <git diff HEAD>).out.slurp-rest if @files;
+    # TODO disabled because it was causing 422 Unprocessable Entity error (I don't know why)
+    # Either way it's probably irrelevant because bots tend to run with clean repo state now.
+    # @files.push: ‘|git-diff-HEAD.patch’ => run(:out, <git diff HEAD>).out.slurp-rest if @files;
     @files.push: ‘result.md’ => $text;
 
     my $return = (‘’ but FileStore(%@files))
       but PrettyLink({“and I oop! Backtrace: $_”});
+
     # previously: “No! It wasn't me! It was the one-armed man!” https://youtu.be/MC6bzR9qmxM?t=97
     $return = $return but Reply($_) with $msg;
     if $msg !~~ IRC::Client::Message::Privmsg::Channel {

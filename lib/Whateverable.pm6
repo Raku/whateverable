@@ -67,6 +67,7 @@ method TWEAK {
             try { return filter $self, $response }
             return ‘Ow! Where's a camcorder when ya need one?’ if $response ~~ Enough;
             try { return filter $self, handle-exception $!, $response.?msg }
+            note $!;
             ‘Sorry kid, that's not my department.’
         };
     }

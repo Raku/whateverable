@@ -16,14 +16,14 @@ for @bots -> $file {
     my $bot = to-name $file;
     task ‘start:’ ~ ( $bot | $bot.lc ), {
         note “Starting $bot…”;
-        my $config = ‘config.json’.IO.open || ‘config-default.json’.IO.open;
+        my $config = ‘/run/secrets/config’.IO.open || ‘config.json’.IO.open || ‘config-default.json’.IO.open;
         run $file, :in($config),
                    :env(|%*ENV, PERL6LIB => ‘lib’);
         True
     }
     task ‘debug:’ ~ ( $bot | $bot.lc ), {
-        note “Starting $bot…”;
-        my $config = ‘config.json’.IO.open || ‘config-default.json’.IO.open;
+        note “Starting $bot in DEBUG mode…”;
+        my $config = ‘/run/secrets/config’.IO.open || ‘config.json’.IO.open || ‘config-default.json’.IO.open;
         run $file, :in($config),
                    :env(|%*ENV, PERL6LIB => ‘lib’, DEBUGGABLE => 1);
         True

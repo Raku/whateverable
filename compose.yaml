@@ -1,0 +1,347 @@
+version: "3.7"
+
+services:
+
+  bisectable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:bisectable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  committable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:committable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  benchable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:benchable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  evalable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:evalable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+#  statisfiable:
+#    image: postmodern.alexdaniel.org/whateverable:latest
+#    command: sake debug:statisfiable
+#    volumes:
+#      - /home/whateverable/data/stats:/srv/data/stats
+#    secrets:
+#      - config
+#    networks:
+#      - caddy
+#    deploy:
+#      replicas: 1
+#      resources:
+#        limits:
+#          memory: 1.5G
+
+  unicodable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake start:unicodable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  bloatable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:bloatable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  quotable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:quotable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  greppable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:greppable
+    volumes:
+      - /home/whateverable/data/all-modules:/srv/data/all-modules
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  coverable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:coverable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  releasable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake start:releasable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  nativecallable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:nativecallable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+
+#  squashable:
+#    image: postmodern.alexdaniel.org/whateverable:latest
+#    command: sake debug:squashable
+#    volumes:
+#      - /home/whateverable/data/squashable:/srv/data/squashable
+#    secrets:
+#      - config
+#    networks:
+#      - caddy
+#    deploy:
+#      replicas: 1
+#      resources:
+#        limits:
+#          memory: 1.5G
+
+#  reportable:
+#    image: postmodern.alexdaniel.org/whateverable:latest
+#    command: sake debug:reportable
+#    volumes:
+#      - /home/whateverable/data/reportable:/srv/data/reportable
+#    secrets:
+#      - config
+#    networks:
+#      - caddy
+#    deploy:
+#      replicas: 1
+#      resources:
+#        limits:
+#          memory: 1.5G
+
+  notable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake start:notable
+    volumes:
+      - /home/whateverable/data/notable:/srv/data/notable
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  shareable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake start:shareable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+      labels:
+        caddy: whateverable.6lang.org
+        caddy.tls: alex.jakimenko+caddy@gmail.com
+        caddy.reverse_proxy: "{{upstreams 80}}"
+
+
+#  undersightable:
+#    image: postmodern.alexdaniel.org/whateverable:latest
+#    command: sake debug:undersightable
+#    volumes:
+#      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+#      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+#      - /home/whateverable/data/builds:/srv/data/builds:ro
+#    secrets:
+#      - config
+#    networks:
+#      - caddy
+#    deploy:
+#      replicas: 1
+#      resources:
+#        limits:
+#          memory: 1.5G
+
+  tellable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake start:tellable
+    volumes:
+      - /home/whateverable/data/tellable:/srv/data/tellable
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  sourceable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:sourceable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+  linkable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake start:linkable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
+      - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
+      - /home/whateverable/data/builds:/srv/data/builds:ro
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
+networks:
+  caddy:
+    external: true
+
+secrets:
+  config:
+    file: ./config.json

@@ -25,7 +25,7 @@ use JSON::Fast;
 unit class Notable does Whateverable;
 
 # TODO use FootgunDB here
-my $db = FootgunDB.new: name => %*ENV<TESTABLE> ?? “notable{time}” !! ‘data/notable/notes’;
+my $db = FootgunDB.new: name => ‘notable/notes’;
 END { $db.clean }
 my @shortcuts = ‘weekly’; # first shortcut here is the default topic
 
