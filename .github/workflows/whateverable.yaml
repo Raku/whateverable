@@ -1,0 +1,41 @@
+name: Whateverable
+
+on: push
+
+jobs:
+  build-and-deploy:
+    name: whateverable (build and deploy)
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Login to Docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: postmodern.alexdaniel.org
+          username: ${{ github.event.repository.name }}
+          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v4
+        with:
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: postmodern.alexdaniel.org/whateverable:${{ github.sha }} ${{ github.ref == 'refs/heads/main' && ', postmodern.alexdaniel.org/whateverable:latest' || '' }}
+      - name: Set SSH key
+        if: github.ref == 'refs/heads/main'
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+      - name: Auth
+        if: github.ref == 'refs/heads/main'
+        run: ssh-keyscan -H postmodern.alexdaniel.org >> ~/.ssh/known_hosts
+      - name: Deploy
+        if: github.ref == 'refs/heads/main'
+        run: docker stack deploy --with-registry-auth -c compose.yaml whateverable
+        env:
+          DOCKER_HOST: ssh://whateverable@postmodern.alexdaniel.org
