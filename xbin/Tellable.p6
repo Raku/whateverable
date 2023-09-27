@@ -91,7 +91,7 @@ multi method irc-privmsg($msg where IRC::Client::Message::Privmsg::Channel) {
 
 
 #| automatic tell
-multi method irc-privmsg-channel($msg where { m:r/^ \s* $<who>=<.&irc-nick> ‘:’+ \s+ (.*) $/ }) {
+multi method irc-privmsg-channel($msg where { .Str ~~ m:r/^ \s* $<who>=<.&irc-nick> ‘:’+ \s+ (.*) $/ }) {
     my $who = $<who>;
     return $.NEXT if self.userlist($msg){$who}; # still on the channel
     my $normalized = normalize-weirdly $who;
@@ -125,7 +125,7 @@ sub did-you-mean-seen($who, %seen) {
 }
 
 #| seen
-multi method irc-to-me($msg where { m:r/^ \s* [seen \s+]?
+multi method irc-to-me($msg where { .Str ~~ m:r/^ \s* [seen \s+]?
                                           $<who>=<.&irc-nick> <[:,]>* \s* $/ }) {
     my $who = ~$<who>;
     my %seen := $db-seen.read;
@@ -145,7 +145,7 @@ multi method irc-to-me($msg where { m:r/^ \s* [seen \s+]?
 }
 
 #| tell
-multi method irc-to-me($msg where { m:r/^ \s* [[to|tell|ask] \s+]? $<text>=[
+multi method irc-to-me($msg where { .Str ~~ m:r/^ \s* [[to|tell|ask] \s+]? $<text>=[
                                            $<who>=<.&irc-nick> <[:,]>* \s+ .*
                                           ]$/ }) {
     my $who = ~$<who>;

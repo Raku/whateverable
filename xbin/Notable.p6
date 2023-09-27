@@ -50,7 +50,7 @@ multi method irc-to-me($msg where ‘list’) {
 
 #| Get notes
 multi method irc-to-me($msg where
-                       { m:r/^ \s* [ <shortcut($msg)> || <topic> ] \s* $/ }) {
+                       { .Str ~~ m:r/^ \s* [ <shortcut($msg)> || <topic> ] \s* $/ }) {
     my $topic = ~($<topic> // $<shortcut>.made);
     my $data = $db.read;
     return “No notes for “$topic”” if $data{$topic}:!exists;
@@ -64,7 +64,7 @@ multi method irc-to-me($msg where
 
 #| Clear notes
 multi method irc-to-me($msg where
-                       { m:r/^
+                       { .Str ~~ m:r/^
                          :my @commands = <clear reset delete default>;
                          [
                              ||     <shortcut($msg)> \s* @commands \s*
@@ -85,7 +85,7 @@ multi method irc-to-me($msg where
 
 #| Add new topic
 multi method irc-to-me($msg where
-                       { m:r/^ \s* [ ‘new-topic’ | ‘new-category’ ] \s+ <topic> \s* $/ }) {
+                       { .Str ~~ m:r/^ \s* [ ‘new-topic’ | ‘new-category’ ] \s+ <topic> \s* $/ }) {
     my $topic = ~$<topic>;
     my $data = $db.read;
     return “Topic “$topic” already exists” if $data{$topic}:exists;
@@ -96,7 +96,7 @@ multi method irc-to-me($msg where
 
 #| Add a note
 multi method irc-to-me($msg where
-                       { m:r/^ \s* [<shortcut($msg)> || <topic> \s+] $<stuff>=[.*] $/ }) {
+                       { .Str ~~ m:r/^ \s* [<shortcut($msg)> || <topic> \s+] $<stuff>=[.*] $/ }) {
     my $topic = $<topic>;
     my $stuff = ~$<stuff>;
     my $data = $db.read;

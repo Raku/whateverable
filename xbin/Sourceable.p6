@@ -31,7 +31,7 @@ method help($msg) {
     “Like this: {$msg.server.current-nick}: 42.base(16)”
 }
 
-multi method irc-to-me($msg where { m:r/^ [$<maybe-rev>=\S+ \s+]? $<maybe-code>=[.+] $/ }) {
+multi method irc-to-me($msg where { .Str ~~ m:r/^ [$<maybe-rev>=\S+ \s+]? $<maybe-code>=[.+] $/ }) {
     my $full-commit = to-full-commit $<maybe-rev> // ‘’;
     my $code = ~$<maybe-code>;
     if not $full-commit {
