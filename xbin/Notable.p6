@@ -17,6 +17,7 @@
 
 use Whateverable;
 use Whateverable::Bits;
+use Whateverable::FootgunDB;
 
 use IRC::Client;
 use JSON::Fast;
@@ -24,18 +25,14 @@ use JSON::Fast;
 unit class Notable does Whateverable;
 
 # TODO use FootgunDB here
-my $db = %*ENV<TESTABLE> ?? $*TMPDIR.add(“notable{time}”) !! ‘data/notable/notes’.IO;
-END { $db.unlink if %*ENV<TESTABLE> }
+my $db = FootgunDB.new: name => %*ENV<TESTABLE> ?? “notable{time}” !! ‘data/notable/notes’;
+END { $db.clean }
 my @shortcuts = ‘weekly’; # first shortcut here is the default topic
-write %() unless $db.e;
 
 method help($msg) {
     “Like this: {$msg.server.current-nick}: weekly rakudo is now 10x as fast”
 }
 method private-messages-allowed() { True }
-
-sub read()       { from-json slurp $db                }
-sub write(%data) {           spurt $db, to-json %data }
 
 # XXX The logic here is a bit convoluted. It is meant to be a
 #     zero-width match (only then things work), but I don't think this
@@ -46,7 +43,7 @@ my regex topic { <[\w:_-]>+ }
 
 #| List topics
 multi method irc-to-me($msg where ‘list’) {
-    my @topics = read.keys.sort;
+    my @topics = $db.read.keys.sort;
     return ‘No notes yet’ unless @topics;
     @topics.join(‘ ’) but ProperStr(@topics.join: “\n”)
 }
@@ -55,7 +52,7 @@ multi method irc-to-me($msg where ‘list’) {
 multi method irc-to-me($msg where
                        { m:r/^ \s* [ <shortcut($msg)> || <topic> ] \s* $/ }) {
     my $topic = ~($<topic> // $<shortcut>.made);
-    my $data = read;
+    my $data = $db.read;
     return “No notes for “$topic”” if $data{$topic}:!exists;
     my @notes = $data{$topic}.map: {
         “$_<timestamp> <$_<nick>>: $_<text>”
@@ -76,13 +73,13 @@ multi method irc-to-me($msg where
                          ]
                          $/ }) {
     my $topic = ~($<topic> // $<shortcut>.made);
-    my $data = read;
+    my $data = $db.read;
     return “No notes for “$topic”” if $data{$topic}:!exists;
     my $suffix = ~timestampish;
     my $new-topic = $topic ~ ‘_’ ~ $suffix;
     $data{$new-topic} = $data{$topic};
     $data{$topic}:delete;
-    write $data;
+    $db.write: $data;
     “Moved existing notes to “$new-topic””
 }
 
@@ -90,10 +87,10 @@ multi method irc-to-me($msg where
 multi method irc-to-me($msg where
                        { m:r/^ \s* [ ‘new-topic’ | ‘new-category’ ] \s+ <topic> \s* $/ }) {
     my $topic = ~$<topic>;
-    my $data = read;
+    my $data = $db.read;
     return “Topic “$topic” already exists” if $data{$topic}:exists;
     $data{$topic} = [];
-    write $data;
+    $db.write: $data;
     “New topic added (“$topic”)”
 }
 
@@ -102,7 +99,7 @@ multi method irc-to-me($msg where
                        { m:r/^ \s* [<shortcut($msg)> || <topic> \s+] $<stuff>=[.*] $/ }) {
     my $topic = $<topic>;
     my $stuff = ~$<stuff>;
-    my $data = read;
+    my $data = $db.read;
     if $topic.defined and $data{~$topic}:!exists {
         # someone forgot to specify a topic, just default to the first shortcut
         $topic = @shortcuts.head;
@@ -114,7 +111,7 @@ multi method irc-to-me($msg where
         timestamp => timestampish,
         nick      => $msg.nick,
     );
-    write $data;
+    $db.write: $data;
     “Noted! ($topic)”
 }
 
