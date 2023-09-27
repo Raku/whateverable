@@ -61,7 +61,7 @@ sub autobisect($msg, $code) {
     sleep 1; # OK this kinda sucks but otherwise the order can be wrong
     # The magic begins now 🪄
     return ‘Nothing to bisect!’ if @outputs == 1;
-    my $changes-limit = 4;
+    my $changes-limit = 3;
     if @outputs - 1 > $changes-limit {
         return “More than $changes-limit changes to bisect, ”
         ~ “please try a narrower range like old={%shas{@outputs[*-2]}.tail} new=HEAD”
