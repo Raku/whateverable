@@ -28,15 +28,14 @@ unit module Whateverable::Builds;
 #↓ Clones Rakudo and Moar repos and ensures some directory structure.
 sub ensure-cloned-repos is export {
     # TODO racing (calling this too often when nothing is cloned yet)
-    with $CONFIG<repo-current-rakudo-moar> {
-        run <git clone -->, $CONFIG<repo-origin-rakudo>, $_ if not .IO.d
-    }
-    with $CONFIG<repo-current-moarvm> {
-        run <git clone -->, $CONFIG<repo-origin-moarvm>, $_ if not .IO.d;
-    }
-    with $CONFIG<archives-location> {
-        mkdir “$_/rakudo-moar”;
-        mkdir “$_/moarvm”;
+    for $CONFIG<projects>.values {
+        if .<repo-path> and .<repo-origin> and not .<repo-path>.IO.e {
+            mkdir .<repo-path>.IO.parent;
+            run <git clone -->, .<repo-origin>, .<repo-path>;
+            # custom local origin
+            #run :cwd(.key), <git remote add local-origin>, …;
+            mkdir $_ with .<archives-location>;
+        }
     }
     True
 }
@@ -105,7 +104,7 @@ sub fetch-build($full-commit-hash, :$backend!) is export {
     return unless $response.is-success;
 
     my $disposition = $response.header.field(‘Content-Disposition’).values[0];
-    return unless $disposition ~~ /‘filename=’\s*(<.xdigit>+[‘.zst’|‘.lrz’])/;
+    return unless $disposition ~~ /‘filename=’\s*(<.xdigit>+[‘.tar.zst’|‘.tar.lrz’])/;
 
     my $location = $CONFIG<archives-location>.IO.add: $backend;
     my $archive  = $location.add: ~$0;
@@ -134,7 +133,7 @@ sub fetch-build($full-commit-hash, :$backend!) is export {
 sub build-exists($full-commit-hash,
                  :$backend=‘rakudo-moar’,
                  :$force-local=False) is export {
-    my $archive     = “$CONFIG<archives-location>/$backend/$full-commit-hash.zst”.IO;
+    my $archive     = “$CONFIG<archives-location>/$backend/$full-commit-hash.tar.zst”.IO;
     my $archive-lts = “$CONFIG<archives-location>/$backend/$full-commit-hash”.IO;
     # ↑ long-term storage (symlink to a large archive)
 

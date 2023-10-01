@@ -12,6 +12,7 @@
         "Whateverable"               : "lib/Whateverable.pm6",
         "Whateverable::Bisection"    : "lib/Whateverable/Bisection.pm6",
         "Whateverable::Bits"         : "lib/Whateverable/Bits.pm6",
+        "Whateverable::Building"     : "lib/Whateverable/Building.pm6",
         "Whateverable::Builds"       : "lib/Whateverable/Builds.pm6",
         "Whateverable::Config"       : "lib/Whateverable/Config.pm6",
         "Whateverable::Configurable" : "lib/Whateverable/Configurable.pm6",
@@ -23,7 +24,8 @@
         "Whateverable::Processing"   : "lib/Whateverable/Processing.pm6",
         "Whateverable::Running"      : "lib/Whateverable/Running.pm6",
         "Whateverable::Uniprops"     : "lib/Whateverable/Uniprops.pm6",
-        "Whateverable::Userlist"     : "lib/Whateverable/Userlist.pm6"
+        "Whateverable::Userlist"     : "lib/Whateverable/Userlist.pm6",
+        "Whateverable::Webhooks"     : "lib/Whateverable/Webhooks.pm6"
     },
     "depends"     : [
         "App::GPTrixie",

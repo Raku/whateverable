@@ -65,7 +65,7 @@ my $application = route {
         return not-found unless $full-commit;
         return not-found unless build-exists $full-commit, :$backend;
 
-        my $archive-path  = “$CONFIG<archives-location>/$backend/$full-commit.zst”;
+        my $archive-path  = “$CONFIG<archives-location>/$backend/$full-commit.tar.zst”;
         my $archive-link  = “$CONFIG<archives-location>/$backend/$full-commit”;
 
         my $file = $archive-path.IO.e ?? $archive-path !! $archive-link.IO.resolve.Str;

@@ -57,10 +57,10 @@ sub ensure-config($handle = $*IN) is export {
     $CONFIG<stdin> = $CONFIG<default-stdin>;
 
     # TODO find a way to get rid of this code
-    $CONFIG<repo-current-rakudo-moar> .= IO .= absolute;
-    $CONFIG<repo-current-moarvm>      .= IO .= absolute;
-    $CONFIG<archives-location>        .= IO .= absolute;
-    $CONFIG<builds-location>          .= IO .= absolute;
-    $CONFIG<moarvm>                   .= IO .= absolute;
+    #$CONFIG<repo-current-rakudo-moar> .= IO .= absolute;
+    #$CONFIG<repo-current-moarvm>      .= IO .= absolute;
+    #$CONFIG<archives-location>        .= IO .= absolute;
+    #$CONFIG<builds-location>          .= IO .= absolute;
+    #$CONFIG<moarvm>                   .= IO .= absolute;
     $CONFIG<bisectable><build-lock>   .= IO .= absolute;
 }
