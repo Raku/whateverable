@@ -1,4 +1,4 @@
-FROM rakudo-star:2023.08
+FROM rakudo-star:2023.02
 WORKDIR /srv
 
 RUN apt-get -y update
