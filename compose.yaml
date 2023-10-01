@@ -1,6 +1,22 @@
 version: "3.7"
 
 services:
+  buildable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: sake debug:buildable
+    volumes:
+      - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar
+      - /home/whateverable/data/moarvm:/srv/data/moarvm
+      - /home/whateverable/data/builds:/srv/data/builds
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 4.0G
 
   bisectable:
     image: postmodern.alexdaniel.org/whateverable:latest
