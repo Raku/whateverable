@@ -52,10 +52,20 @@ sub build-all-commits($project) is export {
     my $*PROJECT = $project;
     ensure-latest-git-repo;
 
+    my $new-builds = 0;
     for flat(get-commits-tags, get-commits-master, get-commits-all).unique {
         # Please don't waste your time trying to parallelize this.
         # It's not worth it. I tried. Just wait.
-        process-commit $project, $_
+        $new-builds++ if process-commit $project, $_;
+
+        # When working too hard it's important to take a break, let things
+        # settle. Otherwise with a large backlog the bots may be behind origin's
+        # HEAD for days, and that's not very useful. So the idea here is that we
+        # build a few tens of builds, and then pull the latest repo state as if
+        # everything is finished. The idea is that the latest commits now have
+        # builds, but older commits may have gaps, and that's OK! All bots
+        # handle missing builds for older commits properly.
+        last if $new-builds > 20;
     }
 
     # update repo so that bots know about latest commits
@@ -90,7 +100,7 @@ sub process-commit($project, $commit) is export {
     my $project-config = $CONFIG<projects>{$project};
     my $archive-path = $project-config<archives-path>
                        .IO.add(“$commit.tar.zst”).absolute.IO;
-    return if $archive-path ~~ :e; # already exists
+    return False if $archive-path ~~ :e; # already exists
 
     my $BUILDS-LOCATION = “$*TMPDIR/whateverable/{$project}”.IO;
     mkdir $BUILDS-LOCATION;
@@ -176,6 +186,8 @@ sub process-commit($project, $commit) is export {
 
     use File::Directory::Tree;
     rmtree $temp-folder;
+
+    return True
 }
 
 sub pack-it($project, @pack) {
