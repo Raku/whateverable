@@ -217,6 +217,6 @@ method propdump($msg, $query) {
 %*BOT-ENV<timeout> = 30;
 
 Unicodable.new.selfrun: ‘unicodable6’, [/ u[ni]?6? <before ‘:’> /, ‘propdump’, ‘unidump’,
-                                        fuzzy-nick(‘unicodable6’, 3)];
+                                        fuzzy-nick(‘unicodable6’, 2)];
 
 # vim: expandtab shiftwidth=4 ft=perl6
