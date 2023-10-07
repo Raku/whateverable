@@ -48,7 +48,6 @@ sub listen-to-webhooks($host, $port, $secret, $channel, $irc) is export {
 
     my $application = route {
         post {
-            say ‘HERE!!!!’;
             my $CHANNEL = %*ENV<DEBUGGABLE> ?? $CONFIG<cave> !! $channel;
             with process-webhook $secret, $CHANNEL, $irc {
                 $c.send: $_
@@ -59,7 +58,7 @@ sub listen-to-webhooks($host, $port, $secret, $channel, $irc) is export {
     my $webhook-listener = Cro::HTTP::Server.new(
         :$host, :$port,
         :$application,
-        before => WebhookChecker.new($secret)
+        # TODO before => WebhookChecker.new($secret)
     );
     $webhook-listener.start;
     $c
@@ -70,7 +69,6 @@ sub process-webhook($secret, $channel, $irc) {
     use Digest::SHA;
     use Digest::HMAC;
 
-    say ‘HERE!’;
     my $body = request-body -> Blob { $_ };
     dd $body;
     $body .= subbuf: 0..^($body - 1) if $body[*-1] == 0; # TODO trailing null byte. Why is it there?

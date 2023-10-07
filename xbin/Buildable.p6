@@ -21,7 +21,6 @@ use Whateverable;
 use Whateverable::Bits;
 use Whateverable::Building;
 use Whateverable::Config;
-use Whateverable::Webhooks;
 
 use IRC::Client;
 
@@ -31,58 +30,91 @@ method help($msg) {
     “Like this: {$msg.server.current-nick}: info”
 }
 
-my $l = Lock.new;
-my $building;
-my $packing;
+my $meta-lock  = Lock.new;
+my $building = Promise.kept;
+my $packing  = Promise.kept;
 
-multi method irc-to-me($msg where /:i [status|info|builds|stat]/) {
-    my $projects = $CONFIG<projects>.keys.sort.reverse.map({ # XXX .reverse to make rakudo-moar first
+my $trigger-supplier = Supplier.new;
+my $trigger-supply = $trigger-supplier.Supply;
+
+sub get-projects() {
+    $CONFIG<projects>.keys.sort.reverse # XXX .reverse to make rakudo-moar first
+}
+
+multi method irc-to-me($msg where /:i [status|info|builds|stats?]/) {
+    $trigger-supplier.emit(True);
+
+    my $projects = get-projects.map({
         my $total-size = 0;
         my $files = 0;
+        my $builds = 0;
         for dir $CONFIG<projects>{$_}<archives-path> {
             $total-size += .s unless .l;
-            $files++;
+            $files++ unless .l;
+            $builds++ if .l or .ends-with: '.tar.zst';
         }
-        “$files $_ builds ({round $total-size ÷ 10⁹, 0.1} GB)”
-    }).join: ‘, ’;
+        “$builds $_ builds, $files archives ({round $total-size ÷ 10⁹, 0.1} GB)”
+    }).join: ‘; ’;
 
     my $activity = ‘’;
-    $l.protect: {
-        $activity = ‘(⏳ Packing…) ’  with $packing;
-        $activity = ‘(⏳ Building…) ’ with $building;
-        .then: { $msg.reply: ‘Done!’ } with $packing // $building;
+    $meta-lock.protect: {
+        if $building.status == Planned {
+            $activity ~= ‘(⏳ Building…) ’;
+            $building.then: { $msg.reply: ‘Done building!’ };
+        }
+        if $packing.status == Planned {
+            $activity ~= ‘(📦 Packing…) ’;
+            $packing.then: { $msg.reply: ‘Done packing!’  };
+        }
     }
+    $activity ||= ‘(😴 Idle) ’;
     $activity ~ $projects
 }
 
-multi method keep-building($msg) {
-    # TODO multi-server setup not supported (this will be irrelevant after #284)
-    my $channel = listen-to-webhooks
-        |$CONFIG<buildable><host port secret channel>,
-        $msg.irc,
-    ;
+ensure-config;
+use Cro::HTTP::Router;
+use Cro::HTTP::Server;
+my $application = route {
+    get -> {
+        $trigger-supplier.emit(True);
+        content 'text/html', 'OK'
+    }
+}
+my Cro::Service $service = Cro::HTTP::Server.new:
+    :host($CONFIG<buildable><host>), :port($CONFIG<buildable><port>), :$application;
+$service.start;
 
-    #sleep 60 × 5; # let other bots start up and stuff
+
+multi method keep-building($msg) {
+    my $bleed = Supplier.new;
     react {
-        whenever $channel {
-            say $_;
-            #$l.protect: { $building = Promise.new };
-            # build-all
-            #$l.protect: { $building.keep };
-        }
+        whenever $bleed {} # do nothing, just ignore values that are bled
         whenever Supply.interval: 60 × 30 {
-            $l.protect: { $building = Promise.new };
-            # build-all
-            $l.protect: { $building.keep; $building = Nil };
+            $trigger-supplier.emit(True);
+        }
+        whenever $trigger-supply.throttle: 1, ({
+            await $meta-lock.protect: { $building };
+            # XXX Ideally this should use :vent-at(0), but that is a magical
+            #     value in Rakudo. So, for now, it does one extra `git pull`
+            #     after repeated webhooks, but that's not bad (just unnecessary).
+            #     https://github.com/rakudo/rakudo/issues/5358
+        }), :vent-at(1), :bleed($bleed) {
+            $meta-lock.protect: {
+                $building = start { build-all-commits $_ for get-projects() };
+                whenever $building {}
+            }
         }
         whenever Supply.interval: 60 × 60 {
-            $l.protect: { $packing = Promise.new };
-            #pack-all
-            $l.protect: {  $packing.keep;  $packing = Nil };
+            $meta-lock.protect: {
+                leave if $packing.status == Planned;
+                $packing = start { pack-all-builds $_ for get-projects() };
+                whenever $packing {}
+            };
         }
     }
 
     CATCH { default {
+        note $_;
         start { sleep 20; exit }; # restart itself
         self.handle-exception: $_, $msg
     } }

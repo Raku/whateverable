@@ -33,6 +33,10 @@
         "login": "",
         "password": ""
     },
+    "buildable": {
+        "host" : "0.0.0.0",
+        "port" : 42435
+    },
     "bisectable": {
         "commit-link" : "https://github.com/rakudo/rakudo/commit",
         "build-lock"  : "./lock",
