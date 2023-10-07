@@ -34,7 +34,7 @@ my $ALL-SINCE         = ‘2017-01-01’;     # to catch branches that are flapp
 sub get-commits-tags()   { get-commits |<--tags --no-walk --since>, $TAGS-SINCE }
 sub get-commits-master() { get-commits $EVERYTHING-RANGE } # slap --reverse here to build in historical order
 sub get-commits-all()    { get-commits |<--all --since>, $ALL-SINCE }
-sub get-commits-new()    { get-commits |<--all --since>, Date.today.earlier(:1month).first-date-in-month }
+sub get-commits-new()    { get-commits |<--all --since>, Date.today.earlier(:6month).first-date-in-month }
 
 sub ensure-latest-git-repo() {
     # ↓ Yes, separate cloned repo for every project.
@@ -50,6 +50,8 @@ sub ensure-latest-git-repo() {
 #| Goes through all commits and attempts to create builds
 sub build-all-commits($project) is export {
     my $*PROJECT = $project;
+    ensure-latest-git-repo;
+
     for flat(get-commits-tags, get-commits-master, get-commits-all).unique {
         # Please don't waste your time trying to parallelize this.
         # It's not worth it. I tried. Just wait.
@@ -62,7 +64,8 @@ sub build-all-commits($project) is export {
 }
 
 #| Repacks existing builds in order to save space
-sub pack-all-builds($project) {
+sub pack-all-builds($project) is export {
+    my $*PROJECT = $project;
     my %ignore;
     %ignore{$_}++ for flat(get-commits-tags, get-commits-new);
 
@@ -172,7 +175,7 @@ sub process-commit($project, $commit) is export {
     run(:in($proc.out), :bin, <zstd -c -19 -q -o>, $archive-path);
 
     use File::Directory::Tree;
-    # rmtree $temp-folder; # uncomment once safe ⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    rmtree $temp-folder;
 }
 
 sub pack-it($project, @pack) {
