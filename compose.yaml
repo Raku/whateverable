@@ -3,7 +3,7 @@ version: "3.7"
 services:
   buildable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:buildable
+    command: ake start:buildable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar
       - /home/whateverable/data/moarvm:/srv/data/moarvm
@@ -18,9 +18,14 @@ services:
         limits:
           memory: 4.0G
 
+      labels:
+        caddy: buildable.whateverable.6lang.org
+        caddy.tls: alex.jakimenko+caddy@gmail.com
+        caddy.reverse_proxy: "{{upstreams 80}}"
+
   bisectable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:bisectable
+    command: ake start:bisectable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
@@ -37,7 +42,7 @@ services:
 
   committable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:committable
+    command: ake start:committable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
@@ -54,7 +59,7 @@ services:
 
   benchable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:benchable
+    command: ake start:benchable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
@@ -71,7 +76,7 @@ services:
 
   evalable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:evalable
+    command: ake start:evalable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
@@ -120,7 +125,7 @@ services:
 
   bloatable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:bloatable
+    command: ake start:bloatable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
@@ -137,7 +142,7 @@ services:
 
   quotable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:quotable
+    command: ake start:quotable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
@@ -154,7 +159,7 @@ services:
 
   greppable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:greppable
+    command: ake start:greppable
     volumes:
       - /home/whateverable/data/all-modules:/srv/data/all-modules
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
@@ -172,7 +177,7 @@ services:
 
   coverable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:coverable
+    command: ake start:coverable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
@@ -206,7 +211,7 @@ services:
 
   nativecallable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:nativecallable
+    command: ake start:nativecallable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
@@ -324,7 +329,7 @@ services:
 
   sourceable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake debug:sourceable
+    command: ake start:sourceable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
     secrets:
