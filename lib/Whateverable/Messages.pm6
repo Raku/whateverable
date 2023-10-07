@@ -1,4 +1,4 @@
-# Copyright © 2016-2018
+# Copyright © 2016-2023
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 # Copyright © 2016
 #     Daniel Green <ddgreen@gmail.com>

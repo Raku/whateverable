@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-# Copyright © 2016-2017
+# Copyright © 2016-2023
 #     Daniel Green <ddgreen@gmail.com>
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 #

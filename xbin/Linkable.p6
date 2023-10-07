@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-# Copyright © 2019-2020
+# Copyright © 2019-2023
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 # Copyright © 2017-2018
 #     Zoffix Znet

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-# Copyright © 2019
+# Copyright © 2019-2023
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify

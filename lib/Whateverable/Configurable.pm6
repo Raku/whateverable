@@ -1,4 +1,4 @@
-# Copyright © 2018
+# Copyright © 2018-2023
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
