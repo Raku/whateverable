@@ -203,7 +203,7 @@ sub process($msg, $code, $old, $new, @sha-gatherer?) {
 
     my $repo-cwd = tempdir :!unlink;
     LEAVE { rmtree $_ with $repo-cwd }
-    run :out(Nil), :err(Nil), <git clone>, $CONFIG<rakudo>, $repo-cwd; # TODO check the result
+    run :out(Nil), :err(Nil), <git clone>, $CONFIG<projects><rakudo-moar><repo-path>, $repo-cwd; # TODO check the result
 
     my $bisect-start = get-output cwd => $repo-cwd, <git bisect start>;
     my $bisect-old   = get-output cwd => $repo-cwd, <git bisect old>, $full-old;

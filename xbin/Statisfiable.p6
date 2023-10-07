@@ -164,7 +164,7 @@ sub rakudo-stats($full-hash) {
 
 sub commit-list() {
     my @command = |<git log -z --pretty=%H>, |%*BOT-ENV<range>;
-    run(:out, :cwd($CONFIG<rakudo>), |@command)
+    run(:out, :cwd($CONFIG<projects><rakudo-moar><repo-path>), |@command)
     .out.split(0.chr, :skip-empty).grep({so $_})
 }
 

@@ -124,7 +124,7 @@ method process($msg, $config is copy, $grep, $code is copy) {
                 $cover-report ~= “| [$fname#$ln]($url/$fname#$ln) |”;
                 my $sed-range = “{$l.min},{$l.max}p”;
                 # ⚠ TODO don't do this ↓ for every line, do it for every *file*. It will be much faster.
-                my $proc = run :out, :cwd($CONFIG<rakudo>), <git show>, “$full-commit:$fname”;
+                my $proc = run :out, :cwd($CONFIG<projects><rakudo-moar><repo-path>), <git show>, “$full-commit:$fname”;
                 # TODO So we are using RAKUDO ↑, but RAKUDO may not know about some commits *yet*, while
                 #      they may be accessible if you give a hash directly.
                 my $code = run(:out, :in($proc.out), <sed -n>, $sed-range).out.slurp-rest.trim; # TODO trim? or just chomp?

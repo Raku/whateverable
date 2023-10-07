@@ -50,17 +50,18 @@ sub ensure-config($handle = $*IN) is export {
     ensure-required-config-values;
 
     # TODO use a special config file for tests
-    $CONFIG<rakudo> //= (%*ENV<TESTABLE> // ‘’).contains(‘rakudo-mock’)
-                            ?? ‘./t/data/rakudo’.IO.absolute
-                            !! ‘./data/rakudo-moar’.IO.absolute;
+    $CONFIG<projects><rakudo-moar><repo-path> = $CONFIG<projects><rakudo-moar><repo-path>
+                                                 // ((%*ENV<TESTABLE> // ‘’).contains(‘rakudo-mock’)
+                                                     ?? ‘./t/data/rakudo’ !! ‘./data/rakudo-moar’);
 
     $CONFIG<stdin> = $CONFIG<default-stdin>;
 
     # TODO find a way to get rid of this code
-    #$CONFIG<repo-current-rakudo-moar> .= IO .= absolute;
-    #$CONFIG<repo-current-moarvm>      .= IO .= absolute;
-    #$CONFIG<archives-location>        .= IO .= absolute;
-    #$CONFIG<builds-location>          .= IO .= absolute;
-    #$CONFIG<moarvm>                   .= IO .= absolute;
+    $CONFIG<projects><rakudo-moar><repo-path>     .= IO .= absolute;
+    $CONFIG<projects><rakudo-moar><archives-path> .= IO .= absolute;
+    $CONFIG<projects><moarvm><repo-path>          .= IO .= absolute;
+    $CONFIG<projects><moarvm><archives-path>      .= IO .= absolute;
+
+    $CONFIG<builds-location>          .= IO .= absolute;
     $CONFIG<bisectable><build-lock>   .= IO .= absolute;
 }

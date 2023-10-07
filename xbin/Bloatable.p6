@@ -70,18 +70,18 @@ method did-you-mean($out) {
 }
 
 method process($msg, $config, $sources is copy) {
-    my @commits = get-commits $config, repo => $CONFIG<moarvm>;
+    my @commits = get-commits $config, repo => $CONFIG<projects><moarvm><repo-path>;
     my %files;
     my @processed;
     for @commits -> $commit {
         my %prev = @processed.tail if @processed;
         my %cur;
         # convert to real ids so we can look up the builds
-        %cur<full-commit> = to-full-commit $commit, repo => $CONFIG<moarvm>;
+        %cur<full-commit> = to-full-commit $commit, repo => $CONFIG<projects><moarvm><repo-path>;
         if not defined %cur<full-commit> {
             %cur<error> = “Cannot find revision $commit”;
             my @options = <HEAD v6.c releases all>;
-            %cur<error> ~= “ (did you mean “{get-short-commit get-similar $commit, @options, repo => $CONFIG<moarvm>}”?)”
+            %cur<error> ~= “ (did you mean “{get-short-commit get-similar $commit, @options, repo => $CONFIG<projects><moarvm><repo-path>}”?)”
         } elsif not build-exists %cur<full-commit>, :backend<moarvm> {
             %cur<error> = ‘No build for this commit’
         }

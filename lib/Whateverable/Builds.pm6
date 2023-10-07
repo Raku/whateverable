@@ -34,7 +34,7 @@ sub ensure-cloned-repos is export {
             run <git clone -->, .<repo-origin>, .<repo-path>;
             # custom local origin
             #run :cwd(.key), <git remote add local-origin>, …;
-            mkdir $_ with .<archives-location>;
+            mkdir $_ with .<archives-path>;
         }
     }
     True
@@ -45,8 +45,8 @@ sub ensure-cloned-repos is export {
 #↓ doing anything.
 sub pull-cloned-repos is export {
     ensure-cloned-repos;
-    run :cwd($_), <git pull> with $CONFIG<repo-current-rakudo-moar>;
-    run :cwd($_), <git pull> with $CONFIG<repo-current-moarvm>;
+    run :cwd($_), <git pull> with $CONFIG<projects><rakudo-moar><repo-origin>;
+    run :cwd($_), <git pull> with $CONFIG<projects><moarvm><repo-origin>;
     True
 }
 
@@ -57,7 +57,7 @@ sub get-short-commit($original-commit) is export { # TODO proper solution please
     !! $original-commit
 }
 
-sub anything-to-sha($commit, :$short=False, :$repo=$CONFIG<rakudo>) {
+sub anything-to-sha($commit, :$short=False, :$repo=$CONFIG<projects><rakudo-moar><repo-path>) {
     return if run(:out(Nil), :err(Nil), :cwd($repo),
                   <git rev-parse --verify>, $commit).exitcode ≠ 0; # make sure that $commit is valid
 
@@ -71,7 +71,7 @@ sub anything-to-sha($commit, :$short=False, :$repo=$CONFIG<rakudo>) {
 }
 
 #| Turns anything into a full SHA (returns Nil if can't).
-sub to-full-commit($commit, :$short=False, :$repo=$CONFIG<rakudo>) is export {
+sub to-full-commit($commit, :$short=False, :$repo=$CONFIG<projects><rakudo-moar><repo-path>) is export {
     anything-to-sha(        $commit , :$short, :$repo)
     ||
     anything-to-sha(“origin/$commit”, :$short, :$repo)
@@ -106,7 +106,7 @@ sub fetch-build($full-commit-hash, :$backend!) is export {
     my $disposition = $response.header.field(‘Content-Disposition’).values[0];
     return unless $disposition ~~ /‘filename=’\s*(<.xdigit>+[‘.tar.zst’|‘.tar.lrz’])/;
 
-    my $location = $CONFIG<archives-location>.IO.add: $backend;
+    my $location = $CONFIG<projects>{$backend}<archives-path>.IO;
     my $archive  = $location.add: ~$0;
     spurt $archive, $response.content;
 
@@ -133,8 +133,8 @@ sub fetch-build($full-commit-hash, :$backend!) is export {
 sub build-exists($full-commit-hash,
                  :$backend=‘rakudo-moar’,
                  :$force-local=False) is export {
-    my $archive     = “$CONFIG<archives-location>/$backend/$full-commit-hash.tar.zst”.IO;
-    my $archive-lts = “$CONFIG<archives-location>/$backend/$full-commit-hash”.IO;
+    my $archive     = “$CONFIG<projects>{$backend}<archives-path>/$full-commit-hash.tar.zst”.IO;
+    my $archive-lts = “$CONFIG<projects>{$backend}<archives-path>/$full-commit-hash”.IO;
     # ↑ long-term storage (symlink to a large archive)
 
     my $answer = ($archive, $archive-lts).any.e.so;
@@ -145,7 +145,7 @@ sub build-exists($full-commit-hash,
 }
 
 #↓ Lists some git tags.
-sub get-tags($date, :$repo=$CONFIG<rakudo>, :$dups=False, :@default=(‘HEAD’,)) is export {
+sub get-tags($date, :$repo=$CONFIG<projects><rakudo-moar><repo-path>, :$dups=False, :@default=(‘HEAD’,)) is export {
     my @tags = @default;
     my %seen;
     for get-output(cwd => $repo, <git tag -l>)<output>.lines.reverse -> $tag {
@@ -157,7 +157,7 @@ sub get-tags($date, :$repo=$CONFIG<rakudo>, :$dups=False, :@default=(‘HEAD’,
     @tags.reverse
 }
 
-sub get-commits($_, :$repo=$CONFIG<rakudo>) is export {
+sub get-commits($_, :$repo=$CONFIG<projects><rakudo-moar><repo-path>) is export {
     return .split: /‘,’\s*/ if .contains: ‘,’;
 
     if /^ $<start>=\S+ ‘..’ $<end>=\S+ $/ {
@@ -186,7 +186,7 @@ sub get-commits($_, :$repo=$CONFIG<rakudo>) is export {
 }
 
 #↓ Fuzzy search for SHAs and tags
-sub get-similar($tag-or-hash, @other?, :$repo=$CONFIG<rakudo>) is export {
+sub get-similar($tag-or-hash, @other?, :$repo=$CONFIG<projects><rakudo-moar><repo-path>) is export {
     my @options = @other;
     my @tags = get-output(cwd => $repo, <git tag>,
                           ‘--format=%(*objectname)/%(objectname)/%(refname:strip=2)’,

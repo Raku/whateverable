@@ -86,7 +86,7 @@ sub get-build-revision($repo, $on-commit, $file) {
 sub process-commit($project, $commit) is export {
     my $project-config = $CONFIG<projects>{$project};
     my $archive-path = $project-config<archives-path>
-                       .IO.add(“$commit.tar.zst”).absolute;
+                       .IO.add(“$commit.tar.zst”).absolute.IO;
     return if $archive-path ~~ :e; # already exists
 
     my $BUILDS-LOCATION = “$*TMPDIR/whateverable/{$project}”.IO;

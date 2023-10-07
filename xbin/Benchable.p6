@@ -138,7 +138,7 @@ Z:      loop (my $x = 0; $x < @commits - 1; $x++) {
             next if %times{@commits[$x]}<err>:exists or %times{@commits[$x + 1]}<err>:exists; # and without error
             if abs(%times{@commits[$x]}<min> - %times{@commits[$x + 1]}<min>) ≥ %times{@commits[$x]}<min> × 0.1 {
                 once reply $msg, ‘benchmarked the given commits and found a performance difference > 10%, now trying to bisect’;
-                my $result = get-output :cwd($CONFIG<rakudo>), ‘git’, ‘rev-list’,
+                my $result = get-output :cwd($CONFIG<projects><rakudo-moar><repo-path>), ‘git’, ‘rev-list’,
                                         ‘--bisect’, ‘--no-merges’,
                                          @commits[$x] ~ ‘^..’ ~ @commits[$x + 1];
                 my $new-commit = $result<output>;

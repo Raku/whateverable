@@ -1,14 +1,18 @@
 {
-    "repo-origin-rakudo"       : "https://github.com/rakudo/rakudo.git",
-    "repo-current-rakudo-moar" : "./data/rakudo-moar",
-    "repo-origin-moarvm"       : "https://github.com/MoarVM/MoarVM.git",
-    "repo-current-moarvm"      : "./data/moarvm",
-
-    "archives-location"        : "./data/builds",
+    "projects": {
+        "rakudo-moar": {
+            "repo-origin": "https://github.com/rakudo/rakudo.git",
+            "repo-path": "./data/rakudo-moar",
+            "archives-path": "./data/builds/rakudo-moar"
+        },
+        "moarvm": {
+            "repo-origin": "https://github.com/MoarVM/MoarVM.git",
+            "repo-path": "./data/moarvm",
+            "archives-path": "./data/builds/moarvm"
+        }
+    },
     "builds-location"          : "/tmp/whateverable/",
     "sandbox-path"             : "./sandbox",
-
-    "moarvm" : "./data/moarvm",
 
     "source" : "https://github.com/Raku/whateverable",
     "wiki"   : "https://github.com/Raku/whateverable/wiki/",
@@ -18,8 +22,6 @@
     "commits-limit" :   500,
     "cave"          : "#whateverable",
     "caregivers"    : [ "AlexDaniel", "MasterDuke" ],
-
-    "rakudo-repo"   : "https://github.com/rakudo/rakudo",
 
     "mothership": "https://whateverable.6lang.org",
 
