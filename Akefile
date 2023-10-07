@@ -3,11 +3,11 @@ my @bots = dir ‘xbin’, test => / ‘able.p6’ $ /;
 
 task ‘help’, {
     note ‘Useful commands:’;
-    note ‘  sake debug:botname     (example: ｢sake debug:bisectable｣)’;
-    note ‘  sake kill:botname      (example: ｢sake kill:committable｣)’;
-    note ‘  sake killall’;
-    note ‘  sake test              (run the test suite)’;
-    note ‘  sake mothership-pull   (pulls the current version from the server)’;
+    note ‘  ake debug:botname     (example: ｢ake debug:bisectable｣)’;
+    note ‘  ake kill:botname      (example: ｢ake kill:committable｣)’;
+    note ‘  ake killall’;
+    note ‘  ake test              (run the test suite)’;
+    note ‘  ake mothership-pull   (pulls the current version from the server)’;
 }
 
 sub to-name($_) { .extension(‘’).basename }
