@@ -75,10 +75,8 @@ ensure-config;
 use Cro::HTTP::Router;
 use Cro::HTTP::Server;
 my $application = route {
-    get -> {
-        $trigger-supplier.emit(True);
-        content 'text/html', 'OK'
-    }
+    get  -> { $trigger-supplier.emit(True); content 'text/html', 'OK' }
+    post -> { $trigger-supplier.emit(True); content 'text/html', 'OK' }
 }
 my Cro::Service $service = Cro::HTTP::Server.new:
     :host($CONFIG<buildable><host>), :port($CONFIG<buildable><port>), :$application;
