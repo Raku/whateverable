@@ -53,7 +53,7 @@ multi method irc-to-me($msg where /:i [status|info|builds|stats?]/) {
             $files++ unless .l;
             $builds++ if .l or .ends-with: '.tar.zst';
         }
-        “$builds $_ builds, $files archives ({round $total-size ÷ 10⁹, 0.1} GB)”
+        “$builds $_ builds in $files archives ({round $total-size ÷ 10⁹, 0.1} GB)”
     }).join: ‘; ’;
 
     my $activity = ‘’;
