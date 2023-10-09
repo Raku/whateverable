@@ -147,6 +147,7 @@ services:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar:ro
       - /home/whateverable/data/moarvm:/srv/data/moarvm:ro
       - /home/whateverable/data/builds:/srv/data/builds:ro
+      - /home/whateverable/data/irc:/srv/data/irc
     secrets:
       - config
     networks:
