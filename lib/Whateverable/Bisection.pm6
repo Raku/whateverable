@@ -44,17 +44,18 @@ sub run-bisect(&runner  = &standard-runner,  #← Something to run on every revi
                                          <git rev-parse HEAD>)<output>;
         take “»»»»» Testing $current-commit”;
 
+        my $revision-type;
         if $skip-missing-builds and not build-exists $current-commit {
             take ‘»»»»» Build does not exist, skip this commit’;
-            take get-output(cwd => $repo-cwd, <git bisect>, Skip.lc)<output>;
-            next
+            $revision-type = Skip;
+        } else {
+            my $run-result = &runner(              :$current-commit, |%custom);
+            $revision-type = &decider($run-result, :$current-commit, |%custom);
         }
 
-        my $run-result     = &runner(              :$current-commit, |%custom);
-        my $revision-type  = &decider($run-result, :$current-commit, |%custom);
-        my $result         = get-output cwd => $repo-cwd,
-                                        <git bisect>, $revision-type.lc;
+        my $result = get-output cwd => $repo-cwd, <git bisect>, $revision-type.lc;
         $status = $result<exit-code>;
+
         if $result<output> ~~ /^^ (\S+) ‘ is the first new commit’ / {
             $first-new-commit = ~$0;
             take $result<output>;
