@@ -106,7 +106,7 @@ $t.test(‘stdin Nl’,
         /^ <me($t)>‘, rakudo-moar ’<sha>‘: OUTPUT: «(Ⅵ)␤»’/);
 
 $t.test(‘huge stdin is not replied back fully’,
-        ‘eval: stdin https://raw.githubusercontent.com/perl6/mu/master/misc/camelia.txt’,
+        ‘eval: stdin https://raw.githubusercontent.com/Raku/mu/master/misc/camelia.txt’,
         “{$t.our-nick}, Successfully fetched the code from the provided URL”,
         “{$t.our-nick}, STDIN is set to «Camelia␤␤The Camelia image is copyright 2009 by Larry Wall.  Permission to use␤is granted under the…»”);
 

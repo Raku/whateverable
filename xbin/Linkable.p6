@@ -30,8 +30,8 @@ method private-messages-allowed() { True }
 constant %TICKET-URLS = %(
     ‘R’ | ‘RAKUDO’ | ‘GH’   => ‘https://api.github.com/repos/rakudo/rakudo/issues/’,
     ‘M’ | ‘MOAR’ | ‘MOARVM’ => ‘https://api.github.com/repos/MoarVM/MoarVM/issues/’,
-    ‘N’ | ‘NQP’             => ‘https://api.github.com/repos/perl6/nqp/issues/’,
-    ‘S’ | ‘SPEC’ | ‘ROAST’  => ‘https://api.github.com/repos/perl6/roast/issues/’,
+    ‘N’ | ‘NQP’             => ‘https://api.github.com/repos/Raku/nqp/issues/’,
+    ‘S’ | ‘SPEC’ | ‘ROAST’  => ‘https://api.github.com/repos/Raku/roast/issues/’,
     ‘D’ | ‘DOC’ | ‘DOCS’    => ‘https://api.github.com/repos/Raku/doc/issues/’,
     ‘PS’                    => ‘https://api.github.com/repos/Raku/problem-solving/issues/’,
 );

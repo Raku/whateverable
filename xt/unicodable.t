@@ -80,7 +80,7 @@ $t.test(‘Search by codepoint number’,
         “{$t.our-nick}, U+1F40F RAM [So] (🐏)”,
         “{$t.our-nick}, U+1F40B WHALE [So] (🐋)”);
 
-# https://github.com/perl6/whateverable/issues/234
+# https://github.com/Raku/whateverable/issues/234
 $t.test(｢\U lookup by code｣,
         “{$t.bot-nick}: \\U0010ffff”,
         /^ <me($t)>‘, U+10FFFF <noncharacter-10FFFF> [Cn] (􏿿)’ $/);
@@ -252,7 +252,7 @@ $t.test(‘last basic query, just in case’,
         /^ <me($t)>‘, U+1D227 GREEK INSTRUMENTAL NOTATION SYMBOL-17 [So] (𝈧)’ $/);
 
 $t.test('good MIME type',
-        'u: https://raw.githubusercontent.com/perl6/whateverable/master/xt/lib/Testable.pm6',
+        'u: https://raw.githubusercontent.com/Raku/whateverable/master/xt/lib/Testable.pm6',
         "{$t.our-nick}, Successfully fetched the code from the provided URL",
         "{$t.our-nick}, U+0075 LATIN SMALL LETTER U [Ll] (u)",
         "{$t.our-nick}, U+0073 LATIN SMALL LETTER S [Ll] (s)",

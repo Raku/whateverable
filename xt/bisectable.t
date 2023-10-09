@@ -309,7 +309,7 @@ $t.test(:!both, :23timeout, ‘timeout’,
 
 # Extra tests
 
-# https://github.com/perl6/whateverable/issues/90
+# https://github.com/Raku/whateverable/issues/90
 $t.test(‘working directory unchanged’,
         ‘bisect: old=2015.12 new=HEAD for dir(‘lib’) { say ‘X’ }’,
         /^ <me($t)>‘, On both starting points (old=2015.12 new=’<sha>‘) the exit code is 0 and the output is identical as well’ $/,

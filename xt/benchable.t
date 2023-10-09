@@ -160,7 +160,7 @@ $t.test(:25timeout, ‘Both commits are wrong (did you mean … ?)’,
 
 # Other
 
-# https://github.com/perl6/whateverable/issues/38
+# https://github.com/Raku/whateverable/issues/38
 $t.test(‘Issue #38’,
         ‘bench: say (5..Inf).reverse.list # well, let's bench it’,
         “{$t.our-nick}, ¦say: «Cannot find this revision (did you mean “all”?)»”);
