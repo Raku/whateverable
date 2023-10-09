@@ -46,7 +46,8 @@ sub run-bisect(&runner  = &standard-runner,  #← Something to run on every revi
 
         if $skip-missing-builds and not build-exists $current-commit {
             take ‘»»»»» Build does not exist, skip this commit’;
-            return Skip # skip non-existent builds
+            take get-output(cwd => $repo-cwd, <git bisect>, Skip.lc)<output>;
+            next
         }
 
         my $run-result     = &runner(              :$current-commit, |%custom);
