@@ -101,6 +101,8 @@ sub process-commit($project, $commit) is export {
     my $archive-path = $project-config<archives-path>
                        .IO.add(“$commit.tar.zst”).absolute.IO;
     return False if $archive-path ~~ :e; # already exists
+    return False if $project-config<archives-path>
+                       .IO.add(“$commit”).absolute.IO ~~ :e; # already exists in long-term storage
 
     my $BUILDS-LOCATION = “$*TMPDIR/whateverable/{$project}”.IO;
     mkdir $BUILDS-LOCATION;
