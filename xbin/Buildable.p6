@@ -99,7 +99,7 @@ multi method keep-building($msg) {
             #     https://github.com/rakudo/rakudo/issues/5358
         }), :vent-at(1), :bleed($bleed) {
             $meta-lock.protect: {
-                $building = start { build-all-commits $_ for < rakudo-moar > #`｢TODO get-projects()｣ };
+                $building = start { build-all-commits $_ for get-projects() };
                 whenever $building {}
             }
         }
