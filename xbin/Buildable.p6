@@ -42,8 +42,6 @@ sub get-projects() {
 }
 
 multi method irc-to-me($msg where /:i [status|info|builds|stats?]/) {
-    $trigger-supplier.emit(True);
-
     my $projects = get-projects.map({
         my $total-size = 0;
         my $files = 0;
@@ -68,6 +66,9 @@ multi method irc-to-me($msg where /:i [status|info|builds|stats?]/) {
         }
     }
     $activity ||= ‘(😴 Idle) ’;
+
+    $trigger-supplier.emit(True); # trigger based on IRC message, just in case
+
     $activity ~ $projects
 }
 
