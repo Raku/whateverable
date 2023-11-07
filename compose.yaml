@@ -3,7 +3,7 @@ version: "3.7"
 services:
   buildable:
     image: postmodern.alexdaniel.org/whateverable:latest
-    command: ake start:buildable
+    command: ake debug:buildable
     volumes:
       - /home/whateverable/data/rakudo-moar:/srv/data/rakudo-moar
       - /home/whateverable/data/moarvm:/srv/data/moarvm
