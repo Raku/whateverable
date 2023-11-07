@@ -40,7 +40,7 @@
         "HTTP::Server::Async",
         "HTTP::UserAgent",
         "IO::Socket::SSL",
-        "IRC::Client:ver<4.0.9>:auth<zef:lizmat>",
+        "IRC::Client",
         "IRC::TextColor",
         "JSON::Fast",
         "Number::Denominate",
