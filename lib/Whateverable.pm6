@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use File::Directory::Tree;
-use IRC::Client:ver<4.0.9>:auth<zef:lizmat>;
+use IRC::Client;
 use IRC::TextColor;
 use JSON::Fast;
 use Number::Denominate;
