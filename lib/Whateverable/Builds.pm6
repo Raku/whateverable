@@ -45,8 +45,8 @@ sub ensure-cloned-repos is export {
 #↓ doing anything.
 sub pull-cloned-repos is export {
     ensure-cloned-repos;
-    run :cwd($_), <git pull> with $CONFIG<projects><rakudo-moar><repo-origin>;
-    run :cwd($_), <git pull> with $CONFIG<projects><moarvm><repo-origin>;
+    run :cwd($_), <git pull> with $CONFIG<projects><rakudo-moar><repo-path>;
+    run :cwd($_), <git pull> with $CONFIG<projects><moarvm><repo-path>;
     True
 }
 
