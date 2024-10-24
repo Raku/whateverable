@@ -25,6 +25,7 @@ unit module Whateverable::Webhooks;
 
 class StrictTransportSecurity does Cro::Transform {
     has Str:D $.secret is required;
+    has $!max-age;
 
     method consumes() { Cro::TCP::Message }
     method produces() { Cro::TCP::Message }
