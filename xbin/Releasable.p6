@@ -106,6 +106,7 @@ sub changelog-to-stats($changelog) {
         $summary = ‘Changelog for this release was not started yet’;
         $actual-commit-old = $actual-commit
     }
+    $summary ~= ' (VERSION: $version) (ACTUAL COMMIT: $actual-commit-old) ';
     $actual-commit-old //= to-full-commit $version-old;
     die ‘Cannot resolve the tag for the previous release’ without $actual-commit-old;
 
