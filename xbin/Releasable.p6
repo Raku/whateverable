@@ -131,7 +131,6 @@ sub changelog-to-stats($changelog) {
     my $ignored = set ignored-commits;
     my @unlogged = @git-commits.grep: * !∈ ($commits-mentioned ∪ $ignored); # ordered
     $summary //= “{@git-commits - @unlogged} out of {+@git-commits} commits logged”;
-    $summary ~= " (VERSION: $version) (ACTUAL COMMIT: $actual-commit-old) (OLD-VERSION: $version-old)";
     { :$summary, :@unlogged, :@warnings }
 }
 
