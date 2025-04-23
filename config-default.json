@@ -1,12 +1,12 @@
 {
     "projects": {
         "rakudo-moar": {
-            "repo-origin": "https://github.com/rakudo/rakudo.git",
+            "repo-origin": "https://github.com/rakudo/rakudo",
             "repo-path": "./data/rakudo-moar",
             "archives-path": "./data/builds/rakudo-moar"
         },
         "moarvm": {
-            "repo-origin": "https://github.com/MoarVM/MoarVM.git",
+            "repo-origin": "https://github.com/MoarVM/MoarVM",
             "repo-path": "./data/moarvm",
             "archives-path": "./data/builds/moarvm"
         }
