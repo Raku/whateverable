@@ -33,7 +33,7 @@ use Whateverable::Heartbeat;
 use Whateverable::Messages;
 use Whateverable::Processing;
 
-constant Message = IRC::Client::Message;
+constant IRC-Message = IRC::Client::Message;
 
 unit role Whateverable does IRC::Client::Plugin;
 
@@ -76,29 +76,29 @@ method TWEAK {
 }
 
 #↓ STDIN reset
-multi method irc-to-me(Message $msg where .text ~~
+multi method irc-to-me(IRC-Message $msg where .text ~~
                        #↓ Matches only one space on purpose (for whitespace-only stdin)
                        /:i^ [stdin] [‘ ’|‘=’] [clear|delete|reset|unset] $/) {
     $CONFIG<stdin> = $CONFIG<default-stdin>;
     ‘STDIN is reset to the default value’
 }
 #↓ STDIN set
-multi method irc-to-me(Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdin>=.* $/) {
+multi method irc-to-me(IRC-Message $msg where .text ~~ /:i^ [stdin] [‘ ’|‘=’] $<stdin>=.* $/) {
     my $file = process-code ~$<stdin>, $msg;
     $CONFIG<stdin> = $file.slurp;
     unlink $file;
     “STDIN is set to «{shorten $CONFIG<stdin>, 200}»” # TODO is 200 a good limit
 }
 #↓ Source
-multi method irc-to-me(Message $    where .text ~~ /:i^ [source|url] ‘?’? \s* $/) { $CONFIG<source> }
+multi method irc-to-me(IRC-Message $    where .text ~~ /:i^ [source|url] ‘?’? \s* $/) { $CONFIG<source> }
 #↓ Wiki
-multi method irc-to-me(Message $    where .text ~~ /:i^ wiki ‘?’? \s* $/) { self.get-wiki-link }
+multi method irc-to-me(IRC-Message $    where .text ~~ /:i^ wiki ‘?’? \s* $/) { self.get-wiki-link }
 #↓ Help
-multi method irc-to-me(Message $msg where .text ~~ /:i^ [help|usage] ‘?’? \s* $/) {
+multi method irc-to-me(IRC-Message $msg where .text ~~ /:i^ [help|usage] ‘?’? \s* $/) {
     self.help($msg) ~ “ # See wiki for more examples: {self.get-wiki-link}”
 }
 #↓ Uptime
-multi method irc-to-me(Message $msg where .text ~~ /:i^ uptime \s* $/) {
+multi method irc-to-me(IRC-Message $msg where .text ~~ /:i^ uptime \s* $/) {
     use nqp;
     use Telemetry;
     (denominate now - $*INIT-INSTANT) ~ ‘, ’
@@ -121,7 +121,7 @@ sub you're-welcome is export {
     »
 }
 #| Replying to thanks
-multi method irc-to-me(Message $msg where .text ~~ /:i^ [‘thank you’|‘thanks’] \s* /) {
+multi method irc-to-me(IRC-Message $msg where .text ~~ /:i^ [‘thank you’|‘thanks’] \s* /) {
     you're-welcome.pick
 }
 #| Replying to thanks
