@@ -30,7 +30,7 @@ use Whateverable::Running;
 use File::Directory::Tree:ver<0.1+>:auth<zef:labster>;
 use File::Temp:ver<0.0.11+>:auth<zef:raku-community-modules>;
 use IRC::Client:ver<4.0.14+>:auth<zef:lizmat>;
-use Terminal::ANSIColor:ver<0.12+>:auth<zef:raku-community-modules>;
+use Terminal::ANSIColor:ver<0.13+>:auth<zef:raku-community-modules>;
 
 unit class Bisectable does Whateverable;
 

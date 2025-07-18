@@ -47,7 +47,7 @@
         "Pastebin::Gist:ver<1.007+>:auth<zef:raku-community-modules>",
         "SVG::Plot",
         "Stats:ver<0.0.6+>:auth<github:MattOates>",
-        "Terminal::ANSIColor:ver<0.12+>:auth<zef:raku-community-modules>",
+        "Terminal::ANSIColor:ver<0.13+>:auth<zef:raku-community-modules>",
         "Text::Diff::Sift4:ver<2.0.1+>:auth<zef:MasterDuke>"
     ],
     "resources"   : [ ],
