@@ -27,7 +27,7 @@ use Whateverable::Running;
 use Whateverable::Userlist;
 
 use IRC::Client:ver<4.0.14+>:auth<zef:lizmat>;
-use Terminal::ANSIColor:ver<0.11+>:auth<zef:lizmat>;
+use Terminal::ANSIColor:ver<0.12+>:auth<zef:raku-community-modules>;
 
 unit class Evalable does Whateverable does Whateverable::Userlist;
 

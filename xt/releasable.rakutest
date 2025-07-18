@@ -1,5 +1,5 @@
-#!/usr/bin/env perl6
-BEGIN %*ENV<PERL6_TEST_DIE_ON_FAIL> = 1;
+#!/usr/bin/env raku
+BEGIN %*ENV<RAKU_TEST_DIE_ON_FAIL> = 1;
 %*ENV<TESTABLE> = ‘rakudo-mock’;
 
 use lib <lib xt/lib>;

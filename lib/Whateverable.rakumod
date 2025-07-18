@@ -22,7 +22,7 @@ use IRC::TextColor:ver<0.4.0+>:auth<zef:raku-community-modules>;
 use JSON::Fast:ver<0.19+>:auth<cpan:TIMOTIMO>;
 use Number::Denominate:ver<2.002002+>:auth<zef:raku-community-modules>;
 use Pastebin::Gist:ver<1.007+>:auth<zef:raku-community-modules>;
-use Terminal::ANSIColor:ver<0.11+>:auth<zef:lizmat>;
+use Terminal::ANSIColor:ver<0.12+>:auth<zef:raku-community-modules>;
 use Text::Diff::Sift4:ver<2.0.1+>:auth<zef:MasterDuke>;
 
 use Whateverable::Bits;
