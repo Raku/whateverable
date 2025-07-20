@@ -10,7 +10,7 @@ each commit.
 
 ### Usage
 
-See [wiki](https://github.com/Raku/whateverable/wiki) for more information.
+See [wiki](https://github.com/raku-community-modules/whateverable/wiki) for more information.
 
 
 ### Contributing
@@ -20,4 +20,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Installation
 
-See [wiki/installation](https://github.com/Raku/whateverable/wiki/Installation).
+See [wiki/installation](https://github.com/raku-community-modules/whateverable/wiki/Installation).
