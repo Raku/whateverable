@@ -150,7 +150,7 @@ $server.handler: sub ($request, $response) {
         $response.status = 500; $response.close;
         return
     }
-    use Digest::SHA;
+    use Digest::SHA1;
     use Digest::HMAC;
     my $body = $request.data;
     $body .= subbuf: 0..^($body - 1) if $body[*-1] == 0; # TODO trailing null byte. Why is it there?

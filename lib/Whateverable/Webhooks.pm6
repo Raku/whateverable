@@ -67,7 +67,7 @@ sub listen-to-webhooks($host, $port, $secret, $channel, $irc) is export {
 
 #| GitHub-specific processing of webhook payloads
 sub process-webhook($secret, $channel, $irc) {
-    use Digest::SHA;
+    use Digest::SHA1;
     use Digest::HMAC;
 
     my $body = request-body -> Blob { $_ };
