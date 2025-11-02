@@ -21,3 +21,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ### Installation
 
 See [wiki/installation](https://github.com/raku-community-modules/whateverable/wiki/Installation).
+
