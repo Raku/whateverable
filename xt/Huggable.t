@@ -41,6 +41,12 @@ $t.test('huggable6: hug everyone',
         'hugs everyone'
        );
 
+#| huggable6: <nick>...
+$t.test('huggable6: sibl ande',
+        "{$t.bot-nick}: sibl ande",
+        'hugs sibl ande'
+       );
+
 $t.last-test;
 done-testing;
 END $t.end;

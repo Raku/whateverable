@@ -17,5 +17,10 @@ multi method irc-to-me($msg where / [\s|^] 'hug' [\s|$] /) {
     $.irc.send: :where($msg.channel) :text("hugs" ~ ($msg.text.substr($idx) // ""));
 }
 
+#| huggable6: <nick>...
+multi method irc-to-me($msg) {
+    $.irc.send: :where($msg.channel) :text("hugs" ~ $msg.text);
+}
+
 Huggable.new.selfrun: 'huggable6', [/ huggable6? <before ':'> /,
 fuzzy-nick('huggable6', 2)]
