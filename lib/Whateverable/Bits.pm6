@@ -26,6 +26,7 @@ role Reply      { has $.msg              }
 role ProperStr  { has $.long-str         }
 role PrettyLink { has &.link-msg         }
 role FileStore  { has %.additional-files }
+role RawAction  {                        }
 
 #| Reply and also mix in the Reply role so that gists have more info
 sub reply($msg, $response) is export {

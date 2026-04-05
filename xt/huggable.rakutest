@@ -16,30 +16,30 @@ $t.common-tests: help => 'Like this: .hug <nick>';
 #| .hug <nick>
 $t.test('.hug',
         '.hug',
-        /^ "hugs {$t.our-nick}" $/);
+        "\x[01]ACTION hugs {$t.our-nick}\x01");
 
 $t.test('.hug <nick>',
         '.hug sibl',
-        /^ "hugs sibl" $/);
+        "\x[01]ACTION hugs sibl\x01");
 
 $t.test('.hug <whatever actually>',
         '.hug everyone',
-        /^ "hugs everyone" $/);
+        "\x[01]ACTION hugs everyone\x01");
 
 #| huggable6: hug
 #| huggable6: hug <nick>
 $t.test('huggable6: hug',
         "{$t.bot-nick}: hug",
-        /^ "hugs {$t.our-nick}" $/);
+        "\x[01]ACTION hugs {$t.our-nick}\x01");
 
 $t.test('huggable6: hug everyone',
         "{$t.bot-nick}: hug everyone",
-        /^ "hugs everyone" $/);
+        "\x[01]ACTION hugs everyone\x01");
 
 #| huggable6: <nick>...
 $t.test('huggable6: sibl ande',
         "{$t.bot-nick}: sibl ande",
-        /^ "hugs sibl ande" $/);
+        "\x[01]ACTION hugs sibl ande\x01");
 
 $t.last-test;
 done-testing;
