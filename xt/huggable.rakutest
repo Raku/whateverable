@@ -1,6 +1,6 @@
-#!/usr/bin/env perl6
+#!/usr/bin/env raku
 
-BEGIN %*ENV<PERL6_TEST_DIE_ON_FAIL> = 1;
+BEGIN %*ENV<RAKU_TEST_DIE_ON_FAIL> = 1;
 %*ENV<TESTABLE> = 1;
 
 use lib <lib xt/lib>;
@@ -8,7 +8,7 @@ use Test;
 use Testable;
 use IRC::Client;
 
-my $t = Huggable.new: bot => 'Huggable';
+my $t = Testable.new: bot => 'Huggable';
 
 $t.common-tests: help => 'Like this: .hug <nick>';
 
@@ -16,35 +16,36 @@ $t.common-tests: help => 'Like this: .hug <nick>';
 #| .hug <nick>
 $t.test('.hug',
         'hug',
-        "hugs {$t.our-nick}");
+        "\x01ACTION hugs {$t.our-nick}\x01");
 
 $t.test('.hug <nick>',
         '.hug sibl',
-        'hugs sibl');
+        "\x01ACTION hugs sibl\x01");
 
 $t.test('.hug <whatever actually>',
         '.hug everyone',
-        'hugs everyone');
+        "\x01ACTION hugs everyone\x01");
 
 $t.test('<prefix> .hug <nick>',
         '<foobar> .hug ande',
-        "hugs ande");
+        "\x01ACTION hugs ande\x01");
 
 #| huggable6: hug
 #| huggable6: hug <nick>
 $t.test('huggable6: hug',
         "{$t.bot-nick}: hug",
-        "hugs {$t.our-nick}"
+        "\x01ACTION hugs {$t.our-nick}\x01"
        );
+
 $t.test('huggable6: hug everyone',
         "{$t.bot-nick}: hug everyone",
-        'hugs everyone'
+        "\x01ACTION hugs everyone\x01"
        );
 
 #| huggable6: <nick>...
 $t.test('huggable6: sibl ande',
         "{$t.bot-nick}: sibl ande",
-        'hugs sibl ande'
+        "\x01ACTION hugs sibl ande\x01"
        );
 
 $t.last-test;
