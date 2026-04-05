@@ -180,6 +180,11 @@ multi method filter($text is copy) {
         127.chr => ‘␡’, /<:Cc>/ => ‘␦’
 }
 
+#↓ Send raw string (as is)
+multi method filter($text where * ~~ RawAction) {
+    $text
+}
+
 #↓ Gists %files and returns a link
 sub upload(%files is copy, :$description = ‘’, Bool :$public = True) is export {
     if %*ENV<TESTABLE> {
