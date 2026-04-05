@@ -8,15 +8,15 @@ use Test;
 use Testable;
 use IRC::Client;
 
-my $t = Huggable.new: bot => ‘Huggable’;
+my $t = Huggable.new: bot => 'Huggable';
 
-$t.common-tests: help => ‘Like this: .hug’;
+$t.common-tests: help => 'Like this: .hug <nick>';
 
 #| .hug
 #| .hug <nick>
 $t.test('.hug',
         'hug',
-        'hugs');
+        "hugs {$t.our-nick}");
 
 $t.test('.hug <nick>',
         '.hug sibl',
@@ -34,7 +34,7 @@ $t.test('<prefix> .hug <nick>',
 #| huggable6: hug <nick>
 $t.test('huggable6: hug',
         "{$t.bot-nick}: hug",
-        'hugs'
+        "hugs {$t.our-nick}"
        );
 $t.test('huggable6: hug everyone',
         "{$t.bot-nick}: hug everyone",
