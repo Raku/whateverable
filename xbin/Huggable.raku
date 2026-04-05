@@ -1,3 +1,4 @@
+#!/usr/bin/env perl6
 use Whateverable;
 use IRC::Client;
 
