@@ -15,7 +15,7 @@ method help($msg) {
 #| hugs the sender if no nick is provided
 multi method irc-privmsg-channel($msg where /^ \s* '.hug' \s* $<nicks>=(<.&irc-nick>* %% \s+) $/) {
     my $targets = $<nicks>.Str.trim || $msg.nick;
-    $.irc.send: :where($msg.channel), :text("\x[01]ACTION hugs " ~ $targets ~ "\x01");
+    $.irc.send: :where($msg.channel), :text("hugs $targets");
 }
 
 #| huggable6: hug
@@ -23,12 +23,12 @@ multi method irc-privmsg-channel($msg where /^ \s* '.hug' \s* $<nicks>=(<.&irc-n
 #| hugs the sender if no nick is provided
 multi method irc-to-me($msg where /^ \s* 'hug' \s* $<nicks>=(<.&irc-nick>* %% \s+) $/) {
     my $targets = $<nicks>.Str.trim || $msg.nick;
-    $.irc.send: :where($msg.channel), :text("\x[01]ACTION hugs " ~ $targets ~ "\x01");
+    $.irc.send: :where($msg.channel), :text("hugs $targets");
 }
 
 #| huggable6: <nick>...
 multi method irc-to-me($msg where /^ \s* $<nicks>=(<.&irc-nick>* %% \s+) $/) {
-    $.irc.send: :where($msg.channel), :text("\x[01]ACTION hugs " ~ $msg.text.trim ~ "\x01");
+    $.irc.send: :where($msg.channel), :text("hugs {$msg.text.trim}");
 }
 
 Huggable.new.selfrun: 'huggable6', [/ huggable6? <before ':'> /,
