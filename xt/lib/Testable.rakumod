@@ -78,7 +78,7 @@ class Testable {
             :channels(“#whateverable_{$bot.lc}6”)
         );
 
-        my $executable = ‘./xbin/’ ~ $bot ~ ‘.p6’;
+        my $executable = ‘./xbin/’ ~ $bot ~ ‘.raku’;
         run :env(|%*ENV, PERL6LIB => ‘lib’), <perl6 -c -->, $executable; # precompahead
         $!bot-proc = Proc::Async.new: <perl6 -->, $executable;
         END .kill with $!bot-proc;
