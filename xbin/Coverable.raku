@@ -1,4 +1,4 @@
-#!/usr/bin/env perl6
+#!/usr/bin/env raku
 # Copyright © 2016-2023
 #     Daniel Green <ddgreen@gmail.com>
 #     Aleks-Daniel Jakimenko-Aleksejev <alex.jakimenko@gmail.com>

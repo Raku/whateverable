@@ -1,4 +1,4 @@
-#!/usr/bin/env perl6
+#!/usr/bin/env raku
 BEGIN %*ENV<PERL6_TEST_DIE_ON_FAIL> = 1;
 %*ENV<TESTABLE> = 1;
 
