@@ -6,7 +6,7 @@ use IRC::Client;
 
 unit class Huggable does Whateverable;
 
-method help {
+method help($msg) {
     'Like this: .hug <nick>'
 }
 
