@@ -328,6 +328,21 @@ services:
         limits:
           memory: 1.5G
 
+  huggable:
+    image: postmodern.alexdaniel.org/whateverable:latest
+    command: ake start:huggable
+    volumes:
+      - /home/whateverable/data/huggable:/srv/data/huggable
+    secrets:
+      - config
+    networks:
+      - caddy
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 1.5G
+
   sourceable:
     image: postmodern.alexdaniel.org/whateverable:latest
     command: ake start:sourceable
