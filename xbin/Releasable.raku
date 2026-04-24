@@ -219,8 +219,9 @@ multi method irc-to-me($msg where /^ :i \s*
         my $descs = run :out, :cwd($CONFIG<projects><rakudo-moar><repo-path>), ‘git’, ‘show’,
                         ‘--format=%s’,
                         “--abbrev=$SHA-LENGTH”, ‘--quiet’, |%stats<unlogged>;
+        my $repo = $CONFIG<projects><rakudo-moar><repo-origin>.subst(/ .git $/, '');
         my $links = run :out, :cwd($CONFIG<projects><rakudo-moar><repo-path>), ‘git’, ‘show’,
-                        ‘--format=[<a href="’ ~ $CONFIG<projects><rakudo-moar><repo-origin> ~ ‘/commit/%H">%h</a>]’,
+                        ‘--format=[<a href="’ ~ $repo ~ ‘/commit/%H">%h</a>]’,
                         “--abbrev=$SHA-LENGTH”, ‘--quiet’, |%stats<unlogged>;
         my $unreviewed = join “\n”, ($descs.out.lines Z $links.out.lines).map:
                          {‘    + ’ ~ html-escape(.[0]) ~ ‘ ’ ~ .[1]};
