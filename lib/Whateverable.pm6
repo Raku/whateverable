@@ -218,7 +218,7 @@ method selfrun($nick is copy, @alias?) {
         :password(?%*ENV<TESTABLE> ?? ‘’ !! $CONFIG<irc><login password>.join: ‘:’)
         :@alias
         # IPv4 address of irc.libera.chat is hardcoded so that we can double the limit ↓
-        :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! <irc.libera.chat 130.185.232.126>.pick)
+        :host(%*ENV<TESTABLE> ?? ‘127.0.0.1’ !! <irc.libera.chat 93.158.237.2>.pick)
         :port(%*ENV<TESTABLE> ?? %*ENV<TESTABLE_PORT> !! 6667)
         :channels(%*ENV<DEBUGGABLE>
                   ?? $CONFIG<cave>
